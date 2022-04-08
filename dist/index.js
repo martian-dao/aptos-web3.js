@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.claimNFT = exports.cancelNFTOffer = exports.offerNFT = exports.createNFT = exports.createNFTCollection = exports.getReceivedEvents = exports.getSentEvents = exports.transfer = exports.get_balance = exports.air_drop = exports.import_wallet = exports.create_wallet = exports.TokenClient = exports.FaucetClient = exports.RestClient = exports.Account = exports.FAUCET_URL = exports.TESTNET_URL = void 0;
+exports.claimNFT = exports.cancelNFTOffer = exports.offerNFT = exports.createNFT = exports.createNFTCollection = exports.getReceivedEvents = exports.getSentEvents = exports.transfer = exports.getBalance = exports.airdrop = exports.importWallet = exports.createWallet = exports.TokenClient = exports.FaucetClient = exports.RestClient = exports.Account = exports.FAUCET_URL = exports.TESTNET_URL = void 0;
 const SHA3 = require("js-sha3");
 const cross_fetch_1 = require("cross-fetch");
 const Nacl = require("tweetnacl");
@@ -355,7 +355,7 @@ function getAccountFromMnemonic(code) {
     const alice = new Account(seed.slice(0, 32));
     return Promise.resolve(alice);
 }
-function create_wallet() {
+function createWallet() {
     return __awaiter(this, void 0, void 0, function* () {
         const restClient = new RestClient(exports.TESTNET_URL);
         const faucetClient = new FaucetClient(exports.FAUCET_URL, restClient);
@@ -370,8 +370,8 @@ function create_wallet() {
         });
     });
 }
-exports.create_wallet = create_wallet;
-function import_wallet(code) {
+exports.createWallet = createWallet;
+function importWallet(code) {
     return __awaiter(this, void 0, void 0, function* () {
         const restClient = new RestClient(exports.TESTNET_URL);
         const faucetClient = new FaucetClient(exports.FAUCET_URL, restClient);
@@ -384,8 +384,8 @@ function import_wallet(code) {
         });
     });
 }
-exports.import_wallet = import_wallet;
-function air_drop(code, amount) {
+exports.importWallet = importWallet;
+function airdrop(code, amount) {
     return __awaiter(this, void 0, void 0, function* () {
         const restClient = new RestClient(exports.TESTNET_URL);
         const faucetClient = new FaucetClient(exports.FAUCET_URL, restClient);
@@ -395,15 +395,15 @@ function air_drop(code, amount) {
         yield faucetClient.fundAccount(alice.authKey(), amount).then(() => Promise.resolve(true)).catch((msg) => Promise.reject(msg));
     });
 }
-exports.air_drop = air_drop;
-function get_balance(address) {
+exports.airdrop = airdrop;
+function getBalance(address) {
     return __awaiter(this, void 0, void 0, function* () {
         const restClient = new RestClient(exports.TESTNET_URL);
         var balance = yield restClient.accountBalance(address);
         return Promise.resolve(balance);
     });
 }
-exports.get_balance = get_balance;
+exports.getBalance = getBalance;
 function transfer(code, recipient_address, amount) {
     return __awaiter(this, void 0, void 0, function* () {
         const restClient = new RestClient(exports.TESTNET_URL);

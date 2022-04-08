@@ -369,7 +369,7 @@ function getAccountFromMnemonic(code: string) {
     return Promise.resolve(alice);
 }
 
-export async function create_wallet() {
+export async function createWallet() {
     const restClient = new RestClient(TESTNET_URL);
     const faucetClient = new FaucetClient(FAUCET_URL, restClient);
 
@@ -387,7 +387,7 @@ export async function create_wallet() {
     });
 }
 
-export async function import_wallet(code: string) {
+export async function importWallet(code: string) {
     const restClient = new RestClient(TESTNET_URL);
     const faucetClient = new FaucetClient(FAUCET_URL, restClient);
 
@@ -402,7 +402,7 @@ export async function import_wallet(code: string) {
     });
 }
 
-export async function air_drop(code: string, amount: number) {
+export async function airdrop(code: string, amount: number) {
     const restClient = new RestClient(TESTNET_URL);
     const faucetClient = new FaucetClient(FAUCET_URL, restClient);
 
@@ -413,7 +413,7 @@ export async function air_drop(code: string, amount: number) {
     await faucetClient.fundAccount(alice.authKey(), amount).then(() => Promise.resolve(true)).catch((msg) => Promise.reject(msg));
 }
 
-export async function get_balance(address: string) {
+export async function getBalance(address: string) {
     const restClient = new RestClient(TESTNET_URL);
 
     var balance = await restClient.accountBalance(address)

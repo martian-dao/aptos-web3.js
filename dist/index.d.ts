@@ -73,15 +73,15 @@ export declare class TokenClient {
     /** Retrieve the token's creation_num, which is useful for non-creator operations */
     getTokenId(creator: string, collection_name: string, token_name: string): Promise<number>;
 }
-export declare function create_wallet(): Promise<{
+export declare function createWallet(): Promise<{
     code: string;
     "address key": string;
 }>;
-export declare function import_wallet(code: string): Promise<{
+export declare function importWallet(code: string): Promise<{
     "address key": string;
 }>;
-export declare function air_drop(code: string, amount: number): Promise<void>;
-export declare function get_balance(address: string): Promise<number | null>;
+export declare function airdrop(code: string, amount: number): Promise<void>;
+export declare function getBalance(address: string): Promise<number | null>;
 export declare function transfer(code: string, recipient_address: string, amount: number): Promise<void>;
 export declare function getSentEvents(address: string): Promise<Record<string, any> & {
     type: string;
