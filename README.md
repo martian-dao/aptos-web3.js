@@ -1,7 +1,7 @@
 # Introduction
 Web3.js for Aptos
 
-@martiandao/aptos-web3.js is an npm module which allows developers to communicate with the Aptos ecosystem.
+@martiandao/aptos-web3.js is an npm module which allows developers to communicate with the Aptos core code.
 
 # Import
 ```
