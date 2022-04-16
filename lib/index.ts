@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as SHA3 from "js-sha3";
-import fetch from "cross-fetch";
+// import fetch from "cross-fetch";
+import fetch from "node-fetch";
 import * as Nacl from "tweetnacl";
 import * as assert from "assert";
 
@@ -62,7 +63,7 @@ export class RestClient {
     if (response.status != 200) {
       assert(response.status == 200, await response.text());
     }
-    return await response.json();
+    return await response.json() as any;
   }
 
   /** Returns all resources associated with the account */
@@ -71,7 +72,7 @@ export class RestClient {
     if (response.status != 200) {
       assert(response.status == 200, await response.text());
     }
-    return await response.json();
+    return await response.json() as any;
   }
 
   async accountSentEvents(accountAddress: string): Promise<Record<string, any> & { type: string }> {
@@ -79,7 +80,7 @@ export class RestClient {
     if (response.status != 200) {
       assert(response.status == 200, await response.text());
     }
-    return await response.json();
+    return await response.json()  as any;
   }
 
   async accountReceivedEvents(accountAddress: string): Promise<Record<string, any> & { type: string }> {
@@ -87,7 +88,7 @@ export class RestClient {
     if (response.status != 200) {
       assert(response.status == 200, await response.text());
     }
-    return await response.json();
+    return await response.json() as any;
   }
 
   /** Generates a transaction request that can be submitted to produce a raw transaction that
@@ -118,7 +119,7 @@ export class RestClient {
     if (response.status != 200) {
       assert(response.status == 200, (await response.text()) + " - " + JSON.stringify(txnRequest));
     }
-    const result: Record<string, any> & { message: string } = await response.json();
+    const result: Record<string, any> & { message: string } = await response.json() as any;
     const toSign = Buffer.from(result["message"].substring(2), "hex");
     const signature = Nacl.sign(toSign, accountFrom.signingKey.secretKey);
     const signatureHex = Buffer.from(signature).toString("hex").slice(0, 128);
@@ -140,7 +141,7 @@ export class RestClient {
     if (response.status != 202) {
       assert(response.status == 202, (await response.text()) + " - " + JSON.stringify(txnRequest));
     }
-    return await response.json();
+    return await response.json() as any;
   }
 
   async transactionPending(txnHash: string): Promise<boolean> {
@@ -151,7 +152,7 @@ export class RestClient {
     if (response.status != 200) {
       assert(response.status == 200, await response.text());
     }
-    return (await response.json())["type"] == "pending_transaction";
+    return (await response.json() as any)["type"] == "pending_transaction";
   }
 
   /** Waits up to 10 seconds for a transaction to move past pending state */
@@ -512,3 +513,44 @@ export async function claimNFT(code: string, sender_address: string, creator_add
   return await tokenClient.claimToken(alice, sender_address, creator_address, token_id);
 }
 
+export async function signGenericTransaction(code: string, func: string, ...args: string[]) {
+    const restClient = new RestClient(TESTNET_URL);
+    const tokenClient = new TokenClient(restClient);
+  
+    const alice = await getAccountFromMnemonic(code).catch((msg) => {
+        return Promise.reject(msg);
+    });
+
+    const payload: { function: string; arguments: string[]; type: string; type_arguments: any[] } = {
+      type: "script_function_payload",
+      function: func,
+      type_arguments: [],
+      arguments: args
+    }
+    return await tokenClient.submitTransactionHelper(alice, payload);
+}
+
+export async function getAccountResources(alice_address: string): Promise<Record<string, any> & { type: string }> {
+  const restClient = new RestClient(TESTNET_URL);
+  return await restClient.accountResources(alice_address);
+}
+
+// export async function getGallery(alice_address: string) {
+//   const allResources = await getAccountResources(alice_address);
+//   for (const key in allResources) {
+//     const resource = allResources[key];
+//     if (resource["type"] == "0x1::Token::Gallery") {
+//       return resource["data"]["gallery"]["value"];
+//     }
+//   }
+// }
+
+// export async function getCollection(alice_address: string) {
+//   const allResources = await getAccountResources(alice_address);
+//   for (const key in allResources) {
+//     const resource = allResources[key];
+//     if (resource["type"] == "0x1::Token::Collections") {
+//       return resource["data"]["collections"]["value"];
+//     }
+//   }
+// }

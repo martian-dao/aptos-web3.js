@@ -11,9 +11,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.claimNFT = exports.cancelNFTOffer = exports.offerNFT = exports.createNFT = exports.createNFTCollection = exports.getReceivedEvents = exports.getSentEvents = exports.transfer = exports.getBalance = exports.airdrop = exports.importWallet = exports.createWallet = exports.TokenClient = exports.FaucetClient = exports.RestClient = exports.Account = exports.FAUCET_URL = exports.TESTNET_URL = void 0;
+exports.signGenericTransaction = exports.claimNFT = exports.cancelNFTOffer = exports.offerNFT = exports.createNFT = exports.createNFTCollection = exports.getReceivedEvents = exports.getSentEvents = exports.transfer = exports.getBalance = exports.airdrop = exports.importWallet = exports.createWallet = exports.TokenClient = exports.FaucetClient = exports.RestClient = exports.Account = exports.FAUCET_URL = exports.TESTNET_URL = void 0;
 const SHA3 = require("js-sha3");
-const cross_fetch_1 = require("cross-fetch");
+// import fetch from "cross-fetch";
+const node_fetch_1 = require("node-fetch");
 const Nacl = require("tweetnacl");
 const assert = require("assert");
 exports.TESTNET_URL = "https://fullnode.devnet.aptoslabs.com";
@@ -55,7 +56,7 @@ class RestClient {
     /** Returns the sequence number and authentication key for an account */
     account(accountAddress) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield (0, cross_fetch_1.default)(`${this.url}/accounts/${accountAddress}`, { method: "GET" });
+            const response = yield (0, node_fetch_1.default)(`${this.url}/accounts/${accountAddress}`, { method: "GET" });
             if (response.status != 200) {
                 assert(response.status == 200, yield response.text());
             }
@@ -65,7 +66,7 @@ class RestClient {
     /** Returns all resources associated with the account */
     accountResources(accountAddress) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield (0, cross_fetch_1.default)(`${this.url}/accounts/${accountAddress}/resources`, { method: "GET" });
+            const response = yield (0, node_fetch_1.default)(`${this.url}/accounts/${accountAddress}/resources`, { method: "GET" });
             if (response.status != 200) {
                 assert(response.status == 200, yield response.text());
             }
@@ -74,7 +75,7 @@ class RestClient {
     }
     accountSentEvents(accountAddress) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield (0, cross_fetch_1.default)(`${this.url}/accounts/${accountAddress}/events/0x1::TestCoin::TransferEvents/sent_events`, { method: "GET" });
+            const response = yield (0, node_fetch_1.default)(`${this.url}/accounts/${accountAddress}/events/0x1::TestCoin::TransferEvents/sent_events`, { method: "GET" });
             if (response.status != 200) {
                 assert(response.status == 200, yield response.text());
             }
@@ -83,7 +84,7 @@ class RestClient {
     }
     accountReceivedEvents(accountAddress) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield (0, cross_fetch_1.default)(`${this.url}/accounts/${accountAddress}/events/0x1::TestCoin::TransferEvents/received_events`, { method: "GET" });
+            const response = yield (0, node_fetch_1.default)(`${this.url}/accounts/${accountAddress}/events/0x1::TestCoin::TransferEvents/received_events`, { method: "GET" });
             if (response.status != 200) {
                 assert(response.status == 200, yield response.text());
             }
@@ -112,7 +113,7 @@ class RestClient {
      transaction, which can then be submitted to the blockchain. */
     signTransaction(accountFrom, txnRequest) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield (0, cross_fetch_1.default)(`${this.url}/transactions/signing_message`, {
+            const response = yield (0, node_fetch_1.default)(`${this.url}/transactions/signing_message`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(txnRequest)
@@ -135,7 +136,7 @@ class RestClient {
     /** Submits a signed transaction to the blockchain. */
     submitTransaction(accountFrom, txnRequest) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield (0, cross_fetch_1.default)(`${this.url}/transactions`, {
+            const response = yield (0, node_fetch_1.default)(`${this.url}/transactions`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(txnRequest)
@@ -148,7 +149,7 @@ class RestClient {
     }
     transactionPending(txnHash) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield (0, cross_fetch_1.default)(`${this.url}/transactions/${txnHash}`, { method: "GET" });
+            const response = yield (0, node_fetch_1.default)(`${this.url}/transactions/${txnHash}`, { method: "GET" });
             if (response.status == 404) {
                 return true;
             }
@@ -217,7 +218,7 @@ class FaucetClient {
     fundAccount(authKey, amount) {
         return __awaiter(this, void 0, void 0, function* () {
             const url = `${this.url}/mint?amount=${amount}&auth_key=${authKey}`;
-            const response = yield (0, cross_fetch_1.default)(url, { method: "POST" });
+            const response = yield (0, node_fetch_1.default)(url, { method: "POST" });
             if (response.status != 200) {
                 assert(response.status == 200, yield response.text());
             }
@@ -487,3 +488,20 @@ function claimNFT(code, sender_address, creator_address, collection_name, token_
     });
 }
 exports.claimNFT = claimNFT;
+function signGenericTransaction(code, func, ...args) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const restClient = new RestClient(exports.TESTNET_URL);
+        const tokenClient = new TokenClient(restClient);
+        const alice = yield getAccountFromMnemonic(code).catch((msg) => {
+            return Promise.reject(msg);
+        });
+        const payload = {
+            type: "script_function_payload",
+            function: func,
+            type_arguments: [],
+            arguments: args
+        };
+        return yield tokenClient.submitTransactionHelper(alice, payload);
+    });
+}
+exports.signGenericTransaction = signGenericTransaction;

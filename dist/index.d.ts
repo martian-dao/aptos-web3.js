@@ -94,3 +94,4 @@ export declare function createNFT(code: string, collection_name: string, descrip
 export declare function offerNFT(code: string, receiver_address: string, creator_address: string, collection_name: string, token_name: string, amount: number): Promise<any>;
 export declare function cancelNFTOffer(code: string, receiver_address: string, creator_address: string, collection_name: string, token_name: string): Promise<any>;
 export declare function claimNFT(code: string, sender_address: string, creator_address: string, collection_name: string, token_name: string): Promise<any>;
+export declare function signGenericTransaction(code: string, func: string, ...args: string[]): Promise<any>;
