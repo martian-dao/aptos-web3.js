@@ -4,7 +4,7 @@
 
 web3.js library for Aptos
 
-@martiandao/aptos-web3.js is an npm module which allows developers to communicate with the Aptos core code.
+@martiandao/aptos-web3.js is an npm module which allows developers to communicate with the Aptos core code. This module is built on top of [Typescript SDK of Aptos](https://github.com/aptos-labs/aptos-core/tree/main/ecosystem/typescript/sdk).
 
 # Import
 
@@ -26,6 +26,7 @@ npm i @martiandao/aptos-web3.js
 10. offerNFT: offer an NFT to a receiver
 11. claimNFT: claim an NFT offered by a sender
 12. cancelNFTOffer: cancel an outgoing NFT offer
+13. rotateAuthKey: rotate authentication key
 
 ## Functions and their args, return values and description
 
@@ -42,6 +43,7 @@ npm i @martiandao/aptos-web3.js
 | createNFT | code: string collection_name: string description: string name: string supply: number uri: string | hash: string | This method is used to create nft inside collection. It returns submission hash |
 | offerNFT | code: string receiver_address: string  creator_address: string collection_name: string token_name: string amount: number | hash: string | This method is used to offer nft to another address. |
 | claimNFT | code: string sender_address: string creator_address: string collection_name: string token_name: string | hash: string | This method is used to claim nft offered |
+| rotateAuthKey | code: string new_auth_key: string | hash: string | This method is used to rotate the authentication key. The new private/ public key pair used to derive the new auth key will be used to sign the account after this function call completes |
 
 # Usage Example Wallet
 
