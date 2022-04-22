@@ -82,6 +82,12 @@ main()
 
 ```
 
+# To Build
+```
+npm install
+npm run build
+```
+
 # Tests
 
 Jest tests allow to test whether each function is working as it supposed to.
