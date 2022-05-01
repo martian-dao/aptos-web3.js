@@ -55,7 +55,7 @@ export class AptosClient {
 
     // `withCredentials` ensures cookie handling
     this.client = new HttpClient<unknown>({
-      withCredentials: true,
+      withCredentials: false,
       baseURL: nodeUrl,
       validateStatus: () => true, // Don't explode here on error responses; let our code handle it
       ...(config || {}),
@@ -94,12 +94,38 @@ export class AptosClient {
     return response.data;
   }
 
+  /** Returns the module identified by address and module name */
+  async getAccountModule(
+    accountAddress: MaybeHexString,
+    moduleName: string,
+    query?: { version?: Types.LedgerVersion },
+  ): Promise<Types.MoveModule> {
+    const response = await this.accounts.getAccountModule(HexString.ensure(accountAddress).hex(), moduleName, query);
+    raiseForStatus(200, response);
+    return response.data;
+  }
+
   /** Returns all resources associated with the account */
   async getAccountResources(
     accountAddress: MaybeHexString,
     query?: { version?: Types.LedgerVersion },
   ): Promise<Types.AccountResource[]> {
     const response = await this.accounts.getAccountResources(HexString.ensure(accountAddress).hex(), query);
+    raiseForStatus(200, response);
+    return response.data;
+  }
+
+  /** Returns the resource by the address and resource type */
+  async getAccountResource(
+    accountAddress: MaybeHexString,
+    resourceType: string,
+    query?: { version?: Types.LedgerVersion },
+  ): Promise<Types.AccountResource> {
+    const response = await this.accounts.getAccountResource(
+      HexString.ensure(accountAddress).hex(),
+      resourceType,
+      query,
+    );
     raiseForStatus(200, response);
     return response.data;
   }
@@ -165,11 +191,13 @@ export class AptosClient {
     address: MaybeHexString,
     eventHandleStruct: Types.MoveStructTagId,
     fieldName: string,
+    query?: { start?: number; limit?: number },
   ): Promise<Types.Event[]> {
     const response = await this.accounts.getEventsByEventHandle(
       HexString.ensure(address).hex(),
       eventHandleStruct,
       fieldName,
+      query,
     );
     raiseForStatus(200, response, { address, eventHandleStruct, fieldName });
     return response.data;

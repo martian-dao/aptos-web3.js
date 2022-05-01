@@ -4,7 +4,6 @@ import { AptosClient } from './aptos_client';
 import { FaucetClient } from './faucet_client';
 import { HexString, MaybeHexString } from './hex_string';
 import { Types } from './types';
-import { NODE_URL, FAUCET_URL } from './util';
 import * as bip39 from '@scure/bip39';
 import * as english from '@scure/bip39/wordlists/english'
 
@@ -12,7 +11,7 @@ import * as english from '@scure/bip39/wordlists/english'
 export class RestClient {
     client: AptosClient
     constructor(url: string) {
-        this.client = new AptosClient(url || NODE_URL);
+        this.client = new AptosClient(url);
     }
 
     async accountSentEvents(accountAddress: string){
@@ -63,34 +62,34 @@ export class RestClient {
     }
 }
 
-function getAccountFromMnemonic(code: string, address?: MaybeHexString) {
-    if (!bip39.validateMnemonic(code, english.wordlist)) {
-        return Promise.reject('Incorrect mnemonic passed');
-    }
-
-    var seed = bip39.mnemonicToSeedSync(code.toString());
-
-    const account = new AptosAccount(seed.slice(0, 32), address);
-    return Promise.resolve(account);
-}
-
 export class WalletClient {
     faucetClient: FaucetClient
     restClient: RestClient
     aptosClient: AptosClient
     tokenClient: TokenClient
 
-    constructor(url=NODE_URL){
-        this.faucetClient = new FaucetClient(url, FAUCET_URL)
-        this.aptosClient = new AptosClient(url)
-        this.restClient = new RestClient(url)
+    constructor(node_url, faucet_url){
+        this.faucetClient = new FaucetClient(node_url, faucet_url)
+        this.aptosClient = new AptosClient(node_url)
+        this.restClient = new RestClient(node_url)
         this.tokenClient = new TokenClient(this.aptosClient)
+    }
+
+    async getAccountFromMnemonic(code: string, address?: MaybeHexString) {
+        if (!bip39.validateMnemonic(code, english.wordlist)) {
+            return Promise.reject('Incorrect mnemonic passed');
+        }
+    
+        var seed = bip39.mnemonicToSeedSync(code.toString());
+    
+        const account = new AptosAccount(seed.slice(0, 32), address);
+        return Promise.resolve(account);
     }
 
     async createWallet() {
     
         var code = bip39.generateMnemonic(english.wordlist); // secret recovery phrase
-        const account = await getAccountFromMnemonic(code).catch((msg) => {
+        const account = await this.getAccountFromMnemonic(code).catch((msg) => {
             return Promise.reject(msg);
         });
         await this.faucetClient.fundAccount(account.authKey(), 10);
@@ -104,7 +103,7 @@ export class WalletClient {
     async getUninitializedAccount() {
     
         var code = bip39.generateMnemonic(english.wordlist); // secret recovery phrase
-        const account = await getAccountFromMnemonic(code).catch((msg) => {
+        const account = await this.getAccountFromMnemonic(code).catch((msg) => {
             return Promise.reject(msg);
         });
     
@@ -117,7 +116,7 @@ export class WalletClient {
     
     async importWallet(code: string, address?: string) {
     
-        const account = await getAccountFromMnemonic(code, address).catch((msg) => {
+        const account = await this.getAccountFromMnemonic(code, address).catch((msg) => {
             return Promise.reject(msg);
         });
     
@@ -139,7 +138,7 @@ export class WalletClient {
     }
     
     async transfer(code: string, recipient_address: string, amount: number, sender_address?: string) {    
-        const account = await getAccountFromMnemonic(code, sender_address).catch((msg) => {
+        const account = await this.getAccountFromMnemonic(code, sender_address).catch((msg) => {
             return Promise.reject(msg);
         });
     
@@ -157,7 +156,7 @@ export class WalletClient {
     
     async createNFTCollection(code: string, description: string, name: string, uri: string, address?: string) {
 
-        const account = await getAccountFromMnemonic(code, address).catch((msg) => {
+        const account = await this.getAccountFromMnemonic(code, address).catch((msg) => {
             return Promise.reject(msg);
         });
     
@@ -167,7 +166,7 @@ export class WalletClient {
     async createNFT(code: string, collection_name: string,
         description: string, name: string, supply: number, uri: string, address?: string) {
 
-        const account = await getAccountFromMnemonic(code, address).catch((msg) => {
+        const account = await this.getAccountFromMnemonic(code, address).catch((msg) => {
             return Promise.reject(msg);
         });
     
@@ -177,7 +176,7 @@ export class WalletClient {
     async offerNFT(code: string, receiver_address: string, creator_address: string,
         collection_name: string, token_name: string, amount: number, address?: string) {
     
-        const account = await getAccountFromMnemonic(code, address).catch((msg) => {
+        const account = await this.getAccountFromMnemonic(code, address).catch((msg) => {
             return Promise.reject(msg);
         });
     
@@ -189,7 +188,7 @@ export class WalletClient {
     async cancelNFTOffer(code: string, receiver_address: string, creator_address: string,
         collection_name: string, token_name: string, address?: string) {
 
-        const account = await getAccountFromMnemonic(code, address).catch((msg) => {
+        const account = await this.getAccountFromMnemonic(code, address).catch((msg) => {
             return Promise.reject(msg);
         });
     
@@ -201,7 +200,7 @@ export class WalletClient {
     async claimNFT(code: string, sender_address: string, creator_address: string,
         collection_name: string, token_name: string, address?: string) {
     
-        const account = await getAccountFromMnemonic(code, address).catch((msg) => {
+        const account = await this.getAccountFromMnemonic(code, address).catch((msg) => {
             return Promise.reject(msg);
         });
     
@@ -212,7 +211,7 @@ export class WalletClient {
     
     async signGenericTransaction(code: string, func: string, address?: string, ...args: string[]) {
     
-        const account = await getAccountFromMnemonic(code, address).catch((msg) => {
+        const account = await this.getAccountFromMnemonic(code, address).catch((msg) => {
             return Promise.reject(msg);
         });
     
@@ -231,7 +230,7 @@ export class WalletClient {
 
     async rotateAuthKey(code: string, new_auth_key: string, currAddress?: string) {
       
-        const alice = await getAccountFromMnemonic(code, currAddress).catch((msg) => {
+        const alice = await this.getAccountFromMnemonic(code, currAddress).catch((msg) => {
             return Promise.reject(msg);
         });
       
@@ -245,5 +244,40 @@ export class WalletClient {
         }
         return await this.tokenClient.submitTransactionHelper(alice, payload);
     }
+
+    // /** Retrieve the collection **/
+    // async getCollection(creator: string, collection_name: string): Promise<number> {
+    //     const resources: Types.AccountResource[] = await this.aptosClient.getAccountResources(creator);
+    //     const accountResource: { type: string; data: any } = resources.find((r) => r.type === "0x1::Token::Collections");
+    //     let collection = await this.tokenClient.tableItem(
+    //         accountResource.data.collections.handle,
+    //         "0x1::ASCII::String",
+    //         "0x1::Token::Collection",
+    //         collection_name,
+    //     );
+    //     return collection
+    // }
+
+    // /** Retrieve the token **/
+    // async getTokens(creator: string, collection_name: string, token_name: string): Promise<number> {
+    //     v tokens = []
+        
+    //     const resources: Types.AccountResource[] = await this.aptosClient.getAccountResources(creator);
+    //     const accountResource: { type: string; data: any } = resources.find((r) => r.type === "0x1::Token::Collections");
+    //     let collection = await this.tokenClient.tableItem(
+    //         accountResource.data.collections.handle,
+    //         "0x1::ASCII::String",
+    //         "0x1::Token::Collection",
+    //         collection_name,
+    //     );
+    //     let tokenData = await this.tokenClient.tableItem(
+    //         collection["tokens"]["handle"],
+    //         "0x1::ASCII::String",
+    //         "0x1::Token::TokenData",
+    //         token_name,
+    //     );
+    //     return tokenData["id"]["creation_num"]
+    // }
+    
 }
 
