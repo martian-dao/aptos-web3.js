@@ -309,10 +309,13 @@ class WalletClient {
             const response = yield (0, cross_fetch_1.default)(`${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`, {
                 method: "GET"
             });
+            if (response.status == 404) {
+                return [];
+            }
             return yield response.json();
         });
     }
-    // returns an ordered list of token IDs of the tokens in a user's account (including the tokens that were minted)
+    // returns a list of token IDs of the tokens in a user's account (including the tokens that were minted)
     getTokenIds(address) {
         return __awaiter(this, void 0, void 0, function* () {
             const events = yield this.getEventStream(address, "0x1::Token::TokenStore", "deposit_events");
@@ -328,14 +331,21 @@ class WalletClient {
             const tokenIds = yield this.getTokenIds(address);
             var tokens = [];
             for (var tokenId of tokenIds) {
-                console.log(tokenId);
                 const resources = yield this.aptosClient.getAccountResources(tokenId.creator);
                 const accountResource = resources.find((r) => r.type === "0x1::Token::Collections");
-                console.log(accountResource.data.collections.handle);
                 let token = yield this.tokenClient.tableItem(accountResource.data.token_data.handle, "0x1::Token::TokenId", "0x1::Token::TokenData", tokenId);
                 tokens.push(token);
             }
             return tokens;
+        });
+    }
+    // returns the collection data of a user
+    getCollection(address, collectionName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const resources = yield this.aptosClient.getAccountResources(address);
+            const accountResource = resources.find((r) => r.type === "0x1::Token::Collections");
+            let collection = yield this.tokenClient.tableItem(accountResource.data.token_data.handle, "ASCII::String", "0x1::Token::Collections", collectionName);
+            return collection;
         });
     }
 }

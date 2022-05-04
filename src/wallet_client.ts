@@ -294,6 +294,10 @@ export class WalletClient {
             method: "GET"
         });
 
+        if(response.status==404) {
+            return [];
+        }
+
         return await response.json();
     }
 

@@ -54,5 +54,6 @@ export declare class WalletClient {
     getEventStream(address: string, eventHandleStruct: string, fieldName: string): Promise<any>;
     getTokenIds(address: string): Promise<any[]>;
     getTokens(address: string): Promise<any[]>;
+    getCollection(address: string, collectionName: string): Promise<any>;
 }
 //# sourceMappingURL=wallet_client.d.ts.map
