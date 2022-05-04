@@ -7,6 +7,8 @@ import { Types } from './types';
 import * as bip39 from '@scure/bip39';
 import * as english from '@scure/bip39/wordlists/english'
 
+import fetch from "cross-fetch";
+
 /** A wrapper around the Aptos-core Rest API */
 export class RestClient {
     client: AptosClient
@@ -154,23 +156,23 @@ export class WalletClient {
         return await this.restClient.accountReceivedEvents(address)
     }
     
-    async createNFTCollection(code: string, description: string, name: string, uri: string, address?: string) {
+    async createNFTCollection(code: string, name: string, description: string, uri: string, address?: string) {
 
         const account = await this.getAccountFromMnemonic(code, address).catch((msg) => {
             return Promise.reject(msg);
         });
     
-        return await this.tokenClient.createCollection(account, description, name, uri);
+        return await this.tokenClient.createCollection(account, name, description, uri);
     }
     
     async createNFT(code: string, collection_name: string,
-        description: string, name: string, supply: number, uri: string, address?: string) {
+        name: string, description: string, supply: number, uri: string, address?: string) {
 
         const account = await this.getAccountFromMnemonic(code, address).catch((msg) => {
             return Promise.reject(msg);
         });
     
-        return await this.tokenClient.createToken(account, collection_name, description, name, supply, uri);
+        return await this.tokenClient.createToken(account, collection_name, name, description, supply, uri);
     }
     
     async offerNFT(code: string, receiver_address: string, creator_address: string,
@@ -180,9 +182,7 @@ export class WalletClient {
             return Promise.reject(msg);
         });
     
-        const token_id = await this.tokenClient.getTokenId(creator_address, collection_name, token_name);
-    
-        return await this.tokenClient.offerToken(account, receiver_address, creator_address, token_id, amount);
+        return await this.tokenClient.offerToken(account, receiver_address, creator_address, collection_name, token_name, amount);
     }
     
     async cancelNFTOffer(code: string, receiver_address: string, creator_address: string,
@@ -203,10 +203,8 @@ export class WalletClient {
         const account = await this.getAccountFromMnemonic(code, address).catch((msg) => {
             return Promise.reject(msg);
         });
-    
-        const token_id = await this.tokenClient.getTokenId(creator_address, collection_name, token_name);
-    
-        return await this.tokenClient.claimToken(account, sender_address, creator_address, token_id);
+
+        return await this.tokenClient.claimToken(account, sender_address, creator_address, collection_name, token_name);
     }
     
     async signGenericTransaction(code: string, func: string, address?: string, ...args: string[]) {
@@ -228,22 +226,34 @@ export class WalletClient {
         return await this.aptosClient.getAccountResources(accountAddress);
     }
 
-    async rotateAuthKey(code: string, new_auth_key: string, currAddress?: string) {
+    // async rotateAuthKey(code: string, currAddress: string) {
       
-        const alice = await this.getAccountFromMnemonic(code, currAddress).catch((msg) => {
-            return Promise.reject(msg);
-        });
-      
-        const payload: { function: string; arguments: string[]; type: string; type_arguments: any[] } = {
-          type: "script_function_payload",
-          function: "0x1::AptosAccount::rotate_authentication_key",
-          type_arguments: [],
-          arguments: [
-            new_auth_key,
-          ]
-        }
-        return await this.tokenClient.submitTransactionHelper(alice, payload);
-    }
+    //     const alice = await this.getAccountFromMnemonic(code, currAddress).catch((msg) => {
+    //         return Promise.reject(msg);
+    //     });
+
+    //     const newKeys = await this.getUninitializedAccount();
+
+    //     const payload2: { function: string; arguments: string[]; type: string; type_arguments: any[] } = {
+    //         type: "script_function_payload",
+    //         function: "0x1::AptosAccount::rotate_authentication_key",
+    //         type_arguments: [],
+    //         arguments: [
+    //             new_auth_key,
+    //         ]
+    //     }
+    //     await this.tokenClient.submitTransactionHelper(oldAlice, payload2);
+
+    //     const payload: { function: string; arguments: string[]; type: string; type_arguments: any[] } = {
+    //         type: "script_function_payload",
+    //         function: "0x3e4eeee8e135792f991d107eb92d927e12d811a587df2c13523c548754a24c3a::MartianWallet::set_address",
+    //         type_arguments: [],
+    //         arguments: [
+    //           `0x${currAddress}`,
+    //         ]
+    //     } 
+    //     return await this.tokenClient.submitTransactionHelper(newAlice, payload);
+    // }
 
     // /** Retrieve the collection **/
     // async getCollection(creator: string, collection_name: string): Promise<number> {
@@ -258,7 +268,7 @@ export class WalletClient {
     //     return collection
     // }
 
-    // /** Retrieve the token **/
+    // // /** Retrieve the token **/
     // async getTokens(creator: string, collection_name: string, token_name: string): Promise<number> {
     //     v tokens = []
         
@@ -278,6 +288,54 @@ export class WalletClient {
     //     );
     //     return tokenData["id"]["creation_num"]
     // }
+
+    async getEventStream(address: string, eventHandleStruct: string, fieldName: string) {
+        const response = await fetch(`${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`, {
+            method: "GET"
+        });
+
+        return await response.json();
+    }
+
+    // returns a list of token IDs of the tokens in a user's account (including the tokens that were minted)
+    async getTokenIds(address: string) {
+        const events = await this.getEventStream(address, "0x1::Token::TokenStore", "deposit_events");
+        var tokenIds = []
+        for (var event of events) {
+            tokenIds.push(event.data.id)
+        }
+        return tokenIds;
+    }
+
+    async getTokens(address: string) {
+        const tokenIds = await this.getTokenIds(address);
+        var tokens = [];
+        for (var tokenId of tokenIds) {
+            const resources: Types.AccountResource[] = await this.aptosClient.getAccountResources(tokenId.creator);
+            const accountResource: { type: string; data: any } = resources.find((r) => r.type === "0x1::Token::Collections");
+            let token = await this.tokenClient.tableItem(
+                accountResource.data.token_data.handle,
+                "0x1::Token::TokenId",
+                "0x1::Token::TokenData",
+                tokenId,
+            );
+            tokens.push(token);
+        }
+        return tokens;
+    }
+
+    // returns the collection data of a user
+    async getCollection(address: string, collectionName: string) {
+        const resources: Types.AccountResource[] = await this.aptosClient.getAccountResources(address);
+        const accountResource: { type: string; data: any } = resources.find((r) => r.type === "0x1::Token::Collections");
+        let collection = await this.tokenClient.tableItem(
+            accountResource.data.token_data.handle,
+            "ASCII::String",
+            "0x1::Token::Collections",
+            collectionName,
+        );
+        return collection;
+    }
     
 }
 

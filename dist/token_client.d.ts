@@ -6,10 +6,10 @@ export declare class TokenClient {
     aptosClient: AptosClient;
     constructor(aptosClient: AptosClient);
     submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload): Promise<string>;
-    createCollection(account: AptosAccount, description: string, name: string, uri: string): Promise<Types.HexEncodedBytes>;
-    createToken(account: AptosAccount, collectionName: string, description: string, name: string, supply: number, uri: string): Promise<Types.HexEncodedBytes>;
-    offerToken(account: AptosAccount, receiver: MaybeHexString, creator: MaybeHexString, tokenCreationNum: number, amount: number): Promise<Types.HexEncodedBytes>;
-    claimToken(account: AptosAccount, sender: MaybeHexString, creator: MaybeHexString, tokenCreationNum: number): Promise<Types.HexEncodedBytes>;
+    createCollection(account: AptosAccount, name: string, description: string, uri: string): Promise<Types.HexEncodedBytes>;
+    createToken(account: AptosAccount, collectionName: string, name: string, description: string, supply: number, uri: string): Promise<Types.HexEncodedBytes>;
+    offerToken(account: AptosAccount, receiver: MaybeHexString, creator: MaybeHexString, collectionName: string, name: string, amount: number): Promise<Types.HexEncodedBytes>;
+    claimToken(account: AptosAccount, sender: MaybeHexString, creator: MaybeHexString, collectionName: string, name: string): Promise<Types.HexEncodedBytes>;
     cancelTokenOffer(account: AptosAccount, receiver: MaybeHexString, creator: MaybeHexString, tokenCreationNum: number): Promise<Types.HexEncodedBytes>;
     tableItem(handle: string, keyType: string, valueType: string, key: any): Promise<any>;
     /** Retrieve the token's creation_num, which is useful for non-creator operations */

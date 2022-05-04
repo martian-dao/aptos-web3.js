@@ -31,15 +31,15 @@ class TokenClient {
         });
     }
     // Creates a new collection within the specified account
-    createCollection(account, description, name, uri) {
+    createCollection(account, name, description, uri) {
         return __awaiter(this, void 0, void 0, function* () {
             const payload = {
                 type: "script_function_payload",
                 function: "0x1::Token::create_unlimited_collection_script",
                 type_arguments: [],
                 arguments: [
-                    Buffer.from(description).toString("hex"),
                     Buffer.from(name).toString("hex"),
+                    Buffer.from(description).toString("hex"),
                     Buffer.from(uri).toString("hex"),
                 ],
             };
@@ -48,17 +48,19 @@ class TokenClient {
         });
     }
     // Creates a new token within the specified account
-    createToken(account, collectionName, description, name, supply, uri) {
+    createToken(account, collectionName, name, description, supply, uri) {
         return __awaiter(this, void 0, void 0, function* () {
             const payload = {
                 type: "script_function_payload",
-                function: "0x1::Token::create_token_script",
+                function: "0x1::Token::create_limited_token_script",
                 type_arguments: [],
                 arguments: [
                     Buffer.from(collectionName).toString("hex"),
-                    Buffer.from(description).toString("hex"),
                     Buffer.from(name).toString("hex"),
+                    Buffer.from(description).toString("hex"),
+                    true,
                     supply.toString(),
+                    supply.toString() + 1,
                     Buffer.from(uri).toString("hex"),
                 ],
             };
@@ -67,26 +69,37 @@ class TokenClient {
         });
     }
     // Offer token to another account
-    offerToken(account, receiver, creator, tokenCreationNum, amount) {
+    offerToken(account, receiver, creator, collectionName, name, amount) {
         return __awaiter(this, void 0, void 0, function* () {
             const payload = {
                 type: "script_function_payload",
                 function: "0x1::TokenTransfers::offer_script",
                 type_arguments: [],
-                arguments: [receiver, creator, tokenCreationNum.toString(), amount.toString()],
+                arguments: [
+                    receiver,
+                    creator,
+                    Buffer.from(collectionName).toString("hex"),
+                    Buffer.from(name).toString("hex"),
+                    amount.toString(),
+                ],
             };
             const transactionHash = yield this.submitTransactionHelper(account, payload);
             return transactionHash;
         });
     }
     // Claim token
-    claimToken(account, sender, creator, tokenCreationNum) {
+    claimToken(account, sender, creator, collectionName, name) {
         return __awaiter(this, void 0, void 0, function* () {
             const payload = {
                 type: "script_function_payload",
                 function: "0x1::TokenTransfers::claim_script",
                 type_arguments: [],
-                arguments: [sender, creator, tokenCreationNum.toString()],
+                arguments: [
+                    sender,
+                    creator,
+                    Buffer.from(collectionName).toString("hex"),
+                    Buffer.from(name).toString("hex"),
+                ],
             };
             const transactionHash = yield this.submitTransactionHelper(account, payload);
             return transactionHash;

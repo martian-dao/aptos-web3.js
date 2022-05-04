@@ -44,13 +44,15 @@ export declare class WalletClient {
     transfer(code: string, recipient_address: string, amount: number, sender_address?: string): Promise<void>;
     getSentEvents(address: string): Promise<Types.Event[]>;
     getReceivedEvents(address: string): Promise<Types.Event[]>;
-    createNFTCollection(code: string, description: string, name: string, uri: string, address?: string): Promise<string>;
-    createNFT(code: string, collection_name: string, description: string, name: string, supply: number, uri: string, address?: string): Promise<string>;
+    createNFTCollection(code: string, name: string, description: string, uri: string, address?: string): Promise<string>;
+    createNFT(code: string, collection_name: string, name: string, description: string, supply: number, uri: string, address?: string): Promise<string>;
     offerNFT(code: string, receiver_address: string, creator_address: string, collection_name: string, token_name: string, amount: number, address?: string): Promise<string>;
     cancelNFTOffer(code: string, receiver_address: string, creator_address: string, collection_name: string, token_name: string, address?: string): Promise<string>;
     claimNFT(code: string, sender_address: string, creator_address: string, collection_name: string, token_name: string, address?: string): Promise<string>;
     signGenericTransaction(code: string, func: string, address?: string, ...args: string[]): Promise<string>;
     getAccountResources(accountAddress: string): Promise<Types.AccountResource[]>;
-    rotateAuthKey(code: string, new_auth_key: string, currAddress?: string): Promise<string>;
+    getEventStream(address: string, eventHandleStruct: string, fieldName: string): Promise<any>;
+    getTokenIds(address: string): Promise<any[]>;
+    getTokens(address: string): Promise<any[]>;
 }
 //# sourceMappingURL=wallet_client.d.ts.map

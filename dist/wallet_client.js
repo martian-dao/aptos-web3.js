@@ -31,6 +31,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletClient = exports.RestClient = void 0;
 const aptos_account_1 = require("./aptos_account");
@@ -40,6 +43,7 @@ const faucet_client_1 = require("./faucet_client");
 const hex_string_1 = require("./hex_string");
 const bip39 = __importStar(require("@scure/bip39"));
 const english = __importStar(require("@scure/bip39/wordlists/english"));
+const cross_fetch_1 = __importDefault(require("cross-fetch"));
 /** A wrapper around the Aptos-core Rest API */
 class RestClient {
     constructor(url) {
@@ -185,20 +189,20 @@ class WalletClient {
             return yield this.restClient.accountReceivedEvents(address);
         });
     }
-    createNFTCollection(code, description, name, uri, address) {
+    createNFTCollection(code, name, description, uri, address) {
         return __awaiter(this, void 0, void 0, function* () {
             const account = yield this.getAccountFromMnemonic(code, address).catch((msg) => {
                 return Promise.reject(msg);
             });
-            return yield this.tokenClient.createCollection(account, description, name, uri);
+            return yield this.tokenClient.createCollection(account, name, description, uri);
         });
     }
-    createNFT(code, collection_name, description, name, supply, uri, address) {
+    createNFT(code, collection_name, name, description, supply, uri, address) {
         return __awaiter(this, void 0, void 0, function* () {
             const account = yield this.getAccountFromMnemonic(code, address).catch((msg) => {
                 return Promise.reject(msg);
             });
-            return yield this.tokenClient.createToken(account, collection_name, description, name, supply, uri);
+            return yield this.tokenClient.createToken(account, collection_name, name, description, supply, uri);
         });
     }
     offerNFT(code, receiver_address, creator_address, collection_name, token_name, amount, address) {
@@ -206,8 +210,7 @@ class WalletClient {
             const account = yield this.getAccountFromMnemonic(code, address).catch((msg) => {
                 return Promise.reject(msg);
             });
-            const token_id = yield this.tokenClient.getTokenId(creator_address, collection_name, token_name);
-            return yield this.tokenClient.offerToken(account, receiver_address, creator_address, token_id, amount);
+            return yield this.tokenClient.offerToken(account, receiver_address, creator_address, collection_name, token_name, amount);
         });
     }
     cancelNFTOffer(code, receiver_address, creator_address, collection_name, token_name, address) {
@@ -224,8 +227,7 @@ class WalletClient {
             const account = yield this.getAccountFromMnemonic(code, address).catch((msg) => {
                 return Promise.reject(msg);
             });
-            const token_id = yield this.tokenClient.getTokenId(creator_address, collection_name, token_name);
-            return yield this.tokenClient.claimToken(account, sender_address, creator_address, token_id);
+            return yield this.tokenClient.claimToken(account, sender_address, creator_address, collection_name, token_name);
         });
     }
     signGenericTransaction(code, func, address, ...args) {
@@ -247,20 +249,93 @@ class WalletClient {
             return yield this.aptosClient.getAccountResources(accountAddress);
         });
     }
-    rotateAuthKey(code, new_auth_key, currAddress) {
+    // async rotateAuthKey(code: string, currAddress: string) {
+    //     const alice = await this.getAccountFromMnemonic(code, currAddress).catch((msg) => {
+    //         return Promise.reject(msg);
+    //     });
+    //     const newKeys = await this.getUninitializedAccount();
+    //     const payload2: { function: string; arguments: string[]; type: string; type_arguments: any[] } = {
+    //         type: "script_function_payload",
+    //         function: "0x1::AptosAccount::rotate_authentication_key",
+    //         type_arguments: [],
+    //         arguments: [
+    //             new_auth_key,
+    //         ]
+    //     }
+    //     await this.tokenClient.submitTransactionHelper(oldAlice, payload2);
+    //     const payload: { function: string; arguments: string[]; type: string; type_arguments: any[] } = {
+    //         type: "script_function_payload",
+    //         function: "0x3e4eeee8e135792f991d107eb92d927e12d811a587df2c13523c548754a24c3a::MartianWallet::set_address",
+    //         type_arguments: [],
+    //         arguments: [
+    //           `0x${currAddress}`,
+    //         ]
+    //     } 
+    //     return await this.tokenClient.submitTransactionHelper(newAlice, payload);
+    // }
+    // /** Retrieve the collection **/
+    // async getCollection(creator: string, collection_name: string): Promise<number> {
+    //     const resources: Types.AccountResource[] = await this.aptosClient.getAccountResources(creator);
+    //     const accountResource: { type: string; data: any } = resources.find((r) => r.type === "0x1::Token::Collections");
+    //     let collection = await this.tokenClient.tableItem(
+    //         accountResource.data.collections.handle,
+    //         "0x1::ASCII::String",
+    //         "0x1::Token::Collection",
+    //         collection_name,
+    //     );
+    //     return collection
+    // }
+    // // /** Retrieve the token **/
+    // async getTokens(creator: string, collection_name: string, token_name: string): Promise<number> {
+    //     v tokens = []
+    //     const resources: Types.AccountResource[] = await this.aptosClient.getAccountResources(creator);
+    //     const accountResource: { type: string; data: any } = resources.find((r) => r.type === "0x1::Token::Collections");
+    //     let collection = await this.tokenClient.tableItem(
+    //         accountResource.data.collections.handle,
+    //         "0x1::ASCII::String",
+    //         "0x1::Token::Collection",
+    //         collection_name,
+    //     );
+    //     let tokenData = await this.tokenClient.tableItem(
+    //         collection["tokens"]["handle"],
+    //         "0x1::ASCII::String",
+    //         "0x1::Token::TokenData",
+    //         token_name,
+    //     );
+    //     return tokenData["id"]["creation_num"]
+    // }
+    getEventStream(address, eventHandleStruct, fieldName) {
         return __awaiter(this, void 0, void 0, function* () {
-            const alice = yield this.getAccountFromMnemonic(code, currAddress).catch((msg) => {
-                return Promise.reject(msg);
+            const response = yield (0, cross_fetch_1.default)(`${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`, {
+                method: "GET"
             });
-            const payload = {
-                type: "script_function_payload",
-                function: "0x1::AptosAccount::rotate_authentication_key",
-                type_arguments: [],
-                arguments: [
-                    new_auth_key,
-                ]
-            };
-            return yield this.tokenClient.submitTransactionHelper(alice, payload);
+            return yield response.json();
+        });
+    }
+    // returns an ordered list of token IDs of the tokens in a user's account (including the tokens that were minted)
+    getTokenIds(address) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const events = yield this.getEventStream(address, "0x1::Token::TokenStore", "deposit_events");
+            var tokenIds = [];
+            for (var event of events) {
+                tokenIds.push(event.data.id);
+            }
+            return tokenIds;
+        });
+    }
+    getTokens(address) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const tokenIds = yield this.getTokenIds(address);
+            var tokens = [];
+            for (var tokenId of tokenIds) {
+                console.log(tokenId);
+                const resources = yield this.aptosClient.getAccountResources(tokenId.creator);
+                const accountResource = resources.find((r) => r.type === "0x1::Token::Collections");
+                console.log(accountResource.data.collections.handle);
+                let token = yield this.tokenClient.tableItem(accountResource.data.token_data.handle, "0x1::Token::TokenId", "0x1::Token::TokenData", tokenId);
+                tokens.push(token);
+            }
+            return tokens;
         });
     }
 }
