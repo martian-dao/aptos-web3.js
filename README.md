@@ -26,7 +26,10 @@ npm i @martiandao/aptos-web3.js
 10. offerNFT: offer an NFT to a receiver
 11. claimNFT: claim an NFT offered by a sender
 12. cancelNFTOffer: cancel an outgoing NFT offer
-13. rotateAuthKey: rotate authentication key
+13. getEventStreams: get events of a particular handle struct and field name from the [event stream](https://fullnode.devnet.aptoslabs.com/spec.html#/operations/get_events_by_event_handle)
+14. getTokenIds: get the tokenIds of all the tokens that an account holds
+15. getTokens: get the tokens that an account holds
+16. rotateAuthKey: rotate authentication key
 
 ## Functions and their args, return values and description
 
@@ -39,10 +42,13 @@ npm i @martiandao/aptos-web3.js
 | transfer | code: string  recipient_address: string  amount: number | None | This method is used to transfer fund from one account to another. It returns Nothing |
 | getSentEvents | address: string | [Click Here](https://fullnode.devnet.aptoslabs.com/accounts/e1acaa6eadbde51a0070327f095a1253deb1bbe919369b971621156fa18bd770/events/0x1::TestCoin::TransferEvents/sent_events)| This method is used to fetch sent events done by the wallet. Please hit the url given in the returns field to see what it return |
 | getReceivedEvents | address: string |[Click Here](https://fullnode.devnet.aptoslabs.com/accounts/e1acaa6eadbde51a0070327f095a1253deb1bbe919369b971621156fa18bd770/events/0x1::TestCoin::TransferEvents/received_events) | This method is used to fetch received events to the wallet. Please hit the url given in the returns field to see what it return |
-| createNFTCollection | code: string description: string name: string uri: string | hash: string | This method is used to create collection inside the wallet/account. It returns submission hash |
-| createNFT | code: string collection_name: string description: string name: string supply: number uri: string | hash: string | This method is used to create nft inside collection. It returns submission hash |
+| createNFTCollection | code: string name: string description: string uri: string | hash: string | This method is used to create collection inside the wallet/account. It returns submission hash |
+| createNFT | code: string collection_name: string name: string description: string supply: number uri: string | hash: string | This method is used to create nft inside collection. It returns submission hash |
 | offerNFT | code: string receiver_address: string  creator_address: string collection_name: string token_name: string amount: number | hash: string | This method is used to offer nft to another address. |
 | claimNFT | code: string sender_address: string creator_address: string collection_name: string token_name: string | hash: string | This method is used to claim nft offered |
+| getEventStream | address: string event_handle_struct: string field_name: string | response: object | This is used to get the events |
+| getTokenIds | address: string | tokenIds: list of objects | This is used to get the token IDs of an account |
+| getEventStream | address: string | tokens: list of objects | This is used to get the tokens of an account |
 | rotateAuthKey | code: string new_auth_key: string | hash: string | This method is used to rotate the authentication key. The new private/ public key pair used to derive the new auth key will be used to sign the account after this function call completes |
 
 # Usage Example Wallet
