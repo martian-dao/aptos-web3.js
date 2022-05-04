@@ -328,6 +328,18 @@ export class WalletClient {
         return tokens;
     }
 
+    async getToken(tokenId: object) {
+        const resources: Types.AccountResource[] = await this.aptosClient.getAccountResources(tokenId.creator);
+        const accountResource: { type: string; data: any } = resources.find((r) => r.type === "0x1::Token::Collections");
+        let token = await this.tokenClient.tableItem(
+            accountResource.data.token_data.handle,
+            "0x1::Token::TokenId",
+            "0x1::Token::TokenData",
+            tokenId,
+        );
+        return token;
+    }
+
     // returns the collection data of a user
     async getCollection(address: string, collectionName: string) {
         const resources: Types.AccountResource[] = await this.aptosClient.getAccountResources(address);
