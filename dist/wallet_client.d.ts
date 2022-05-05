@@ -57,7 +57,9 @@ export declare class WalletClient {
     signGenericTransaction(code: string, func: string, address?: string, ...args: string[]): Promise<string>;
     getAccountResources(accountAddress: string): Promise<Types.AccountResource[]>;
     getEventStream(address: string, eventHandleStruct: string, fieldName: string): Promise<any>;
-    getTokenIds(address: string): Promise<any[]>;
+    getTokenIds(address: string, getAll?: boolean, getMinted?: boolean): Promise<any[]>;
+    getOwnedTokens(address: string): Promise<any[]>;
+    getCreatedTokens(address: string): Promise<any[]>;
     getTokens(address: string): Promise<any[]>;
     getToken(tokenId: TokenId): Promise<any>;
     getCollection(address: string, collectionName: string): Promise<any>;

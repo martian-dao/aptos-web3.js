@@ -316,16 +316,19 @@ class WalletClient {
         });
     }
     // returns a list of token IDs of the tokens in a user's account (including the tokens that were minted)
-    getTokenIds(address) {
+    getTokenIds(address, getAll = false, getMinted = false) {
         return __awaiter(this, void 0, void 0, function* () {
             const depositEvents = yield this.getEventStream(address, "0x1::Token::TokenStore", "deposit_events");
             const withdrawEvents = yield this.getEventStream(address, "0x1::Token::TokenStore", "withdraw_events");
             function isEventEqual(event1, event2) {
+                if (getMinted) {
+                    return !(event1.data.id.creator === event2.data.id.creator && event1.data.id.collectionName === event2.data.id.collectionName && event1.data.id.name === event2.data.id.name);
+                }
                 return event1.data.id.creator === event2.data.id.creator && event1.data.id.collectionName === event2.data.id.collectionName && event1.data.id.name === event2.data.id.name;
             }
             var tokenIds = [];
             for (var elem of depositEvents) {
-                if (!withdrawEvents.some(function (item) {
+                if (!getAll && !withdrawEvents.some(function (item) {
                     return isEventEqual(item, elem);
                 })) {
                     tokenIds.push(elem.data.id);
@@ -334,9 +337,35 @@ class WalletClient {
             return tokenIds;
         });
     }
+    getOwnedTokens(address) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const tokenIds = yield this.getTokenIds(address, false, false);
+            var tokens = [];
+            for (var tokenId of tokenIds) {
+                const resources = yield this.aptosClient.getAccountResources(tokenId.creator);
+                const accountResource = resources.find((r) => r.type === "0x1::Token::Collections");
+                let token = yield this.tokenClient.tableItem(accountResource.data.token_data.handle, "0x1::Token::TokenId", "0x1::Token::TokenData", tokenId);
+                tokens.push(token);
+            }
+            return tokens;
+        });
+    }
+    getCreatedTokens(address) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const tokenIds = yield this.getTokenIds(address, false, true);
+            var tokens = [];
+            for (var tokenId of tokenIds) {
+                const resources = yield this.aptosClient.getAccountResources(tokenId.creator);
+                const accountResource = resources.find((r) => r.type === "0x1::Token::Collections");
+                let token = yield this.tokenClient.tableItem(accountResource.data.token_data.handle, "0x1::Token::TokenId", "0x1::Token::TokenData", tokenId);
+                tokens.push(token);
+            }
+            return tokens;
+        });
+    }
     getTokens(address) {
         return __awaiter(this, void 0, void 0, function* () {
-            const tokenIds = yield this.getTokenIds(address);
+            const tokenIds = yield this.getTokenIds(address, true);
             var tokens = [];
             for (var tokenId of tokenIds) {
                 const resources = yield this.aptosClient.getAccountResources(tokenId.creator);
