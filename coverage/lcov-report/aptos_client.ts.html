@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">98.76% </span>
+                <span class="strong">93.82% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>80/81</span>
+                <span class='fraction'>76/81</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">95% </span>
+                <span class="strong">90% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>19/20</span>
+                <span class='fraction'>18/20</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">98.75% </span>
+                <span class="strong">93.75% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>79/80</span>
+                <span class='fraction'>75/80</span>
             </div>
         
             
@@ -346,7 +346,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">51x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -373,7 +373,7 @@
 <span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">53x</span>
+<span class="cline-any cline-yes">41x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -542,13 +542,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">24x</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">19x</span>
-<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -557,9 +557,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -795,8 +795,8 @@ export class AptosClient {
   async transactionPending(txnHash: Types.HexEncodedBytes): Promise&lt;boolean&gt; {
     const response = await this.transactions.getTransaction(txnHash);
 &nbsp;
-    if (response.status === 404) {
-      return true;
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (response.status === 404) {
+<span class="cstat-no" title="statement not covered" >      return true;</span>
     }
     raiseForStatus(200, response, txnHash);
     return response.data.type === "pending_transaction";
@@ -808,9 +808,9 @@ export class AptosClient {
     // eslint-disable-next-line no-await-in-loop
     while (await this.transactionPending(txnHash)) {
       // eslint-disable-next-line no-await-in-loop
-      await sleep(1000);
-      count += 1;
-      <span class="missing-if-branch" title="if path not taken" >I</span>if (count &gt;= 10) {
+<span class="cstat-no" title="statement not covered" >      await sleep(1000);</span>
+<span class="cstat-no" title="statement not covered" >      count += 1;</span>
+<span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (count &gt;= 10) {</span>
 <span class="cstat-no" title="statement not covered" >        throw new Error(`Waiting for transaction ${txnHash} timed out!`);</span>
       }
     }
@@ -823,7 +823,7 @@ export class AptosClient {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at Thu May 05 2022 00:19:06 GMT-0700 (Pacific Daylight Time)
+                at Thu May 05 2022 21:52:54 GMT+0530 (India Standard Time)
             </div>
         <script src="prettify.js"></script>
         <script>

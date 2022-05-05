@@ -309,8 +309,6 @@ class WalletClient {
             const response = yield (0, cross_fetch_1.default)(`${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`, {
                 method: "GET"
             });
-            console.log(`${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`);
-            console.log(response.status);
             if (response.status == 404) {
                 return [];
             }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1651735146391" clover="3.2.0">
-  <project timestamp="1651735146392" name="All files">
-    <metrics statements="283" coveredstatements="179" conditionals="35" coveredconditionals="28" methods="100" coveredmethods="53" elements="418" coveredelements="260" complexity="0" loc="283" ncloc="283" packages="1" files="7" classes="7"/>
-    <file name="aptos_account.ts" path="/Users/siddharthjain/Documents/martian/aptos-web3.js/src/aptos_account.ts">
+<coverage generated="1651767774130" clover="3.2.0">
+  <project timestamp="1651767774130" name="All files">
+    <metrics statements="281" coveredstatements="171" conditionals="35" coveredconditionals="27" methods="100" coveredmethods="51" elements="416" coveredelements="249" complexity="0" loc="281" ncloc="281" packages="1" files="7" classes="7"/>
+    <file name="aptos_account.ts" path="/Users/innodeed/Documents/learning/git/aptos-web3.js/src/aptos_account.ts">
       <metrics statements="23" coveredstatements="23" conditionals="5" coveredconditionals="5" methods="8" coveredmethods="8"/>
       <line num="1" count="4" type="stmt"/>
       <line num="2" count="4" type="stmt"/>
@@ -28,8 +28,8 @@
       <line num="63" count="6" type="stmt"/>
       <line num="67" count="1" type="stmt"/>
     </file>
-    <file name="aptos_client.ts" path="/Users/siddharthjain/Documents/martian/aptos-web3.js/src/aptos_client.ts">
-      <metrics statements="80" coveredstatements="79" conditionals="20" coveredconditionals="19" methods="21" coveredmethods="21"/>
+    <file name="aptos_client.ts" path="/Users/innodeed/Documents/learning/git/aptos-web3.js/src/aptos_client.ts">
+      <metrics statements="80" coveredstatements="75" conditionals="20" coveredconditionals="18" methods="21" coveredmethods="21"/>
       <line num="2" count="4" type="stmt"/>
       <line num="3" count="4" type="stmt"/>
       <line num="4" count="4" type="stmt"/>
@@ -44,14 +44,14 @@
       <line num="21" count="4" type="stmt"/>
       <line num="22" count="4" type="stmt"/>
       <line num="28" count="4" type="stmt"/>
-      <line num="33" count="58" type="cond" truecount="1" falsecount="0"/>
+      <line num="33" count="51" type="cond" truecount="1" falsecount="0"/>
       <line num="34" count="4" type="cond" truecount="1" falsecount="0"/>
       <line num="35" count="2" type="stmt"/>
       <line num="37" count="2" type="stmt"/>
       <line num="41" count="4" type="stmt"/>
       <line num="54" count="13" type="stmt"/>
       <line num="57" count="13" type="stmt"/>
-      <line num="60" count="53" type="stmt"/>
+      <line num="60" count="41" type="stmt"/>
       <line num="65" count="13" type="stmt"/>
       <line num="66" count="13" type="stmt"/>
       <line num="67" count="13" type="stmt"/>
@@ -99,19 +99,19 @@
       <line num="223" count="1" type="stmt"/>
       <line num="224" count="1" type="stmt"/>
       <line num="225" count="1" type="stmt"/>
-      <line num="229" count="24" type="stmt"/>
-      <line num="231" count="24" type="cond" truecount="1" falsecount="0"/>
-      <line num="232" count="5" type="stmt"/>
-      <line num="234" count="19" type="stmt"/>
-      <line num="235" count="19" type="stmt"/>
+      <line num="229" count="12" type="stmt"/>
+      <line num="231" count="12" type="cond" truecount="0" falsecount="1"/>
+      <line num="232" count="0" type="stmt"/>
+      <line num="234" count="12" type="stmt"/>
+      <line num="235" count="12" type="stmt"/>
       <line num="240" count="12" type="stmt"/>
       <line num="242" count="12" type="stmt"/>
-      <line num="244" count="12" type="stmt"/>
-      <line num="245" count="12" type="stmt"/>
-      <line num="246" count="12" type="cond" truecount="0" falsecount="1"/>
+      <line num="244" count="0" type="stmt"/>
+      <line num="245" count="0" type="stmt"/>
+      <line num="246" count="0" type="cond" truecount="0" falsecount="1"/>
       <line num="247" count="0" type="stmt"/>
     </file>
-    <file name="faucet_client.ts" path="/Users/siddharthjain/Documents/martian/aptos-web3.js/src/faucet_client.ts">
+    <file name="faucet_client.ts" path="/Users/innodeed/Documents/learning/git/aptos-web3.js/src/faucet_client.ts">
       <metrics statements="16" coveredstatements="16" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="3"/>
       <line num="2" count="3" type="stmt"/>
       <line num="3" count="3" type="stmt"/>
@@ -130,7 +130,7 @@
       <line num="28" count="4" type="stmt"/>
       <line num="29" count="4" type="stmt"/>
     </file>
-    <file name="hex_string.ts" path="/Users/siddharthjain/Documents/martian/aptos-web3.js/src/hex_string.ts">
+    <file name="hex_string.ts" path="/Users/innodeed/Documents/learning/git/aptos-web3.js/src/hex_string.ts">
       <metrics statements="17" coveredstatements="17" conditionals="3" coveredconditionals="3" methods="10" coveredmethods="10"/>
       <line num="1" count="6" type="stmt"/>
       <line num="7" count="6" type="stmt"/>
@@ -150,7 +150,7 @@
       <line num="52" count="13" type="stmt"/>
       <line num="56" count="5" type="stmt"/>
     </file>
-    <file name="token_client.ts" path="/Users/siddharthjain/Documents/martian/aptos-web3.js/src/token_client.ts">
+    <file name="token_client.ts" path="/Users/innodeed/Documents/learning/git/aptos-web3.js/src/token_client.ts">
       <metrics statements="35" coveredstatements="21" conditionals="4" coveredconditionals="0" methods="10" coveredmethods="6"/>
       <line num="6" count="2" type="stmt"/>
       <line num="7" count="2" type="stmt"/>
@@ -188,14 +188,14 @@
       <line num="169" count="0" type="stmt"/>
       <line num="175" count="0" type="stmt"/>
     </file>
-    <file name="util.ts" path="/Users/siddharthjain/Documents/martian/aptos-web3.js/src/util.ts">
-      <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+    <file name="util.ts" path="/Users/innodeed/Documents/learning/git/aptos-web3.js/src/util.ts">
+      <metrics statements="3" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="0"/>
       <line num="5" count="4" type="stmt"/>
-      <line num="6" count="12" type="stmt"/>
-      <line num="7" count="12" type="stmt"/>
+      <line num="6" count="0" type="stmt"/>
+      <line num="7" count="0" type="stmt"/>
     </file>
-    <file name="wallet_client.ts" path="/Users/siddharthjain/Documents/martian/aptos-web3.js/src/wallet_client.ts">
-      <metrics statements="109" coveredstatements="20" conditionals="3" coveredconditionals="1" methods="46" coveredmethods="3"/>
+    <file name="wallet_client.ts" path="/Users/innodeed/Documents/learning/git/aptos-web3.js/src/wallet_client.ts">
+      <metrics statements="107" coveredstatements="18" conditionals="3" coveredconditionals="1" methods="46" coveredmethods="3"/>
       <line num="1" count="1" type="stmt"/>
       <line num="2" count="1" type="stmt"/>
       <line num="3" count="1" type="stmt"/>
@@ -275,36 +275,34 @@
       <line num="228" count="0" type="stmt"/>
       <line num="232" count="0" type="stmt"/>
       <line num="299" count="1" type="stmt"/>
-      <line num="303" count="1" type="stmt"/>
-      <line num="305" count="1" type="stmt"/>
-      <line num="307" count="1" type="cond" truecount="1" falsecount="0"/>
-      <line num="308" count="1" type="stmt"/>
-      <line num="311" count="0" type="stmt"/>
-      <line num="316" count="0" type="stmt"/>
+      <line num="303" count="1" type="cond" truecount="1" falsecount="0"/>
+      <line num="304" count="1" type="stmt"/>
+      <line num="307" count="0" type="stmt"/>
+      <line num="312" count="0" type="stmt"/>
+      <line num="313" count="0" type="stmt"/>
+      <line num="314" count="0" type="stmt"/>
+      <line num="315" count="0" type="stmt"/>
       <line num="317" count="0" type="stmt"/>
-      <line num="318" count="0" type="stmt"/>
-      <line num="319" count="0" type="stmt"/>
       <line num="321" count="0" type="stmt"/>
+      <line num="322" count="0" type="stmt"/>
+      <line num="323" count="0" type="stmt"/>
+      <line num="324" count="0" type="stmt"/>
       <line num="325" count="0" type="stmt"/>
       <line num="326" count="0" type="stmt"/>
-      <line num="327" count="0" type="stmt"/>
-      <line num="328" count="0" type="stmt"/>
-      <line num="329" count="0" type="stmt"/>
-      <line num="330" count="0" type="stmt"/>
-      <line num="336" count="0" type="stmt"/>
+      <line num="332" count="0" type="stmt"/>
+      <line num="334" count="0" type="stmt"/>
       <line num="338" count="0" type="stmt"/>
-      <line num="342" count="0" type="stmt"/>
-      <line num="343" count="0" type="stmt"/>
-      <line num="344" count="0" type="stmt"/>
-      <line num="350" count="0" type="stmt"/>
-      <line num="355" count="0" type="stmt"/>
-      <line num="356" count="0" type="stmt"/>
-      <line num="357" count="0" type="stmt"/>
+      <line num="339" count="0" type="stmt"/>
+      <line num="340" count="0" type="stmt"/>
+      <line num="346" count="0" type="stmt"/>
+      <line num="351" count="0" type="stmt"/>
+      <line num="352" count="0" type="stmt"/>
+      <line num="353" count="0" type="stmt"/>
+      <line num="359" count="0" type="stmt"/>
       <line num="363" count="0" type="stmt"/>
-      <line num="367" count="0" type="stmt"/>
-      <line num="368" count="0" type="stmt"/>
-      <line num="369" count="0" type="stmt"/>
-      <line num="375" count="0" type="stmt"/>
+      <line num="364" count="0" type="stmt"/>
+      <line num="365" count="0" type="stmt"/>
+      <line num="371" count="0" type="stmt"/>
     </file>
   </project>
 </coverage>
