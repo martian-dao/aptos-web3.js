@@ -9,6 +9,12 @@ import * as english from '@scure/bip39/wordlists/english'
 
 import fetch from "cross-fetch";
 
+export interface TokenId {
+    creator: string,
+    collectionName: string,
+    name: string
+}
+
 /** A wrapper around the Aptos-core Rest API */
 export class RestClient {
     client: AptosClient
@@ -328,7 +334,7 @@ export class WalletClient {
         return tokens;
     }
 
-    async getToken(tokenId: object) {
+    async getToken(tokenId: TokenId) {
         const resources: Types.AccountResource[] = await this.aptosClient.getAccountResources(tokenId.creator);
         const accountResource: { type: string; data: any } = resources.find((r) => r.type === "0x1::Token::Collections");
         let token = await this.tokenClient.tableItem(

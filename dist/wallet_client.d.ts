@@ -4,6 +4,11 @@ import { AptosClient } from './aptos_client';
 import { FaucetClient } from './faucet_client';
 import { HexString, MaybeHexString } from './hex_string';
 import { Types } from './types';
+export interface TokenId {
+    creator: string;
+    collectionName: string;
+    name: string;
+}
 /** A wrapper around the Aptos-core Rest API */
 export declare class RestClient {
     client: AptosClient;
@@ -54,6 +59,7 @@ export declare class WalletClient {
     getEventStream(address: string, eventHandleStruct: string, fieldName: string): Promise<any>;
     getTokenIds(address: string): Promise<any[]>;
     getTokens(address: string): Promise<any[]>;
+    getToken(tokenId: TokenId): Promise<any>;
     getCollection(address: string, collectionName: string): Promise<any>;
 }
 //# sourceMappingURL=wallet_client.d.ts.map

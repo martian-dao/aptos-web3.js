@@ -339,6 +339,14 @@ class WalletClient {
             return tokens;
         });
     }
+    getToken(tokenId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const resources = yield this.aptosClient.getAccountResources(tokenId.creator);
+            const accountResource = resources.find((r) => r.type === "0x1::Token::Collections");
+            let token = yield this.tokenClient.tableItem(accountResource.data.token_data.handle, "0x1::Token::TokenId", "0x1::Token::TokenData", tokenId);
+            return token;
+        });
+    }
     // returns the collection data of a user
     getCollection(address, collectionName) {
         return __awaiter(this, void 0, void 0, function* () {
