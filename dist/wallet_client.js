@@ -84,17 +84,14 @@ class RestClient {
         });
     }
     /** Transfer a given coin amount from a given Account to the recipient's account address.
-     Returns the sequence number of the transaction used to transfer. */
+       Returns the sequence number of the transaction used to transfer. */
     transfer(accountFrom, recipient, amount) {
         return __awaiter(this, void 0, void 0, function* () {
             const payload = {
                 type: "script_function_payload",
                 function: "0x1::TestCoin::transfer",
                 type_arguments: [],
-                arguments: [
-                    `${hex_string_1.HexString.ensure(recipient)}`,
-                    amount.toString(),
-                ]
+                arguments: [`${hex_string_1.HexString.ensure(recipient)}`, amount.toString()],
             };
             const txnRequest = yield this.client.generateTransaction(accountFrom.address(), payload);
             const signedTxn = yield this.client.signTransaction(accountFrom, txnRequest);
@@ -114,7 +111,7 @@ class WalletClient {
     getAccountFromMnemonic(code, address) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!bip39.validateMnemonic(code, english.wordlist)) {
-                return Promise.reject('Incorrect mnemonic passed');
+                return Promise.reject("Incorrect mnemonic passed");
             }
             var seed = bip39.mnemonicToSeedSync(code.toString());
             const account = new aptos_account_1.AptosAccount(seed.slice(0, 32), address);
@@ -129,8 +126,8 @@ class WalletClient {
             });
             yield this.faucetClient.fundAccount(account.authKey(), 10);
             return Promise.resolve({
-                "code": code,
-                "address key": account.address().noPrefix()
+                code: code,
+                "address key": account.address().noPrefix(),
             });
         });
     }
@@ -141,9 +138,9 @@ class WalletClient {
                 return Promise.reject(msg);
             });
             return Promise.resolve({
-                "code": code,
-                "auth_key": account.authKey(),
-                "address key": account.address().noPrefix()
+                code: code,
+                auth_key: account.authKey(),
+                "address key": account.address().noPrefix(),
             });
         });
     }
@@ -154,8 +151,8 @@ class WalletClient {
             });
             yield this.faucetClient.fundAccount(account.authKey(), 10);
             return Promise.resolve({
-                "auth_key": account.authKey(),
-                "address key": account.address().noPrefix()
+                auth_key: account.authKey(),
+                "address key": account.address().noPrefix(),
             });
         });
     }
@@ -176,7 +173,10 @@ class WalletClient {
                 return Promise.reject(msg);
             });
             const txHash = yield this.restClient.transfer(account, recipient_address, amount);
-            yield this.restClient.waitForTransaction(txHash).then(() => Promise.resolve(true)).catch((msg) => Promise.reject(msg));
+            yield this.restClient
+                .waitForTransaction(txHash)
+                .then(() => Promise.resolve(true))
+                .catch((msg) => Promise.reject(msg));
         });
     }
     getSentEvents(address) {
@@ -239,7 +239,7 @@ class WalletClient {
                 type: "script_function_payload",
                 function: func,
                 type_arguments: [],
-                arguments: args
+                arguments: args,
             };
             return yield this.tokenClient.submitTransactionHelper(account, payload);
         });
@@ -270,7 +270,7 @@ class WalletClient {
     //         arguments: [
     //           `0x${currAddress}`,
     //         ]
-    //     } 
+    //     }
     //     return await this.tokenClient.submitTransactionHelper(newAlice, payload);
     // }
     // /** Retrieve the collection **/
@@ -307,9 +307,10 @@ class WalletClient {
     getEventStream(address, eventHandleStruct, fieldName) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield (0, cross_fetch_1.default)(`${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`, {
-                method: "GET"
+                method: "GET",
             });
             if (response.status == 404) {
+                console.log("Status 404 while getEventStream", response.json());
                 return [];
             }
             return yield response.json();
@@ -322,13 +323,31 @@ class WalletClient {
             const withdrawEvents = yield this.getEventStream(address, "0x1::Token::TokenStore", "withdraw_events");
             function isEventEqual(event1, event2) {
                 if (getMinted) {
-                    return !(event1.data.id.creator === event2.data.id.creator && event1.data.id.collectionName === event2.data.id.collectionName && event1.data.id.name === event2.data.id.name);
+                    return !(event1.data.id.creator === event2.data.id.creator &&
+                        event1.data.id.collectionName === event2.data.id.collectionName &&
+                        event1.data.id.name === event2.data.id.name);
                 }
-                return event1.data.id.creator === event2.data.id.creator && event1.data.id.collectionName === event2.data.id.collectionName && event1.data.id.name === event2.data.id.name;
+                return (event1.data.id.creator === event2.data.id.creator &&
+                    event1.data.id.collectionName === event2.data.id.collectionName &&
+                    event1.data.id.name === event2.data.id.name);
             }
             var tokenIds = [];
+            if (getAll) {
+                for (var elem of depositEvents) {
+                    tokenIds.push(elem.data.id);
+                }
+                return tokenIds;
+            }
+            if (getMinted) {
+                for (var elem of depositEvents) {
+                    if (elem.data.id.creator === `0x${address}`) {
+                        tokenIds.push(elem.data.id);
+                    }
+                }
+                return tokenIds;
+            }
             for (var elem of depositEvents) {
-                if (!getAll && !withdrawEvents.some(function (item) {
+                if (!withdrawEvents.some(function (item) {
                     return isEventEqual(item, elem);
                 })) {
                     tokenIds.push(elem.data.id);

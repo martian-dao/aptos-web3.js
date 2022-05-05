@@ -1,9 +1,9 @@
-import { AptosAccount } from './aptos_account';
-import { TokenClient } from './token_client';
-import { AptosClient } from './aptos_client';
-import { FaucetClient } from './faucet_client';
-import { HexString, MaybeHexString } from './hex_string';
-import { Types } from './types';
+import { AptosAccount } from "./aptos_account";
+import { TokenClient } from "./token_client";
+import { AptosClient } from "./aptos_client";
+import { FaucetClient } from "./faucet_client";
+import { HexString, MaybeHexString } from "./hex_string";
+import { Types } from "./types";
 export interface TokenId {
     creator: string;
     collectionName: string;
@@ -21,7 +21,7 @@ export declare class RestClient {
     /** Returns the test coin balance associated with the account */
     accountBalance(accountAddress: string): Promise<number | null>;
     /** Transfer a given coin amount from a given Account to the recipient's account address.
-     Returns the sequence number of the transaction used to transfer. */
+       Returns the sequence number of the transaction used to transfer. */
     transfer(accountFrom: AptosAccount, recipient: string, amount: number): Promise<string>;
 }
 export declare class WalletClient {
