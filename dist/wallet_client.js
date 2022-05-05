@@ -230,9 +230,9 @@ class WalletClient {
             return yield this.tokenClient.claimToken(account, sender_address, creator_address, collection_name, token_name);
         });
     }
-    signGenericTransaction(code, func, address, ...args) {
+    signGenericTransaction(code, func, ...args) {
         return __awaiter(this, void 0, void 0, function* () {
-            const account = yield this.getAccountFromMnemonic(code, address).catch((msg) => {
+            const account = yield this.getAccountFromMnemonic(code).catch((msg) => {
                 return Promise.reject(msg);
             });
             const payload = {
@@ -360,7 +360,7 @@ class WalletClient {
         return __awaiter(this, void 0, void 0, function* () {
             const resources = yield this.aptosClient.getAccountResources(address);
             const accountResource = resources.find((r) => r.type === "0x1::Token::Collections");
-            let collection = yield this.tokenClient.tableItem(accountResource.data.token_data.handle, "ASCII::String", "0x1::Token::Collections", collectionName);
+            let collection = yield this.tokenClient.tableItem(accountResource.data.collections.handle, "0x1::ASCII::String", "0x1::Token::Collection", collectionName);
             return collection;
         });
     }

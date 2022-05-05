@@ -54,7 +54,7 @@ export declare class WalletClient {
     offerNFT(code: string, receiver_address: string, creator_address: string, collection_name: string, token_name: string, amount: number, address?: string): Promise<string>;
     cancelNFTOffer(code: string, receiver_address: string, creator_address: string, collection_name: string, token_name: string, address?: string): Promise<string>;
     claimNFT(code: string, sender_address: string, creator_address: string, collection_name: string, token_name: string, address?: string): Promise<string>;
-    signGenericTransaction(code: string, func: string, address?: string, ...args: string[]): Promise<string>;
+    signGenericTransaction(code: string, func: string, ...args: string[]): Promise<string>;
     getAccountResources(accountAddress: string): Promise<Types.AccountResource[]>;
     getEventStream(address: string, eventHandleStruct: string, fieldName: string): Promise<any>;
     getTokenIds(address: string): Promise<any[]>;

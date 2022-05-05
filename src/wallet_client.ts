@@ -213,13 +213,12 @@ export class WalletClient {
         return await this.tokenClient.claimToken(account, sender_address, creator_address, collection_name, token_name);
     }
     
-    async signGenericTransaction(code: string, func: string, address?: string, ...args: string[]) {
+    async signGenericTransaction(code: string, func: string, ...args: string[]) {
     
-        const account = await this.getAccountFromMnemonic(code, address).catch((msg) => {
+        const account = await this.getAccountFromMnemonic(code).catch((msg) => {
             return Promise.reject(msg);
         });
-    
-        const payload: { function: string; arguments: string[]; type: string; type_arguments: any[] } = {
+        const payload: Types.TransactionPayload = {
             type: "script_function_payload",
             function: func,
             type_arguments: [],
@@ -359,9 +358,9 @@ export class WalletClient {
         const resources: Types.AccountResource[] = await this.aptosClient.getAccountResources(address);
         const accountResource: { type: string; data: any } = resources.find((r) => r.type === "0x1::Token::Collections");
         let collection = await this.tokenClient.tableItem(
-            accountResource.data.token_data.handle,
-            "ASCII::String",
-            "0x1::Token::Collections",
+            accountResource.data.collections.handle,
+            "0x1::ASCII::String",
+            "0x1::Token::Collection",
             collectionName,
         );
         return collection;
