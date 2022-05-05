@@ -61,5 +61,6 @@ export declare class WalletClient {
     getTokens(address: string): Promise<any[]>;
     getToken(tokenId: TokenId): Promise<any>;
     getCollection(address: string, collectionName: string): Promise<any>;
+    getCustomResource(address: string, resourceType: string, fieldName: string, keyType: string, valueType: string, key: any): Promise<any>;
 }
 //# sourceMappingURL=wallet_client.d.ts.map

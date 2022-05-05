@@ -359,5 +359,16 @@ export class WalletClient {
         return collection;
     }
     
+    async getCustomResource(address: string, resourceType: string, fieldName: string, keyType: string, valueType: string, key: any) {
+        const resources: Types.AccountResource[] = await this.aptosClient.getAccountResources(address);
+        const accountResource: { type: string; data: any } = resources.find((r) => r.type === resourceType);
+        let resource = await this.tokenClient.tableItem(
+            accountResource.data[fieldName].handle,
+            keyType,
+            valueType,
+            key
+        );
+        return resource;
+    }
 }
 

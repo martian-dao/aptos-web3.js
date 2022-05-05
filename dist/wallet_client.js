@@ -309,6 +309,8 @@ class WalletClient {
             const response = yield (0, cross_fetch_1.default)(`${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`, {
                 method: "GET"
             });
+            console.log(`${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`);
+            console.log(response.status);
             if (response.status == 404) {
                 return [];
             }
@@ -354,6 +356,14 @@ class WalletClient {
             const accountResource = resources.find((r) => r.type === "0x1::Token::Collections");
             let collection = yield this.tokenClient.tableItem(accountResource.data.token_data.handle, "ASCII::String", "0x1::Token::Collections", collectionName);
             return collection;
+        });
+    }
+    getCustomResource(address, resourceType, fieldName, keyType, valueType, key) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const resources = yield this.aptosClient.getAccountResources(address);
+            const accountResource = resources.find((r) => r.type === resourceType);
+            let resource = yield this.tokenClient.tableItem(accountResource.data[fieldName].handle, keyType, valueType, key);
+            return resource;
         });
     }
 }
