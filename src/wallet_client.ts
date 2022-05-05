@@ -309,10 +309,18 @@ export class WalletClient {
 
     // returns a list of token IDs of the tokens in a user's account (including the tokens that were minted)
     async getTokenIds(address: string) {
-        const events = await this.getEventStream(address, "0x1::Token::TokenStore", "deposit_events");
+        const depositEvents = await this.getEventStream(address, "0x1::Token::TokenStore", "deposit_events");
+        const withdrawEvents = await this.getEventStream(address, "0x1::Token::TokenStore", "withdraw_events");
+        function isEventEqual(event1, event2) {
+            return event1.data.id.creator === event2.data.id.creator && event1.data.id.collectionName === event2.data.id.collectionName && event1.data.id.name === event2.data.id.name;
+        }    
         var tokenIds = []
-        for (var event of events) {
-            tokenIds.push(event.data.id)
+        for (var elem of depositEvents) {
+            if (!withdrawEvents.some(function(item) {
+                return isEventEqual(item, elem);
+            })) {
+                tokenIds.push(elem.data.id);
+            }
         }
         return tokenIds;
     }
