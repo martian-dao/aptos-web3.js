@@ -10,7 +10,7 @@
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, ResponseType } from "axios";
-
+const fetchAdapter = require("./fetch-adapter")
 export type QueryParamsType = Record<string | number, any>;
 
 export interface FullRequestParams extends Omit<AxiosRequestConfig, "data" | "params" | "url" | "responseType"> {
@@ -52,7 +52,7 @@ export class HttpClient<SecurityDataType = unknown> {
   private format?: ResponseType;
 
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
-    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "" });
+    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "", adapter: fetchAdapter });
     this.secure = secure;
     this.format = format;
     this.securityWorker = securityWorker;

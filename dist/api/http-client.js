@@ -35,6 +35,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HttpClient = exports.ContentType = void 0;
 const axios_1 = __importDefault(require("axios"));
+const fetchAdapter = require("./fetch-adapter");
 var ContentType;
 (function (ContentType) {
     ContentType["Json"] = "application/json";
@@ -68,7 +69,7 @@ class HttpClient {
             }
             return this.instance.request(Object.assign(Object.assign({}, requestParams), { headers: Object.assign(Object.assign({}, (type && type !== ContentType.FormData ? { "Content-Type": type } : {})), (requestParams.headers || {})), params: query, responseType: responseFormat, data: body, url: path }));
         });
-        this.instance = axios_1.default.create(Object.assign(Object.assign({}, axiosConfig), { baseURL: axiosConfig.baseURL || "" }));
+        this.instance = axios_1.default.create(Object.assign(Object.assign({}, axiosConfig), { baseURL: axiosConfig.baseURL || "", adapter: fetchAdapter }));
         this.secure = secure;
         this.format = format;
         this.securityWorker = securityWorker;
