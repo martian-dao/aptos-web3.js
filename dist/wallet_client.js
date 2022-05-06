@@ -46,6 +46,7 @@ const english = __importStar(require("@scure/bip39/wordlists/english"));
 const bip32_1 = __importDefault(require("bip32"));
 const ecc = __importStar(require("tiny-secp256k1"));
 const cross_fetch_1 = __importDefault(require("cross-fetch"));
+const assert_1 = __importDefault(require("assert"));
 const bip32 = (0, bip32_1.default)(ecc);
 const COIN_TYPE = 123420;
 const MAX_ACCOUNTS = 5;
@@ -108,6 +109,18 @@ class RestClient {
             return res["hash"].toString();
         });
     }
+    accountResource(accountAddress, resourceType) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield (0, cross_fetch_1.default)(`${this.client.nodeUrl}/accounts/${accountAddress}/resource/${resourceType}`, { method: "GET" });
+            if (response.status == 404) {
+                return null;
+            }
+            if (response.status != 200) {
+                (0, assert_1.default)(response.status == 200, yield response.text());
+            }
+            return yield response.json();
+        });
+    }
 }
 exports.RestClient = RestClient;
 class WalletClient {
@@ -160,7 +173,7 @@ class WalletClient {
             return { 'code': code, 'accounts': accountMetaData };
         });
     }
-    createWallet2() {
+    createWallet() {
         return __awaiter(this, void 0, void 0, function* () {
             var code = bip39.generateMnemonic(english.wordlist); // mnemonic
             var accountMetadata = yield this.createNewAccount(code);
@@ -195,6 +208,15 @@ class WalletClient {
     getAccountFromPrivateKey(privateKey, address) {
         return __awaiter(this, void 0, void 0, function* () {
             return new aptos_account_1.AptosAccount(privateKey, address);
+        });
+    }
+    // gives the account at position m/44'/COIN_TYPE'/0'/0/0
+    getAccountFromMnemonic(code) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var seed = bip39.mnemonicToSeedSync(code.toString());
+            const node = bip32.fromSeed(Buffer.from(seed));
+            const exKey = node.derivePath(`m/44'/${COIN_TYPE}'/0'/0/0`);
+            return new aptos_account_1.AptosAccount(exKey.privateKey);
         });
     }
     getAccountFromMetaData(code, metaData) {
@@ -350,6 +372,71 @@ class WalletClient {
             const accountResource = resources.find((r) => r.type === resourceType);
             let resource = yield this.tokenClient.tableItem(accountResource.data[fieldName].handle, keyType, valueType, key);
             return resource;
+        });
+    }
+    ///////////// fungible tokens (coins)
+    initiateCoin(account, type_parameter, name, scaling_factor) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const payload = {
+                type: "script_function_payload",
+                function: "0x1::Coin::initialize",
+                type_arguments: [type_parameter],
+                arguments: [
+                    Buffer.from(name).toString("hex"),
+                    scaling_factor.toString(),
+                    false,
+                ]
+            };
+            yield this.tokenClient.submitTransactionHelper(account, payload);
+        });
+    }
+    /** Registers the coin */
+    registerCoin(account, type_parameter) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const payload = {
+                type: "script_function_payload",
+                function: "0x1::Coin::register",
+                type_arguments: [type_parameter],
+                arguments: []
+            };
+            yield this.tokenClient.submitTransactionHelper(account, payload);
+        });
+    }
+    /** Mints the coin */
+    mintCoin(account, type_parameter, dst_address, amount) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const payload = {
+                type: "script_function_payload",
+                function: "0x1::Coin::mint",
+                type_arguments: [type_parameter],
+                arguments: [
+                    dst_address.toString(),
+                    amount.toString(),
+                ]
+            };
+            yield this.tokenClient.submitTransactionHelper(account, payload);
+        });
+    }
+    /** Transfers the coins */
+    transferCoin(account, type_parameter, to_address, amount) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const payload = {
+                type: "script_function_payload",
+                function: "0x1::Coin::transfer",
+                type_arguments: [type_parameter],
+                arguments: [
+                    to_address.toString(),
+                    amount.toString(),
+                ]
+            };
+            yield this.tokenClient.submitTransactionHelper(account, payload);
+        });
+    }
+    getCoinBalance(address, coin_address) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const coin_info = yield this.restClient.accountResource(address, `0x1::Coin::CoinStore<${coin_address}>`);
+            console.log(coin_info);
+            return coin_info["data"]["coin"]["value"];
         });
     }
 }

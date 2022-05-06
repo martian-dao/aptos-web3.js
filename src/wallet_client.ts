@@ -13,6 +13,7 @@ import * as ecc from 'tiny-secp256k1';
 import { BIP32Interface } from 'bip32';
 
 import fetch from "cross-fetch";
+import assert from 'assert';
 
 const bip32 = BIP32Factory(ecc);
 
@@ -89,6 +90,17 @@ export class RestClient {
         const res = await this.client.submitTransaction(accountFrom, signedTxn);
         return res["hash"].toString();
     }
+
+    async accountResource(accountAddress: string, resourceType: string): Promise<any> {
+        const response = await fetch(`${this.client.nodeUrl}/accounts/${accountAddress}/resource/${resourceType}`, {method: "GET"});
+        if (response.status == 404) {
+            return null
+        }
+        if (response.status != 200) {
+          assert(response.status == 200, await response.text());
+        }
+        return await response.json();
+      }
 }
 
 export class WalletClient {
@@ -146,7 +158,7 @@ export class WalletClient {
         return {'code': code, 'accounts': accountMetaData};
     }
 
-    async createWallet2(): Promise<Wallet> {
+    async createWallet(): Promise<Wallet> {
         var code = bip39.generateMnemonic(english.wordlist); // mnemonic
         var accountMetadata = await this.createNewAccount(code);
         return {'code': code, 'accounts': [accountMetadata]};
@@ -178,6 +190,14 @@ export class WalletClient {
 
     async getAccountFromPrivateKey(privateKey: Buffer, address?: string) {
         return new AptosAccount(privateKey, address);
+    }
+
+    // gives the account at position m/44'/COIN_TYPE'/0'/0/0
+    async getAccountFromMnemonic(code: string) {
+        var seed: Uint8Array = bip39.mnemonicToSeedSync(code.toString());
+        const node: BIP32Interface = bip32.fromSeed(Buffer.from(seed))
+        const exKey: BIP32Interface = node.derivePath(`m/44'/${COIN_TYPE}'/0'/0/0`);
+        return new AptosAccount(exKey.privateKey);
     }
 
     async getAccountFromMetaData(code: string, metaData: AccountMetaData) {
@@ -340,6 +360,67 @@ export class WalletClient {
             key
         );
         return resource;
+    }
+
+    ///////////// fungible tokens (coins)
+
+    async initiateCoin(account: AptosAccount, type_parameter: string, name: string, scaling_factor: number) {
+        const payload: { function: string; arguments: any[]; type: string; type_arguments: any[] } = {
+            type: "script_function_payload",
+            function: "0x1::Coin::initialize",
+            type_arguments: [type_parameter],
+            arguments: [
+                Buffer.from(name).toString("hex"),
+                scaling_factor.toString(),
+                false,
+            ]
+        };
+        await this.tokenClient.submitTransactionHelper(account, payload);
+    }
+
+    /** Registers the coin */
+    async registerCoin(account: AptosAccount, type_parameter: string) {
+        const payload: { function: string; arguments: any[]; type: string; type_arguments: any[] } = {
+            type: "script_function_payload",
+            function: "0x1::Coin::register",
+            type_arguments: [type_parameter],
+            arguments: [
+            ]
+        };
+        await this.tokenClient.submitTransactionHelper(account, payload);
+    }
+
+    /** Mints the coin */
+    async mintCoin(account: AptosAccount, type_parameter: string, dst_address: string, amount: number) {
+        const payload: { function: string; arguments: any[]; type: string; type_arguments: any[] } = {
+            type: "script_function_payload",
+            function: "0x1::Coin::mint",
+            type_arguments: [type_parameter],
+            arguments: [
+                dst_address.toString(),
+                amount.toString(),
+            ]
+        };
+        await this.tokenClient.submitTransactionHelper(account, payload);
+    }
+
+    /** Transfers the coins */
+    async transferCoin(account: AptosAccount, type_parameter: string, to_address: string, amount: number) {
+        const payload: { function: string; arguments: any[]; type: string; type_arguments: any[] } = {
+            type: "script_function_payload",
+            function: "0x1::Coin::transfer",
+            type_arguments: [type_parameter],
+            arguments: [
+            to_address.toString(),
+                amount.toString(),
+            ]
+        };
+        await this.tokenClient.submitTransactionHelper(account, payload);
+    }
+
+    async getCoinBalance(address: string, coin_address: string): Promise<number> {
+        const coin_info = await this.restClient.accountResource(address, `0x1::Coin::CoinStore<${coin_address}>`);
+        return coin_info["data"]["coin"]["value"];
     }
 }
 

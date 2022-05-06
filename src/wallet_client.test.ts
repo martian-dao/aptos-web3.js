@@ -7,7 +7,7 @@ import { AccountMetaData, AptosClient } from ".";
 const apis = new WalletClient(NODE_URL, FAUCET_URL)
 
 test("should be able to create a new wallet and rotate auth keys", async () => {
-    var alice = await apis.createWallet2();
+    var alice = await apis.createWallet();
     console.log(alice);
 
     var aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
@@ -46,6 +46,33 @@ test("should be able to create a new wallet and rotate auth keys", async () => {
 
 
 });
+
+// test("should test fungible tokens (coins)", async () => {
+    // const alice = await apis.importWallet('unable hollow bike collect myself now release social person senior vanish price');
+    // const aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
+    // const type_parameter = "0x47EA3C6275F6C0F351C7F2E99E4E5E925AD1AE9E836D442D309884A4A08F4FE6::MartianCoin::Martian";
+    // const coin_name = "$Martiansss";
+
+    // const bob = await apis.createWallet();
+    // const bobAccount = await apis.getAccountFromMetaData(bob.code, bob.accounts[0]);
+
+    // // console.log("\n=== Addresses ===");
+    // // console.log(`Alice: ${alice.address()}. Key Seed: ${Buffer.from(alice.signingKey.secretKey).toString("hex").slice(0, 64)}`);
+    // // console.log(`Bob: ${bob["address key"]}. Key Seed: ${Buffer.from(bob.signingKey.secretKey).toString("hex").slice(0, 64)}`);
+
+    // await apis.airdrop(aliceAccount.address().toString(), 10_000_000);
+    // await apis.airdrop(bob.accounts[0].address, 10_000_000);
+
+    // console.log("\n=== Running New Coin functions ===");
+
+    // // await client.initiateCoin(alice, type_parameter, coin_name, 1);
+    // // await client.registerCoin(alice, type_parameter);
+    // await apis.registerCoin(bobAccount, type_parameter);
+    // await apis.mintCoin(aliceAccount, type_parameter, bobAccount.address().toString(), 200);
+    // await apis.transferCoin(bobAccount, type_parameter, aliceAccount.address().toString(), 69);
+
+    // console.log(`Balance: ${await apis.getCoinBalance(aliceAccount.address().toString(), type_parameter)}`, )
+// })
 
 // test("should be able to create NFT collection", async () => {
 //     const alice = await apis.createWallet();

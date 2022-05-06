@@ -31,6 +31,7 @@ export declare class RestClient {
     /** Transfer a given coin amount from a given Account to the recipient's account address.
      Returns the sequence number of the transaction used to transfer. */
     transfer(accountFrom: AptosAccount, recipient: string, amount: number): Promise<string>;
+    accountResource(accountAddress: string, resourceType: string): Promise<any>;
 }
 export declare class WalletClient {
     faucetClient: FaucetClient;
@@ -39,9 +40,10 @@ export declare class WalletClient {
     tokenClient: TokenClient;
     constructor(node_url: any, faucet_url: any);
     importWallet(code: string): Promise<Wallet>;
-    createWallet2(): Promise<Wallet>;
+    createWallet(): Promise<Wallet>;
     createNewAccount(code: string): Promise<AccountMetaData>;
     getAccountFromPrivateKey(privateKey: Buffer, address?: string): Promise<AptosAccount>;
+    getAccountFromMnemonic(code: string): Promise<AptosAccount>;
     getAccountFromMetaData(code: string, metaData: AccountMetaData): Promise<AptosAccount>;
     airdrop(address: string, amount: number): Promise<string[]>;
     getBalance(address: string): Promise<number>;
@@ -61,5 +63,13 @@ export declare class WalletClient {
     getToken(tokenId: TokenId): Promise<any>;
     getCollection(address: string, collectionName: string): Promise<any>;
     getCustomResource(address: string, resourceType: string, fieldName: string, keyType: string, valueType: string, key: any): Promise<any>;
+    initiateCoin(account: AptosAccount, type_parameter: string, name: string, scaling_factor: number): Promise<void>;
+    /** Registers the coin */
+    registerCoin(account: AptosAccount, type_parameter: string): Promise<void>;
+    /** Mints the coin */
+    mintCoin(account: AptosAccount, type_parameter: string, dst_address: string, amount: number): Promise<void>;
+    /** Transfers the coins */
+    transferCoin(account: AptosAccount, type_parameter: string, to_address: string, amount: number): Promise<void>;
+    getCoinBalance(address: string, coin_address: string): Promise<number>;
 }
 //# sourceMappingURL=wallet_client.d.ts.map

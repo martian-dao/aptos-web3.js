@@ -12,10 +12,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const wallet_client_1 = require("./wallet_client");
 const util_test_1 = require("./util.test");
 const apis = new wallet_client_1.WalletClient(util_test_1.NODE_URL, util_test_1.FAUCET_URL);
-test("should be able to create a new wallet and mnemonic", () => __awaiter(void 0, void 0, void 0, function* () {
-    var alice = yield apis.createWallet2();
+test("should be able to create a new wallet and rotate auth keys", () => __awaiter(void 0, void 0, void 0, function* () {
+    var alice = yield apis.createWallet();
     console.log(alice);
-    const aliceAccount = yield apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
+    var aliceAccount = yield apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
     yield apis.airdrop(aliceAccount.address().toString(), 20000);
     yield apis.rotateAuthKey(alice.code, alice.accounts[0]);
     alice = yield apis.importWallet(alice.code);
@@ -26,14 +26,38 @@ test("should be able to create a new wallet and mnemonic", () => __awaiter(void 
     alice = yield apis.importWallet(alice.code);
     yield apis.createNewAccount(alice.code);
     alice = yield apis.importWallet(alice.code);
+    aliceAccount = yield apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
     yield apis.airdrop(aliceAccount.address().toString(), 20000);
     yield apis.rotateAuthKey(alice.code, alice.accounts[2]);
     alice = yield apis.importWallet(alice.code);
+    aliceAccount = yield apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
     yield apis.rotateAuthKey(alice.code, alice.accounts[2]);
     alice = yield apis.importWallet(alice.code);
     console.log(alice);
-    // const alice4 = await apis.importWallet(alice.code);
-    // console.log(alice4);
+    aliceAccount = yield apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
+    yield apis.transfer(aliceAccount, alice.accounts[3].address, 100);
+    console.log(yield apis.getBalance(aliceAccount.address().toString()));
+    console.log(yield apis.getBalance(alice.accounts[3].address));
+}));
+test("should test fungible tokens (coins)", () => __awaiter(void 0, void 0, void 0, function* () {
+    const alice = yield apis.importWallet('unable hollow bike collect myself now release social person senior vanish price');
+    const aliceAccount = yield apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
+    const type_parameter = "0x47EA3C6275F6C0F351C7F2E99E4E5E925AD1AE9E836D442D309884A4A08F4FE6::MartianCoin::Martian";
+    const coin_name = "$Martiansss";
+    const bob = yield apis.createWallet();
+    const bobAccount = yield apis.getAccountFromMetaData(bob.code, bob.accounts[0]);
+    // console.log("\n=== Addresses ===");
+    // console.log(`Alice: ${alice.address()}. Key Seed: ${Buffer.from(alice.signingKey.secretKey).toString("hex").slice(0, 64)}`);
+    // console.log(`Bob: ${bob["address key"]}. Key Seed: ${Buffer.from(bob.signingKey.secretKey).toString("hex").slice(0, 64)}`);
+    yield apis.airdrop(aliceAccount.address().toString(), 10000000);
+    yield apis.airdrop(bob.accounts[0].address, 10000000);
+    console.log("\n=== Running New Coin functions ===");
+    // await client.initiateCoin(alice, type_parameter, coin_name, 1);
+    // await client.registerCoin(alice, type_parameter);
+    yield apis.registerCoin(bobAccount, type_parameter);
+    yield apis.mintCoin(aliceAccount, type_parameter, bobAccount.address().toString(), 200);
+    yield apis.transferCoin(bobAccount, type_parameter, aliceAccount.address().toString(), 69);
+    console.log(`Balance: ${yield apis.getCoinBalance(aliceAccount.address().toString(), type_parameter)}`);
 }));
 // test("should be able to create NFT collection", async () => {
 //     const alice = await apis.createWallet();
