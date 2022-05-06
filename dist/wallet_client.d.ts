@@ -20,6 +20,7 @@ export declare class RestClient {
     waitForTransaction(txnHash: string): Promise<void>;
     /** Returns the test coin balance associated with the account */
     accountBalance(accountAddress: string): Promise<number | null>;
+    accountResource(accountAddress: string, resourceType: string): Promise<any>;
     /** Transfer a given coin amount from a given Account to the recipient's account address.
      Returns the sequence number of the transaction used to transfer. */
     transfer(accountFrom: AptosAccount, recipient: string, amount: number): Promise<string>;
@@ -62,5 +63,10 @@ export declare class WalletClient {
     getToken(tokenId: TokenId): Promise<any>;
     getCollection(address: string, collectionName: string): Promise<any>;
     getCustomResource(address: string, resourceType: string, fieldName: string, keyType: string, valueType: string, key: any): Promise<any>;
+    initiateCoin(code: string, type_parameter: string, name: string, scaling_factor: number): Promise<void>;
+    registerCoin(code: string, type_parameter: string): Promise<void>;
+    mintCoin(code: string, type_parameter: string, dst_address: string, amount: number): Promise<void>;
+    transferCoin(code: string, type_parameter: string, to_address: string, amount: number): Promise<void>;
+    getCoinBalance(address: string, coin_address: string): Promise<number>;
 }
 //# sourceMappingURL=wallet_client.d.ts.map

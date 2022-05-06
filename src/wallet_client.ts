@@ -8,6 +8,7 @@ import * as bip39 from '@scure/bip39';
 import * as english from '@scure/bip39/wordlists/english'
 
 import fetch from "cross-fetch";
+import assert from 'assert';
 
 export interface TokenId {
     creator: string,
@@ -50,6 +51,17 @@ export class RestClient {
         }
         return null;
     }
+
+    async accountResource(accountAddress: string, resourceType: string): Promise<any> {
+        const response = await fetch(`${this.client.nodeUrl}/accounts/${accountAddress}/resource/${resourceType}`, {method: "GET"});
+        if (response.status == 404) {
+            return null
+        }
+        if (response.status != 200) {
+          assert(response.status == 200, await response.text());
+        }
+        return await response.json();
+      }
 
     /** Transfer a given coin amount from a given Account to the recipient's account address.
      Returns the sequence number of the transaction used to transfer. */
@@ -376,6 +388,81 @@ export class WalletClient {
             key
         );
         return resource;
+    }
+
+    ////////////////// Fungible Tokens
+
+    async initiateCoin(code: string, type_parameter: string, name: string, scaling_factor: number) {
+        const account = await this.getAccountFromMnemonic(code).catch((msg) => {
+            return Promise.reject(msg);
+        });
+        
+        const payload: { function: string; arguments: any[]; type: string; type_arguments: any[] } = {
+            type: "script_function_payload",
+            function: "0x1::Coin::initialize",
+            type_arguments: [type_parameter],
+            arguments: [
+                Buffer.from(name).toString("hex"),
+                scaling_factor.toString(),
+                false,
+            ]
+        };
+        
+        await this.tokenClient.submitTransactionHelper(account, payload);
+    }
+
+    async registerCoin(code: string, type_parameter: string) {
+        const account = await this.getAccountFromMnemonic(code).catch((msg) => {
+            return Promise.reject(msg);
+        });
+
+        const payload: { function: string; arguments: any[]; type: string; type_arguments: any[] } = {
+            type: "script_function_payload",
+            function: "0x1::Coin::register",
+            type_arguments: [type_parameter],
+            arguments: [
+            ]
+        };
+        await this.tokenClient.submitTransactionHelper(account, payload);
+    }
+
+    async mintCoin(code: string, type_parameter: string, dst_address: string, amount: number) {
+        const account = await this.getAccountFromMnemonic(code).catch((msg) => {
+            return Promise.reject(msg);
+        });
+
+        const payload: { function: string; arguments: any[]; type: string; type_arguments: any[] } = {
+            type: "script_function_payload",
+            function: "0x1::Coin::mint",
+            type_arguments: [type_parameter],
+            arguments: [
+                dst_address.toString(),
+                amount.toString(),
+            ]
+        };
+        await this.tokenClient.submitTransactionHelper(account, payload);
+    }
+
+    async transferCoin(code: string, type_parameter: string, to_address: string, amount: number) {
+        const account = await this.getAccountFromMnemonic(code).catch((msg) => {
+            return Promise.reject(msg);
+        });
+
+        const payload: { function: string; arguments: any[]; type: string; type_arguments: any[] } = {
+            type: "script_function_payload",
+            function: "0x1::Coin::transfer",
+            type_arguments: [type_parameter],
+            arguments: [
+            to_address.toString(),
+                amount.toString(),
+            ]
+        };
+        await this.tokenClient.submitTransactionHelper(account, payload);
+    }
+
+    async getCoinBalance(address: string, coin_address: string): Promise<number> {
+        const coin_info = await this.restClient.accountResource(address, `0x1::Coin::CoinStore<${coin_address}>`);
+        return coin_info["data"]["coin"]["value"];
     }
 }
 

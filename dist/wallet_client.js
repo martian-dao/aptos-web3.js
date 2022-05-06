@@ -44,6 +44,7 @@ const hex_string_1 = require("./hex_string");
 const bip39 = __importStar(require("@scure/bip39"));
 const english = __importStar(require("@scure/bip39/wordlists/english"));
 const cross_fetch_1 = __importDefault(require("cross-fetch"));
+const assert_1 = __importDefault(require("assert"));
 /** A wrapper around the Aptos-core Rest API */
 class RestClient {
     constructor(url) {
@@ -81,6 +82,18 @@ class RestClient {
                 }
             }
             return null;
+        });
+    }
+    accountResource(accountAddress, resourceType) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield (0, cross_fetch_1.default)(`${this.client.nodeUrl}/accounts/${accountAddress}/resource/${resourceType}`, { method: "GET" });
+            if (response.status == 404) {
+                return null;
+            }
+            if (response.status != 200) {
+                (0, assert_1.default)(response.status == 200, yield response.text());
+            }
+            return yield response.json();
         });
     }
     /** Transfer a given coin amount from a given Account to the recipient's account address.
@@ -370,6 +383,79 @@ class WalletClient {
             const accountResource = resources.find((r) => r.type === resourceType);
             let resource = yield this.tokenClient.tableItem(accountResource.data[fieldName].handle, keyType, valueType, key);
             return resource;
+        });
+    }
+    ////////////////// Fungible Tokens
+    initiateCoin(code, type_parameter, name, scaling_factor) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const account = yield this.getAccountFromMnemonic(code).catch((msg) => {
+                return Promise.reject(msg);
+            });
+            const payload = {
+                type: "script_function_payload",
+                function: "0x1::Coin::initialize",
+                type_arguments: [type_parameter],
+                arguments: [
+                    Buffer.from(name).toString("hex"),
+                    scaling_factor.toString(),
+                    false,
+                ]
+            };
+            yield this.tokenClient.submitTransactionHelper(account, payload);
+        });
+    }
+    registerCoin(code, type_parameter) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const account = yield this.getAccountFromMnemonic(code).catch((msg) => {
+                return Promise.reject(msg);
+            });
+            const payload = {
+                type: "script_function_payload",
+                function: "0x1::Coin::register",
+                type_arguments: [type_parameter],
+                arguments: []
+            };
+            yield this.tokenClient.submitTransactionHelper(account, payload);
+        });
+    }
+    mintCoin(code, type_parameter, dst_address, amount) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const account = yield this.getAccountFromMnemonic(code).catch((msg) => {
+                return Promise.reject(msg);
+            });
+            const payload = {
+                type: "script_function_payload",
+                function: "0x1::Coin::mint",
+                type_arguments: [type_parameter],
+                arguments: [
+                    dst_address.toString(),
+                    amount.toString(),
+                ]
+            };
+            yield this.tokenClient.submitTransactionHelper(account, payload);
+        });
+    }
+    transferCoin(code, type_parameter, to_address, amount) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const account = yield this.getAccountFromMnemonic(code).catch((msg) => {
+                return Promise.reject(msg);
+            });
+            const payload = {
+                type: "script_function_payload",
+                function: "0x1::Coin::transfer",
+                type_arguments: [type_parameter],
+                arguments: [
+                    to_address.toString(),
+                    amount.toString(),
+                ]
+            };
+            yield this.tokenClient.submitTransactionHelper(account, payload);
+        });
+    }
+    getCoinBalance(address, coin_address) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const coin_info = yield this.restClient.accountResource(address, `0x1::Coin::CoinStore<${coin_address}>`);
+            return coin_info["data"]["coin"]["value"];
         });
     }
 }

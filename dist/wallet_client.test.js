@@ -74,17 +74,23 @@ test("should be able to sign a generic transaction", () => __awaiter(void 0, voi
     yield apis.signGenericTransaction(alice.code, "0x1::TestCoin::transfer", `0x${recipient}`, amount.toString());
     expect(yield apis.getBalance(bob["address key"])).toBe(20);
 }));
-// test("should be able to rotate an auth key", async function() {
-//     const alice = await apis.createWallet();
-//     await apis.airdrop(alice['address key'], 2000);
-//     const bob = await apis.createWallet();
-//     const newKeys = await apis.getUninitializedAccount()
-//     await apis.rotateAuthKey(alice['code'], newKeys.auth_key.toString());
-//     await apis.transfer(newKeys.code, bob["address key"], 100, alice["address key"]);
-//     const cam = await apis.createWallet();
-//     await apis.airdrop(cam['address key'], 8000);
-//     await apis.transfer(cam.code, alice["address key"], 5000);
-//     expect(await apis.getBalance(alice["address key"])).toBeGreaterThan(5000);
-//     expect(await apis.getBalance(bob["address key"])).toBe(110); //createwallet() adds 10 coins
-// });
+test("should test fungible tokens (coins)", () => __awaiter(void 0, void 0, void 0, function* () {
+    const aliceCode = 'unable hollow bike collect myself now release social person senior vanish price';
+    const alice = yield apis.getAccountFromMnemonic(aliceCode);
+    const type_parameter = "0x47EA3C6275F6C0F351C7F2E99E4E5E925AD1AE9E836D442D309884A4A08F4FE6::MartianCoin::Martian";
+    const coin_name = "$Martiansss";
+    const bob = yield apis.createWallet();
+    // console.log("\n=== Addresses ===");
+    // console.log(`Alice: ${alice.address()}. Key Seed: ${Buffer.from(alice.signingKey.secretKey).toString("hex").slice(0, 64)}`);
+    // console.log(`Bob: ${bob["address key"]}. Key Seed: ${Buffer.from(bob.signingKey.secretKey).toString("hex").slice(0, 64)}`);
+    yield apis.airdrop(alice.address().toString(), 10000000);
+    yield apis.airdrop(bob["address key"], 10000000);
+    console.log("\n=== Running New Coin functions ===");
+    // await client.initiateCoin(alice, type_parameter, coin_name, 1);
+    // await client.registerCoin(alice, type_parameter);
+    yield apis.registerCoin(bob.code, type_parameter);
+    yield apis.mintCoin(aliceCode, type_parameter, bob["address key"], 200);
+    yield apis.transferCoin(bob.code, type_parameter, alice.address().toString(), 69);
+    console.log(`Balance: ${yield apis.getCoinBalance(alice.address().toString(), type_parameter)}`);
+}));
 //# sourceMappingURL=wallet_client.test.js.map
