@@ -1,13 +1,21 @@
+/// <reference types="node" />
 import { AptosAccount } from './aptos_account';
 import { TokenClient } from './token_client';
 import { AptosClient } from './aptos_client';
 import { FaucetClient } from './faucet_client';
-import { HexString, MaybeHexString } from './hex_string';
 import { Types } from './types';
 export interface TokenId {
     creator: string;
     collectionName: string;
     name: string;
+}
+export interface AccountMetaData {
+    derivationPath: string;
+    address: string;
+}
+export interface Wallet {
+    code: string;
+    accounts: AccountMetaData[];
 }
 /** A wrapper around the Aptos-core Rest API */
 export declare class RestClient {
@@ -30,32 +38,23 @@ export declare class WalletClient {
     aptosClient: AptosClient;
     tokenClient: TokenClient;
     constructor(node_url: any, faucet_url: any);
-    getAccountFromMnemonic(code: string, address?: MaybeHexString): Promise<AptosAccount>;
-    createWallet(): Promise<{
-        code: string;
-        "address key": string;
-    }>;
-    getUninitializedAccount(): Promise<{
-        code: string;
-        auth_key: HexString;
-        "address key": string;
-    }>;
-    importWallet(code: string, address?: string): Promise<{
-        auth_key: HexString;
-        "address key": string;
-    }>;
+    importWallet(code: string): Promise<Wallet>;
+    createWallet2(): Promise<Wallet>;
+    createNewAccount(code: string): Promise<AccountMetaData>;
+    getAccountFromPrivateKey(privateKey: Buffer, address?: string): Promise<AptosAccount>;
+    getAccountFromMetaData(code: string, metaData: AccountMetaData): Promise<AptosAccount>;
     airdrop(address: string, amount: number): Promise<string[]>;
     getBalance(address: string): Promise<number>;
-    transfer(code: string, recipient_address: string, amount: number, sender_address?: string): Promise<void>;
+    transfer(account: AptosAccount, recipient_address: string, amount: number): Promise<void>;
     getSentEvents(address: string): Promise<Types.Event[]>;
     getReceivedEvents(address: string): Promise<Types.Event[]>;
-    createNFTCollection(code: string, name: string, description: string, uri: string, address?: string): Promise<string>;
-    createNFT(code: string, collection_name: string, name: string, description: string, supply: number, uri: string, address?: string): Promise<string>;
-    offerNFT(code: string, receiver_address: string, creator_address: string, collection_name: string, token_name: string, amount: number, address?: string): Promise<string>;
-    cancelNFTOffer(code: string, receiver_address: string, creator_address: string, collection_name: string, token_name: string, address?: string): Promise<string>;
-    claimNFT(code: string, sender_address: string, creator_address: string, collection_name: string, token_name: string, address?: string): Promise<string>;
-    signGenericTransaction(code: string, func: string, ...args: string[]): Promise<string>;
-    getAccountResources(accountAddress: string): Promise<Types.AccountResource[]>;
+    createCollection(account: AptosAccount, name: string, description: string, uri: string): Promise<string>;
+    createToken(account: AptosAccount, collection_name: string, name: string, description: string, supply: number, uri: string): Promise<string>;
+    offerToken(account: AptosAccount, receiver_address: string, creator_address: string, collection_name: string, token_name: string, amount: number): Promise<string>;
+    cancelTokenOffer(account: AptosAccount, receiver_address: string, creator_address: string, collection_name: string, token_name: string): Promise<string>;
+    claimNFT(account: AptosAccount, sender_address: string, creator_address: string, collection_name: string, token_name: string): Promise<string>;
+    signGenericTransaction(account: AptosAccount, func: string, ...args: string[]): Promise<string>;
+    rotateAuthKey(code: string, metaData: AccountMetaData): Promise<string>;
     getEventStream(address: string, eventHandleStruct: string, fieldName: string): Promise<any>;
     getTokenIds(address: string): Promise<any[]>;
     getTokens(address: string): Promise<any[]>;

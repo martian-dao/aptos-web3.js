@@ -43,7 +43,13 @@ const faucet_client_1 = require("./faucet_client");
 const hex_string_1 = require("./hex_string");
 const bip39 = __importStar(require("@scure/bip39"));
 const english = __importStar(require("@scure/bip39/wordlists/english"));
+const bip32_1 = __importDefault(require("bip32"));
+const ecc = __importStar(require("tiny-secp256k1"));
 const cross_fetch_1 = __importDefault(require("cross-fetch"));
+const bip32 = (0, bip32_1.default)(ecc);
+const COIN_TYPE = 123420;
+const MAX_ACCOUNTS = 5;
+const ADDRESS_GAP = 10;
 /** A wrapper around the Aptos-core Rest API */
 class RestClient {
     constructor(url) {
@@ -111,52 +117,92 @@ class WalletClient {
         this.restClient = new RestClient(node_url);
         this.tokenClient = new token_client_1.TokenClient(this.aptosClient);
     }
-    getAccountFromMnemonic(code, address) {
+    // Get all the accounts of a user from their mnemonic
+    importWallet(code) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!bip39.validateMnemonic(code, english.wordlist)) {
                 return Promise.reject('Incorrect mnemonic passed');
             }
             var seed = bip39.mnemonicToSeedSync(code.toString());
-            const account = new aptos_account_1.AptosAccount(seed.slice(0, 32), address);
-            return Promise.resolve(account);
+            const node = bip32.fromSeed(Buffer.from(seed));
+            var accountMetaData = [];
+            for (var i = 0; i < MAX_ACCOUNTS; i++) {
+                var flag = false;
+                var address = '';
+                var derivationPath = '';
+                var authKey = '';
+                for (var j = 0; j < ADDRESS_GAP; j++) {
+                    const exKey = node.derivePath(`m/44'/${COIN_TYPE}'/${i}'/0/${j}`);
+                    let acc = new aptos_account_1.AptosAccount(exKey.privateKey);
+                    if (j == 0) {
+                        address = acc.authKey().toString();
+                        const response = yield (0, cross_fetch_1.default)(`${this.aptosClient.nodeUrl}/accounts/${address}`, {
+                            method: "GET"
+                        });
+                        if (response.status == 404) {
+                            break;
+                        }
+                        const respBody = yield response.json();
+                        authKey = respBody.authentication_key;
+                    }
+                    acc = new aptos_account_1.AptosAccount(exKey.privateKey, address);
+                    if (acc.authKey().toString() === authKey) {
+                        flag = true;
+                        derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0/${j}`;
+                        break;
+                    }
+                }
+                if (!flag) {
+                    break;
+                }
+                accountMetaData.push({ 'derivationPath': derivationPath, 'address': address });
+            }
+            return { 'code': code, 'accounts': accountMetaData };
         });
     }
-    createWallet() {
+    createWallet2() {
         return __awaiter(this, void 0, void 0, function* () {
-            var code = bip39.generateMnemonic(english.wordlist); // secret recovery phrase
-            const account = yield this.getAccountFromMnemonic(code).catch((msg) => {
-                return Promise.reject(msg);
-            });
-            yield this.faucetClient.fundAccount(account.authKey(), 10);
-            return Promise.resolve({
-                "code": code,
-                "address key": account.address().noPrefix()
-            });
+            var code = bip39.generateMnemonic(english.wordlist); // mnemonic
+            var accountMetadata = yield this.createNewAccount(code);
+            return { 'code': code, 'accounts': [accountMetadata] };
         });
     }
-    getUninitializedAccount() {
+    createNewAccount(code) {
         return __awaiter(this, void 0, void 0, function* () {
-            var code = bip39.generateMnemonic(english.wordlist); // secret recovery phrase
-            const account = yield this.getAccountFromMnemonic(code).catch((msg) => {
-                return Promise.reject(msg);
-            });
-            return Promise.resolve({
-                "code": code,
-                "auth_key": account.authKey(),
-                "address key": account.address().noPrefix()
-            });
+            var seed = bip39.mnemonicToSeedSync(code.toString());
+            const node = bip32.fromSeed(Buffer.from(seed));
+            for (var i = 0; i < MAX_ACCOUNTS; i++) {
+                const derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0/0`;
+                const exKey = node.derivePath(derivationPath);
+                let acc = new aptos_account_1.AptosAccount(exKey.privateKey);
+                const address = acc.authKey().toString();
+                const response = yield (0, cross_fetch_1.default)(`${this.aptosClient.nodeUrl}/accounts/${address}`, {
+                    method: "GET"
+                });
+                if (response.status != 404) {
+                    const respBody = yield response.json();
+                    console.log(i);
+                    console.log(respBody.authentication_key);
+                    continue;
+                }
+                console.log(i);
+                yield this.faucetClient.fundAccount(acc.authKey(), 0);
+                return { 'derivationPath': derivationPath, 'address': address };
+            }
+            throw new Error('Max no. of accounts reached');
         });
     }
-    importWallet(code, address) {
+    getAccountFromPrivateKey(privateKey, address) {
         return __awaiter(this, void 0, void 0, function* () {
-            const account = yield this.getAccountFromMnemonic(code, address).catch((msg) => {
-                return Promise.reject(msg);
-            });
-            yield this.faucetClient.fundAccount(account.authKey(), 10);
-            return Promise.resolve({
-                "auth_key": account.authKey(),
-                "address key": account.address().noPrefix()
-            });
+            return new aptos_account_1.AptosAccount(privateKey, address);
+        });
+    }
+    getAccountFromMetaData(code, metaData) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var seed = bip39.mnemonicToSeedSync(code.toString());
+            const node = bip32.fromSeed(Buffer.from(seed));
+            const exKey = node.derivePath(metaData.derivationPath);
+            return new aptos_account_1.AptosAccount(exKey.privateKey, metaData.address);
         });
     }
     airdrop(address, amount) {
@@ -170,11 +216,8 @@ class WalletClient {
             return Promise.resolve(balance);
         });
     }
-    transfer(code, recipient_address, amount, sender_address) {
+    transfer(account, recipient_address, amount) {
         return __awaiter(this, void 0, void 0, function* () {
-            const account = yield this.getAccountFromMnemonic(code, sender_address).catch((msg) => {
-                return Promise.reject(msg);
-            });
             const txHash = yield this.restClient.transfer(account, recipient_address, amount);
             yield this.restClient.waitForTransaction(txHash).then(() => Promise.resolve(true)).catch((msg) => Promise.reject(msg));
         });
@@ -189,52 +232,34 @@ class WalletClient {
             return yield this.restClient.accountReceivedEvents(address);
         });
     }
-    createNFTCollection(code, name, description, uri, address) {
+    createCollection(account, name, description, uri) {
         return __awaiter(this, void 0, void 0, function* () {
-            const account = yield this.getAccountFromMnemonic(code, address).catch((msg) => {
-                return Promise.reject(msg);
-            });
             return yield this.tokenClient.createCollection(account, name, description, uri);
         });
     }
-    createNFT(code, collection_name, name, description, supply, uri, address) {
+    createToken(account, collection_name, name, description, supply, uri) {
         return __awaiter(this, void 0, void 0, function* () {
-            const account = yield this.getAccountFromMnemonic(code, address).catch((msg) => {
-                return Promise.reject(msg);
-            });
             return yield this.tokenClient.createToken(account, collection_name, name, description, supply, uri);
         });
     }
-    offerNFT(code, receiver_address, creator_address, collection_name, token_name, amount, address) {
+    offerToken(account, receiver_address, creator_address, collection_name, token_name, amount) {
         return __awaiter(this, void 0, void 0, function* () {
-            const account = yield this.getAccountFromMnemonic(code, address).catch((msg) => {
-                return Promise.reject(msg);
-            });
             return yield this.tokenClient.offerToken(account, receiver_address, creator_address, collection_name, token_name, amount);
         });
     }
-    cancelNFTOffer(code, receiver_address, creator_address, collection_name, token_name, address) {
+    cancelTokenOffer(account, receiver_address, creator_address, collection_name, token_name) {
         return __awaiter(this, void 0, void 0, function* () {
-            const account = yield this.getAccountFromMnemonic(code, address).catch((msg) => {
-                return Promise.reject(msg);
-            });
             const token_id = yield this.tokenClient.getTokenId(creator_address, collection_name, token_name);
             return yield this.tokenClient.cancelTokenOffer(account, receiver_address, creator_address, token_id);
         });
     }
-    claimNFT(code, sender_address, creator_address, collection_name, token_name, address) {
+    claimNFT(account, sender_address, creator_address, collection_name, token_name) {
         return __awaiter(this, void 0, void 0, function* () {
-            const account = yield this.getAccountFromMnemonic(code, address).catch((msg) => {
-                return Promise.reject(msg);
-            });
             return yield this.tokenClient.claimToken(account, sender_address, creator_address, collection_name, token_name);
         });
     }
-    signGenericTransaction(code, func, ...args) {
+    signGenericTransaction(account, func, ...args) {
         return __awaiter(this, void 0, void 0, function* () {
-            const account = yield this.getAccountFromMnemonic(code).catch((msg) => {
-                return Promise.reject(msg);
-            });
             const payload = {
                 type: "script_function_payload",
                 function: func,
@@ -244,66 +269,21 @@ class WalletClient {
             return yield this.tokenClient.submitTransactionHelper(account, payload);
         });
     }
-    getAccountResources(accountAddress) {
+    rotateAuthKey(code, metaData) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.aptosClient.getAccountResources(accountAddress);
+            const account = yield this.getAccountFromMetaData(code, metaData);
+            const pathSplit = metaData.derivationPath.split('/');
+            const address_index = parseInt(pathSplit[pathSplit.length - 1]);
+            if (address_index >= ADDRESS_GAP - 1) {
+                throw new Error('Maximum key rotation reached');
+            }
+            const newDerivationPath = `${pathSplit.slice(0, pathSplit.length - 1).join('/')}/${address_index + 1}`;
+            const newAccount = yield this.getAccountFromMetaData(code, { 'address': metaData.address, 'derivationPath': newDerivationPath });
+            var newAuthKey = newAccount.authKey().toString().split('0x')[1];
+            console.log(newAuthKey);
+            return yield this.signGenericTransaction(account, "0x1::Account::rotate_authentication_key", newAuthKey);
         });
     }
-    // async rotateAuthKey(code: string, currAddress: string) {
-    //     const alice = await this.getAccountFromMnemonic(code, currAddress).catch((msg) => {
-    //         return Promise.reject(msg);
-    //     });
-    //     const newKeys = await this.getUninitializedAccount();
-    //     const payload2: { function: string; arguments: string[]; type: string; type_arguments: any[] } = {
-    //         type: "script_function_payload",
-    //         function: "0x1::AptosAccount::rotate_authentication_key",
-    //         type_arguments: [],
-    //         arguments: [
-    //             new_auth_key,
-    //         ]
-    //     }
-    //     await this.tokenClient.submitTransactionHelper(oldAlice, payload2);
-    //     const payload: { function: string; arguments: string[]; type: string; type_arguments: any[] } = {
-    //         type: "script_function_payload",
-    //         function: "0x3e4eeee8e135792f991d107eb92d927e12d811a587df2c13523c548754a24c3a::MartianWallet::set_address",
-    //         type_arguments: [],
-    //         arguments: [
-    //           `0x${currAddress}`,
-    //         ]
-    //     } 
-    //     return await this.tokenClient.submitTransactionHelper(newAlice, payload);
-    // }
-    // /** Retrieve the collection **/
-    // async getCollection(creator: string, collection_name: string): Promise<number> {
-    //     const resources: Types.AccountResource[] = await this.aptosClient.getAccountResources(creator);
-    //     const accountResource: { type: string; data: any } = resources.find((r) => r.type === "0x1::Token::Collections");
-    //     let collection = await this.tokenClient.tableItem(
-    //         accountResource.data.collections.handle,
-    //         "0x1::ASCII::String",
-    //         "0x1::Token::Collection",
-    //         collection_name,
-    //     );
-    //     return collection
-    // }
-    // // /** Retrieve the token **/
-    // async getTokens(creator: string, collection_name: string, token_name: string): Promise<number> {
-    //     v tokens = []
-    //     const resources: Types.AccountResource[] = await this.aptosClient.getAccountResources(creator);
-    //     const accountResource: { type: string; data: any } = resources.find((r) => r.type === "0x1::Token::Collections");
-    //     let collection = await this.tokenClient.tableItem(
-    //         accountResource.data.collections.handle,
-    //         "0x1::ASCII::String",
-    //         "0x1::Token::Collection",
-    //         collection_name,
-    //     );
-    //     let tokenData = await this.tokenClient.tableItem(
-    //         collection["tokens"]["handle"],
-    //         "0x1::ASCII::String",
-    //         "0x1::Token::TokenData",
-    //         token_name,
-    //     );
-    //     return tokenData["id"]["creation_num"]
-    // }
     getEventStream(address, eventHandleStruct, fieldName) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield (0, cross_fetch_1.default)(`${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`, {
