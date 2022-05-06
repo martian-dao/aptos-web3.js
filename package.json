@@ -1,5 +1,5 @@
 {
-  "name": "@martiandao/aptos-web3.js",
+  "name": "@martiandao/aptos-web3-bip44.js",
   "description": "Web3 SDK For Aptos",
   "engines": {
     "node": ">=11.0.0"
@@ -47,5 +47,5 @@
     "js-sha3": "^0.8.0",
     "tweetnacl": "^1.0.3"
   },
-  "version": "3.0.6"
+  "version": "1.0.0"
 }
