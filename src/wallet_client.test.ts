@@ -8,7 +8,7 @@ const apis = new WalletClient(NODE_URL, FAUCET_URL)
 
 test("should be able to create new wallet and airdrop", async () => {
     const bob = await apis.createWallet();
-    expect(await apis.getBalance(bob["address key"])).toBe(10);
+    expect(await apis.getBalance(bob["address key"])).toBe(0);
 });
 
 test("should be able to import wallet", async () => {
@@ -16,7 +16,7 @@ test("should be able to import wallet", async () => {
     await apis.airdrop(bob['address key'], 420);
     const bob2 = await apis.importWallet(bob['code'])
     console.log(bob2);
-    expect(await apis.getBalance(bob2["address key"])).toBe(440);
+    expect(await apis.getBalance(bob2["address key"])).toBe(420);
 });
 
 test("should be able to transfer", async () => {
@@ -24,7 +24,7 @@ test("should be able to transfer", async () => {
     await apis.airdrop(alice['address key'], 5000);
     const bob = await apis.createWallet();
     await apis.transfer(alice["code"], bob["address key"], 20);
-    expect(await apis.getBalance(bob["address key"])).toBe(30); 
+    expect(await apis.getBalance(bob["address key"])).toBe(20); 
 });
 
 test("should be able to create NFT collection", async () => {
@@ -79,7 +79,7 @@ test("should be able to sign a generic transaction", async () => {
     const recipient = bob['address key'];
     const amount = 10;
     await apis.signGenericTransaction(alice.code, "0x1::TestCoin::transfer", `0x${recipient}`, amount.toString())
-    expect(await apis.getBalance(bob["address key"])).toBe(20); 
+    expect(await apis.getBalance(bob["address key"])).toBe(10); 
 });
 
 test("should test fungible tokens (coins)", async () => {

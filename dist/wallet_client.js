@@ -140,7 +140,7 @@ class WalletClient {
             const account = yield this.getAccountFromMnemonic(code).catch((msg) => {
                 return Promise.reject(msg);
             });
-            yield this.faucetClient.fundAccount(account.authKey(), 10);
+            yield this.faucetClient.fundAccount(account.authKey(), 0);
             return Promise.resolve({
                 "code": code,
                 "address key": account.address().noPrefix()
@@ -165,7 +165,7 @@ class WalletClient {
             const account = yield this.getAccountFromMnemonic(code, address).catch((msg) => {
                 return Promise.reject(msg);
             });
-            yield this.faucetClient.fundAccount(account.authKey(), 10);
+            yield this.faucetClient.fundAccount(account.authKey(), 0);
             return Promise.resolve({
                 "auth_key": account.authKey(),
                 "address key": account.address().noPrefix()

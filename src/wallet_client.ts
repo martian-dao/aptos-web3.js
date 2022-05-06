@@ -112,7 +112,7 @@ export class WalletClient {
         const account = await this.getAccountFromMnemonic(code).catch((msg) => {
             return Promise.reject(msg);
         });
-        await this.faucetClient.fundAccount(account.authKey(), 10);
+        await this.faucetClient.fundAccount(account.authKey(), 0);
     
         return Promise.resolve({
             "code": code,
@@ -140,7 +140,7 @@ export class WalletClient {
             return Promise.reject(msg);
         });
     
-        await this.faucetClient.fundAccount(account.authKey(), 10);
+        await this.faucetClient.fundAccount(account.authKey(), 0);
     
         return Promise.resolve({
             "auth_key": account.authKey(),
