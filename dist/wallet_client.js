@@ -43,11 +43,13 @@ const faucet_client_1 = require("./faucet_client");
 const hex_string_1 = require("./hex_string");
 const bip39 = __importStar(require("@scure/bip39"));
 const english = __importStar(require("@scure/bip39/wordlists/english"));
-const bip32_1 = __importDefault(require("bip32"));
-const ecc = __importStar(require("tiny-secp256k1"));
+// import BIP32Factory from 'bip32';
+// import * as ecc from 'tiny-secp256k1';
+// import { BIP32Interface } from 'bip32';
+const { HDKey } = require("@scure/bip32");
 const cross_fetch_1 = __importDefault(require("cross-fetch"));
 const assert_1 = __importDefault(require("assert"));
-const bip32 = (0, bip32_1.default)(ecc);
+// const bip32 = BIP32Factory(ecc);
 const COIN_TYPE = 123420;
 const MAX_ACCOUNTS = 5;
 const ADDRESS_GAP = 10;
@@ -137,7 +139,7 @@ class WalletClient {
                 return Promise.reject('Incorrect mnemonic passed');
             }
             var seed = bip39.mnemonicToSeedSync(code.toString());
-            const node = bip32.fromSeed(Buffer.from(seed));
+            const node = HDKey.fromMasterSeed(Buffer.from(seed));
             var accountMetaData = [];
             for (var i = 0; i < MAX_ACCOUNTS; i++) {
                 var flag = false;
@@ -145,7 +147,7 @@ class WalletClient {
                 var derivationPath = '';
                 var authKey = '';
                 for (var j = 0; j < ADDRESS_GAP; j++) {
-                    const exKey = node.derivePath(`m/44'/${COIN_TYPE}'/${i}'/0/${j}`);
+                    const exKey = node.derive(`m/44'/${COIN_TYPE}'/${i}'/0/${j}`);
                     let acc = new aptos_account_1.AptosAccount(exKey.privateKey);
                     if (j == 0) {
                         address = acc.authKey().toString();
@@ -183,10 +185,10 @@ class WalletClient {
     createNewAccount(code) {
         return __awaiter(this, void 0, void 0, function* () {
             var seed = bip39.mnemonicToSeedSync(code.toString());
-            const node = bip32.fromSeed(Buffer.from(seed));
+            const node = HDKey.fromMasterSeed(Buffer.from(seed));
             for (var i = 0; i < MAX_ACCOUNTS; i++) {
                 const derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0/0`;
-                const exKey = node.derivePath(derivationPath);
+                const exKey = node.derive(derivationPath);
                 let acc = new aptos_account_1.AptosAccount(exKey.privateKey);
                 const address = acc.authKey().toString();
                 const response = yield (0, cross_fetch_1.default)(`${this.aptosClient.nodeUrl}/accounts/${address}`, {
@@ -214,16 +216,16 @@ class WalletClient {
     getAccountFromMnemonic(code) {
         return __awaiter(this, void 0, void 0, function* () {
             var seed = bip39.mnemonicToSeedSync(code.toString());
-            const node = bip32.fromSeed(Buffer.from(seed));
-            const exKey = node.derivePath(`m/44'/${COIN_TYPE}'/0'/0/0`);
+            const node = HDKey.fromMasterSeed(Buffer.from(seed));
+            const exKey = node.derive(`m/44'/${COIN_TYPE}'/0'/0/0`);
             return new aptos_account_1.AptosAccount(exKey.privateKey);
         });
     }
     getAccountFromMetaData(code, metaData) {
         return __awaiter(this, void 0, void 0, function* () {
             var seed = bip39.mnemonicToSeedSync(code.toString());
-            const node = bip32.fromSeed(Buffer.from(seed));
-            const exKey = node.derivePath(metaData.derivationPath);
+            const node = HDKey.fromMasterSeed(Buffer.from(seed));
+            const exKey = node.derive(metaData.derivationPath);
             return new aptos_account_1.AptosAccount(exKey.privateKey, metaData.address);
         });
     }
@@ -435,7 +437,6 @@ class WalletClient {
     getCoinBalance(address, coin_address) {
         return __awaiter(this, void 0, void 0, function* () {
             const coin_info = yield this.restClient.accountResource(address, `0x1::Coin::CoinStore<${coin_address}>`);
-            console.log(coin_info);
             return coin_info["data"]["coin"]["value"];
         });
     }

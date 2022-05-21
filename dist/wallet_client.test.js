@@ -39,26 +39,26 @@ test("should be able to create a new wallet and rotate auth keys", () => __await
     console.log(yield apis.getBalance(aliceAccount.address().toString()));
     console.log(yield apis.getBalance(alice.accounts[3].address));
 }));
-test("should test fungible tokens (coins)", () => __awaiter(void 0, void 0, void 0, function* () {
-    const alice = yield apis.importWallet('unable hollow bike collect myself now release social person senior vanish price');
-    const aliceAccount = yield apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
-    const type_parameter = "0x47EA3C6275F6C0F351C7F2E99E4E5E925AD1AE9E836D442D309884A4A08F4FE6::MartianCoin::Martian";
-    const coin_name = "$Martiansss";
-    const bob = yield apis.createWallet();
-    const bobAccount = yield apis.getAccountFromMetaData(bob.code, bob.accounts[0]);
-    // console.log("\n=== Addresses ===");
-    // console.log(`Alice: ${alice.address()}. Key Seed: ${Buffer.from(alice.signingKey.secretKey).toString("hex").slice(0, 64)}`);
-    // console.log(`Bob: ${bob["address key"]}. Key Seed: ${Buffer.from(bob.signingKey.secretKey).toString("hex").slice(0, 64)}`);
-    yield apis.airdrop(aliceAccount.address().toString(), 10000000);
-    yield apis.airdrop(bob.accounts[0].address, 10000000);
-    console.log("\n=== Running New Coin functions ===");
-    // await client.initiateCoin(alice, type_parameter, coin_name, 1);
-    // await client.registerCoin(alice, type_parameter);
-    yield apis.registerCoin(bobAccount, type_parameter);
-    yield apis.mintCoin(aliceAccount, type_parameter, bobAccount.address().toString(), 200);
-    yield apis.transferCoin(bobAccount, type_parameter, aliceAccount.address().toString(), 69);
-    console.log(`Balance: ${yield apis.getCoinBalance(aliceAccount.address().toString(), type_parameter)}`);
-}));
+// test("should test fungible tokens (coins)", async () => {
+// const alice = await apis.importWallet('unable hollow bike collect myself now release social person senior vanish price');
+// const aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
+// const type_parameter = "0x47EA3C6275F6C0F351C7F2E99E4E5E925AD1AE9E836D442D309884A4A08F4FE6::MartianCoin::Martian";
+// const coin_name = "$Martiansss";
+// const bob = await apis.createWallet();
+// const bobAccount = await apis.getAccountFromMetaData(bob.code, bob.accounts[0]);
+// // console.log("\n=== Addresses ===");
+// // console.log(`Alice: ${alice.address()}. Key Seed: ${Buffer.from(alice.signingKey.secretKey).toString("hex").slice(0, 64)}`);
+// // console.log(`Bob: ${bob["address key"]}. Key Seed: ${Buffer.from(bob.signingKey.secretKey).toString("hex").slice(0, 64)}`);
+// await apis.airdrop(aliceAccount.address().toString(), 10_000_000);
+// await apis.airdrop(bob.accounts[0].address, 10_000_000);
+// console.log("\n=== Running New Coin functions ===");
+// // await client.initiateCoin(alice, type_parameter, coin_name, 1);
+// // await client.registerCoin(alice, type_parameter);
+// await apis.registerCoin(bobAccount, type_parameter);
+// await apis.mintCoin(aliceAccount, type_parameter, bobAccount.address().toString(), 200);
+// await apis.transferCoin(bobAccount, type_parameter, aliceAccount.address().toString(), 69);
+// console.log(`Balance: ${await apis.getCoinBalance(aliceAccount.address().toString(), type_parameter)}`, )
+// })
 // test("should be able to create NFT collection", async () => {
 //     const alice = await apis.createWallet();
 //     await apis.airdrop(alice['address key'], 5000);
