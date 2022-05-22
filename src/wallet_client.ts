@@ -72,7 +72,9 @@ export class RestClient {
   }
 
   /** Returns the test coin balance associated with the account */
-  async accountBalance(accountAddress: string): Promise<number | null> {
+  async accountBalance(
+    accountAddress: string | HexString
+  ): Promise<number | null> {
     const resources: any = await this.client.getAccountResources(
       accountAddress
     );
@@ -89,7 +91,7 @@ export class RestClient {
      Returns the sequence number of the transaction used to transfer. */
   async transfer(
     accountFrom: AptosAccount,
-    recipient: string,
+    recipient: string | HexString,
     amount: number
   ): Promise<string> {
     const payload: {
@@ -221,7 +223,6 @@ export class WalletClient {
         console.log(respBody.authentication_key);
         continue;
       }
-      console.log(i);
       await this.faucetClient.fundAccount(acc.authKey(), 0);
       return { derivationPath: derivationPath, address: address };
     }
@@ -251,25 +252,47 @@ export class WalletClient {
     return await this.faucetClient.fundAccount(address, amount);
   }
 
-  async getBalance(address: string) {
+  async getBalance(address: string | HexString) {
     var balance = await this.restClient.accountBalance(address);
     return Promise.resolve(balance);
   }
 
   async transfer(
     account: AptosAccount,
-    recipient_address: string,
+    recipient_address: string | HexString,
     amount: number
   ) {
-    const txHash = await this.restClient.transfer(
-      account,
-      recipient_address,
-      amount
-    );
-    await this.restClient
-      .waitForTransaction(txHash)
-      .then(() => Promise.resolve(true))
-      .catch((msg) => Promise.reject(msg));
+    try {
+      if (recipient_address.toString() === account.address().toString()) {
+        Promise.reject("cannot transfer coins to self");
+      }
+
+      const balance = await this.getBalance(account.address());
+
+      // balance should be greater tham amount + max gas fees
+      if (balance < amount + 1000) {
+        Promise.reject("insufficient balance (including gas fees)");
+      }
+
+      const txHash = await this.restClient.transfer(
+        account,
+        recipient_address,
+        amount
+      );
+      this.restClient
+        .waitForTransaction(txHash)
+        .then(() => Promise.resolve(true))
+        .catch((msg) => {
+          Promise.reject(msg);
+        });
+    } catch (err) {
+      const message = err.response.data.message;
+      if (message.includes("caused by error")) {
+        Promise.reject(message.split("caused by error:").pop().trim());
+      } else {
+        Promise.reject(message);
+      }
+    }
   }
 
   async getSentEvents(address: string) {
