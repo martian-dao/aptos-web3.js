@@ -49,16 +49,16 @@ export class RestClient {
   async accountSentEvents(accountAddress: string) {
     return await this.client.getEventsByEventHandle(
       accountAddress,
-      "0x1::TestCoin::TransferEvents",
-      "sent_events"
+      "0x1::Coin::CoinStore<0x1::TestCoin::TestCoin>",
+      "withdraw_events"
     );
   }
 
   async accountReceivedEvents(accountAddress: string) {
     return await this.client.getEventsByEventHandle(
       accountAddress,
-      "0x1::TestCoin::TransferEvents",
-      "received_events"
+      "0x1::Coin::CoinStore<0x1::TestCoin::TestCoin>",
+      "deposit_events"
     );
   }
 
@@ -269,8 +269,8 @@ export class WalletClient {
 
       const balance = await this.getBalance(account.address());
 
-      // balance should be greater tham amount + max gas fees
-      if (balance < amount + 1000) {
+      // balance should be greater tham amount + static gas amount
+      if (balance < amount + 150) {
         Promise.reject("insufficient balance (including gas fees)");
       }
 
@@ -309,6 +309,14 @@ export class WalletClient {
     description: string,
     uri: string
   ) {
+
+    // const collection = await this.getCollection(account.address().toString(), name);
+
+    // if(collection){
+    //     Promise.reject("collection already present");
+    //     return
+    // }
+
     return await this.tokenClient.createCollection(
       account,
       name,
