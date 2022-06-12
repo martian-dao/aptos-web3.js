@@ -20,6 +20,11 @@ test("should be able to transfer", () => __awaiter(void 0, void 0, void 0, funct
     var bobAccount = yield apis.getAccountFromMetaData(bob.code, bob.accounts[0]);
     yield apis.transfer(aliceAccount, bobAccount.address(), 15000);
     expect(yield apis.getBalance(bobAccount.address())).toBe(15000);
+    console.log(yield apis.getBalance(bobAccount.address()));
+    console.log(yield apis.transfer(bobAccount, aliceAccount.address(), 130));
+    console.log(yield apis.getBalance(bobAccount.address()));
+    console.log("alice address", aliceAccount.address(), "bob address", bobAccount.address());
+    console.log(yield apis.accountTransactions(aliceAccount.address()));
 }));
 // test("should be able to create a new wallet and rotate auth keys", async () => {
 //     var alice = await apis.createWallet();

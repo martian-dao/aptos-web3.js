@@ -79,6 +79,12 @@ class RestClient {
             return this.client.waitForTransaction(txnHash);
         });
     }
+    getTransactionStatus(txnHash) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const resp = yield this.client.getTransaction(txnHash);
+            return resp['success'];
+        });
+    }
     /** Returns the test coin balance associated with the account */
     accountBalance(accountAddress) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -239,6 +245,26 @@ class WalletClient {
             return Promise.resolve(balance);
         });
     }
+    accountTransactions(accountAddress) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield this.restClient.client.getAccountTransactions(accountAddress);
+            const transactions = data.map((item) => ({
+                data: item.payload,
+                from: item.sender,
+                gas: item.gas_used,
+                gasPrice: item.gas_unit_price,
+                hash: item.hash,
+                success: item.success,
+                timestamp: item.timestamp,
+                toAddress: item.payload.arguments[0],
+                price: item.payload.arguments[1],
+                type: item.type,
+                version: item.version,
+                vmStatus: item.vm_status,
+            }));
+            return transactions;
+        });
+    }
     transfer(account, recipient_address, amount) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -318,7 +344,9 @@ class WalletClient {
                 type_arguments: [],
                 arguments: args,
             };
-            return yield this.tokenClient.submitTransactionHelper(account, payload);
+            const transactionHash = yield this.tokenClient.submitTransactionHelper(account, payload);
+            const success = yield this.restClient.getTransactionStatus(transactionHash);
+            return { txnHash: transactionHash, success: success };
         });
     }
     rotateAuthKey(code, metaData) {
