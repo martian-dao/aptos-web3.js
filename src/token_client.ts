@@ -6,6 +6,12 @@ import { MaybeHexString } from "./hex_string";
 import assert from "assert";
 import fetch from "cross-fetch";
 
+export interface HashWithStatus {
+  txnHash: string,
+  success: string | boolean
+}
+
+
 export class TokenClient {
   aptosClient: AptosClient;
 
@@ -23,13 +29,18 @@ export class TokenClient {
     return Promise.resolve(res.hash);
   }
 
+  async getTransactionStatus(txnHash: string) {
+    const resp = await this.aptosClient.getTransaction(txnHash)
+    return resp['success']
+  }
+
   // Creates a new collection within the specified account
   async createCollection(
     account: AptosAccount,
     name: string,
     description: string,
     uri: string,
-  ): Promise<Types.HexEncodedBytes> {
+  ): Promise<HashWithStatus> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
       function: "0x1::Token::create_unlimited_collection_script",
@@ -41,7 +52,8 @@ export class TokenClient {
       ],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
-    return transactionHash;
+    const success = await this.getTransactionStatus(transactionHash)
+    return {txnHash: transactionHash, success: success};
   }
 
   // Creates a new token within the specified account
@@ -52,7 +64,7 @@ export class TokenClient {
     description: string,
     supply: number,
     uri: string,
-  ): Promise<Types.HexEncodedBytes> {
+  ): Promise<HashWithStatus> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
       function: "0x1::Token::create_limited_token_script",
@@ -68,7 +80,8 @@ export class TokenClient {
       ],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
-    return transactionHash;
+    const success = await this.getTransactionStatus(transactionHash)
+    return {txnHash: transactionHash, success: success};
   }
 
   // Offer token to another account
@@ -79,7 +92,7 @@ export class TokenClient {
     collectionName: string,
     name: string,
     amount: number,
-  ): Promise<Types.HexEncodedBytes> {
+  ): Promise<HashWithStatus> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
       function: "0x1::TokenTransfers::offer_script",
@@ -93,7 +106,8 @@ export class TokenClient {
       ],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
-    return transactionHash;
+    const success = await this.getTransactionStatus(transactionHash)
+    return {txnHash: transactionHash, success: success};
   }
 
   // Claim token
@@ -103,7 +117,7 @@ export class TokenClient {
     creator: MaybeHexString,
     collectionName: string,
     name: string,
-  ): Promise<Types.HexEncodedBytes> {
+  ): Promise<HashWithStatus> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
       function: "0x1::TokenTransfers::claim_script",
@@ -116,7 +130,8 @@ export class TokenClient {
       ],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
-    return transactionHash;
+    const success = await this.getTransactionStatus(transactionHash)
+    return {txnHash: transactionHash, success: success};
   }
 
   // Cancel token
@@ -133,6 +148,8 @@ export class TokenClient {
       arguments: [receiver, creator, tokenCreationNum.toString()],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
+    console.log("Cancel Token Status")
+    this.getTransactionStatus(transactionHash)
     return transactionHash;
   }
 

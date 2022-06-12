@@ -1,9 +1,10 @@
 /// <reference types="node" />
-import { AptosAccount } from './aptos_account';
-import { TokenClient } from './token_client';
-import { AptosClient } from './aptos_client';
-import { FaucetClient } from './faucet_client';
-import { Types } from './types';
+import { AptosAccount } from "./aptos_account";
+import { TokenClient } from "./token_client";
+import { AptosClient } from "./aptos_client";
+import { FaucetClient } from "./faucet_client";
+import { HexString } from "./hex_string";
+import { Types } from "./types";
 export interface TokenId {
     creator: string;
     collectionName: string;
@@ -27,10 +28,10 @@ export declare class RestClient {
     /** Waits up to 10 seconds for a transaction to move past pending state */
     waitForTransaction(txnHash: string): Promise<void>;
     /** Returns the test coin balance associated with the account */
-    accountBalance(accountAddress: string): Promise<number | null>;
+    accountBalance(accountAddress: string | HexString): Promise<number | null>;
     /** Transfer a given coin amount from a given Account to the recipient's account address.
-     Returns the sequence number of the transaction used to transfer. */
-    transfer(accountFrom: AptosAccount, recipient: string, amount: number): Promise<string>;
+       Returns the sequence number of the transaction used to transfer. */
+    transfer(accountFrom: AptosAccount, recipient: string | HexString, amount: number): Promise<string>;
     accountResource(accountAddress: string, resourceType: string): Promise<any>;
 }
 export declare class WalletClient {
@@ -46,8 +47,8 @@ export declare class WalletClient {
     getAccountFromMnemonic(code: string): Promise<AptosAccount>;
     getAccountFromMetaData(code: string, metaData: AccountMetaData): Promise<AptosAccount>;
     airdrop(address: string, amount: number): Promise<string[]>;
-    getBalance(address: string): Promise<number>;
-    transfer(account: AptosAccount, recipient_address: string, amount: number): Promise<void>;
+    getBalance(address: string | HexString): Promise<number>;
+    transfer(account: AptosAccount, recipient_address: string | HexString, amount: number): Promise<void>;
     getSentEvents(address: string): Promise<Types.Event[]>;
     getReceivedEvents(address: string): Promise<Types.Event[]>;
     createCollection(account: AptosAccount, name: string, description: string, uri: string): Promise<string>;

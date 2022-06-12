@@ -22,34 +22,34 @@ test("full tutorial faucet flow", () => __awaiter(void 0, void 0, void 0, functi
     const tx1 = yield client.getTransaction(txns[1]);
     expect(tx1.type).toBe("user_transaction");
     let resources = yield client.getAccountResources(account1.address());
-    let accountResource = resources.find((r) => r.type === "0x1::TestCoin::Balance");
+    let accountResource = resources.find((r) => r.type === "0x1::Coin::CoinStore<0x1::TestCoin::TestCoin>");
     expect(accountResource.data.coin.value).toBe("5000");
     const account2 = new aptos_account_1.AptosAccount();
     yield faucetClient.fundAccount(account2.address(), 0);
     resources = yield client.getAccountResources(account2.address());
-    accountResource = resources.find((r) => r.type === "0x1::TestCoin::Balance");
+    accountResource = resources.find((r) => r.type === "0x1::Coin::CoinStore<0x1::TestCoin::TestCoin>");
     expect(accountResource.data.coin.value).toBe("0");
     const payload = {
         type: "script_function_payload",
-        function: "0x1::TestCoin::transfer",
-        type_arguments: [],
+        function: "0x1::Coin::transfer",
+        type_arguments: ["0x1::TestCoin::TestCoin"],
         arguments: [account2.address().hex(), "717"],
     };
     const txnRequest = yield client.generateTransaction(account1.address(), payload);
     const signedTxn = yield client.signTransaction(account1, txnRequest);
-    const transactionRes = yield client.submitTransaction(account1, signedTxn);
+    const transactionRes = yield client.submitTransaction(account2, signedTxn);
     yield client.waitForTransaction(transactionRes.hash);
     resources = yield client.getAccountResources(account2.address());
-    accountResource = resources.find((r) => r.type === "0x1::TestCoin::Balance");
+    accountResource = resources.find((r) => r.type === "0x1::Coin::CoinStore<0x1::TestCoin::TestCoin>");
     expect(accountResource.data.coin.value).toBe("717");
     const res = yield client.getAccountTransactions(account1.address(), { start: 0 });
     const tx = res.find((e) => e.type === "user_transaction");
     expect(new hex_string_1.HexString(tx.sender).toShortString()).toBe(account1.address().toShortString());
-    const events = yield client.getEventsByEventHandle(tx.sender, "0x1::TestCoin::TransferEvents", "sent_events");
-    expect(events[0].type).toBe("0x1::TestCoin::SentEvent");
-    const event_subset = yield client.getEventsByEventHandle(tx.sender, "0x1::TestCoin::TransferEvents", "sent_events", { start: 0, limit: 1 });
-    expect(event_subset[0].type).toBe("0x1::TestCoin::SentEvent");
+    const events = yield client.getEventsByEventHandle(tx.sender, "0x1::Coin::CoinStore<0x1::TestCoin::TestCoin>", "withdraw_events");
+    expect(events[0].type).toBe("0x1::Coin::WithdrawEvent");
+    const event_subset = yield client.getEventsByEventHandle(tx.sender, "0x1::Coin::CoinStore<0x1::TestCoin::TestCoin>", "withdraw_events", { start: 0, limit: 1 });
+    expect(event_subset[0].type).toBe("0x1::Coin::WithdrawEvent");
     const events2 = yield client.getEventsByEventKey(events[0].key);
-    expect(events2[0].type).toBe("0x1::TestCoin::SentEvent");
+    expect(events2[0].type).toBe("0x1::Coin::WithdrawEvent");
 }), 30 * 1000);
 //# sourceMappingURL=faucet_client.test.js.map

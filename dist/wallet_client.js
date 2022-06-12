@@ -60,12 +60,12 @@ class RestClient {
     }
     accountSentEvents(accountAddress) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.client.getEventsByEventHandle(accountAddress, "0x1::TestCoin::TransferEvents", "sent_events");
+            return yield this.client.getEventsByEventHandle(accountAddress, "0x1::Coin::CoinStore<0x1::TestCoin::TestCoin>", "withdraw_events");
         });
     }
     accountReceivedEvents(accountAddress) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.client.getEventsByEventHandle(accountAddress, "0x1::TestCoin::TransferEvents", "received_events");
+            return yield this.client.getEventsByEventHandle(accountAddress, "0x1::Coin::CoinStore<0x1::TestCoin::TestCoin>", "deposit_events");
         });
     }
     transactionPending(txnHash) {
@@ -85,7 +85,7 @@ class RestClient {
             const resources = yield this.client.getAccountResources(accountAddress);
             for (const key in resources) {
                 const resource = resources[key];
-                if (resource["type"] == "0x1::TestCoin::Balance") {
+                if (resource["type"] == "0x1::Coin::CoinStore<0x1::TestCoin::TestCoin>") {
                     return parseInt(resource["data"]["coin"]["value"]);
                 }
             }
@@ -93,17 +93,14 @@ class RestClient {
         });
     }
     /** Transfer a given coin amount from a given Account to the recipient's account address.
-     Returns the sequence number of the transaction used to transfer. */
+       Returns the sequence number of the transaction used to transfer. */
     transfer(accountFrom, recipient, amount) {
         return __awaiter(this, void 0, void 0, function* () {
             const payload = {
                 type: "script_function_payload",
-                function: "0x1::TestCoin::transfer",
-                type_arguments: [],
-                arguments: [
-                    `${hex_string_1.HexString.ensure(recipient)}`,
-                    amount.toString(),
-                ]
+                function: "0x1::Coin::transfer",
+                type_arguments: ["0x1::TestCoin::TestCoin"],
+                arguments: [`${hex_string_1.HexString.ensure(recipient)}`, amount.toString()],
             };
             const txnRequest = yield this.client.generateTransaction(accountFrom.address(), payload);
             const signedTxn = yield this.client.signTransaction(accountFrom, txnRequest);
@@ -136,23 +133,23 @@ class WalletClient {
     importWallet(code) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!bip39.validateMnemonic(code, english.wordlist)) {
-                return Promise.reject('Incorrect mnemonic passed');
+                return Promise.reject("Incorrect mnemonic passed");
             }
             var seed = bip39.mnemonicToSeedSync(code.toString());
             const node = HDKey.fromMasterSeed(Buffer.from(seed));
             var accountMetaData = [];
             for (var i = 0; i < MAX_ACCOUNTS; i++) {
                 var flag = false;
-                var address = '';
-                var derivationPath = '';
-                var authKey = '';
+                var address = "";
+                var derivationPath = "";
+                var authKey = "";
                 for (var j = 0; j < ADDRESS_GAP; j++) {
                     const exKey = node.derive(`m/44'/${COIN_TYPE}'/${i}'/0/${j}`);
                     let acc = new aptos_account_1.AptosAccount(exKey.privateKey);
                     if (j == 0) {
                         address = acc.authKey().toString();
                         const response = yield (0, cross_fetch_1.default)(`${this.aptosClient.nodeUrl}/accounts/${address}`, {
-                            method: "GET"
+                            method: "GET",
                         });
                         if (response.status == 404) {
                             break;
@@ -170,16 +167,19 @@ class WalletClient {
                 if (!flag) {
                     break;
                 }
-                accountMetaData.push({ 'derivationPath': derivationPath, 'address': address });
+                accountMetaData.push({
+                    derivationPath: derivationPath,
+                    address: address,
+                });
             }
-            return { 'code': code, 'accounts': accountMetaData };
+            return { code: code, accounts: accountMetaData };
         });
     }
     createWallet() {
         return __awaiter(this, void 0, void 0, function* () {
             var code = bip39.generateMnemonic(english.wordlist); // mnemonic
             var accountMetadata = yield this.createNewAccount(code);
-            return { 'code': code, 'accounts': [accountMetadata] };
+            return { code: code, accounts: [accountMetadata] };
         });
     }
     createNewAccount(code) {
@@ -192,7 +192,7 @@ class WalletClient {
                 let acc = new aptos_account_1.AptosAccount(exKey.privateKey);
                 const address = acc.authKey().toString();
                 const response = yield (0, cross_fetch_1.default)(`${this.aptosClient.nodeUrl}/accounts/${address}`, {
-                    method: "GET"
+                    method: "GET",
                 });
                 if (response.status != 404) {
                     const respBody = yield response.json();
@@ -200,11 +200,10 @@ class WalletClient {
                     console.log(respBody.authentication_key);
                     continue;
                 }
-                console.log(i);
                 yield this.faucetClient.fundAccount(acc.authKey(), 0);
-                return { 'derivationPath': derivationPath, 'address': address };
+                return { derivationPath: derivationPath, address: address };
             }
-            throw new Error('Max no. of accounts reached');
+            throw new Error("Max no. of accounts reached");
         });
     }
     getAccountFromPrivateKey(privateKey, address) {
@@ -242,8 +241,32 @@ class WalletClient {
     }
     transfer(account, recipient_address, amount) {
         return __awaiter(this, void 0, void 0, function* () {
-            const txHash = yield this.restClient.transfer(account, recipient_address, amount);
-            yield this.restClient.waitForTransaction(txHash).then(() => Promise.resolve(true)).catch((msg) => Promise.reject(msg));
+            try {
+                if (recipient_address.toString() === account.address().toString()) {
+                    Promise.reject("cannot transfer coins to self");
+                }
+                const balance = yield this.getBalance(account.address());
+                // balance should be greater tham amount + static gas amount
+                if (balance < amount + 150) {
+                    Promise.reject("insufficient balance (including gas fees)");
+                }
+                const txHash = yield this.restClient.transfer(account, recipient_address, amount);
+                this.restClient
+                    .waitForTransaction(txHash)
+                    .then(() => Promise.resolve(true))
+                    .catch((msg) => {
+                    Promise.reject(msg);
+                });
+            }
+            catch (err) {
+                const message = err.response.data.message;
+                if (message.includes("caused by error")) {
+                    Promise.reject(message.split("caused by error:").pop().trim());
+                }
+                else {
+                    Promise.reject(message);
+                }
+            }
         });
     }
     getSentEvents(address) {
@@ -258,6 +281,11 @@ class WalletClient {
     }
     createCollection(account, name, description, uri) {
         return __awaiter(this, void 0, void 0, function* () {
+            // const collection = await this.getCollection(account.address().toString(), name);
+            // if(collection){
+            //     Promise.reject("collection already present");
+            //     return
+            // }
             return yield this.tokenClient.createCollection(account, name, description, uri);
         });
     }
@@ -288,7 +316,7 @@ class WalletClient {
                 type: "script_function_payload",
                 function: func,
                 type_arguments: [],
-                arguments: args
+                arguments: args,
             };
             return yield this.tokenClient.submitTransactionHelper(account, payload);
         });
@@ -296,14 +324,19 @@ class WalletClient {
     rotateAuthKey(code, metaData) {
         return __awaiter(this, void 0, void 0, function* () {
             const account = yield this.getAccountFromMetaData(code, metaData);
-            const pathSplit = metaData.derivationPath.split('/');
+            const pathSplit = metaData.derivationPath.split("/");
             const address_index = parseInt(pathSplit[pathSplit.length - 1]);
             if (address_index >= ADDRESS_GAP - 1) {
-                throw new Error('Maximum key rotation reached');
+                throw new Error("Maximum key rotation reached");
             }
-            const newDerivationPath = `${pathSplit.slice(0, pathSplit.length - 1).join('/')}/${address_index + 1}`;
-            const newAccount = yield this.getAccountFromMetaData(code, { 'address': metaData.address, 'derivationPath': newDerivationPath });
-            var newAuthKey = newAccount.authKey().toString().split('0x')[1];
+            const newDerivationPath = `${pathSplit
+                .slice(0, pathSplit.length - 1)
+                .join("/")}/${address_index + 1}`;
+            const newAccount = yield this.getAccountFromMetaData(code, {
+                address: metaData.address,
+                derivationPath: newDerivationPath,
+            });
+            var newAuthKey = newAccount.authKey().toString().split("0x")[1];
             console.log(newAuthKey);
             return yield this.signGenericTransaction(account, "0x1::Account::rotate_authentication_key", newAuthKey);
         });
@@ -311,7 +344,7 @@ class WalletClient {
     getEventStream(address, eventHandleStruct, fieldName) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield (0, cross_fetch_1.default)(`${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`, {
-                method: "GET"
+                method: "GET",
             });
             if (response.status == 404) {
                 return [];
@@ -325,7 +358,9 @@ class WalletClient {
             const depositEvents = yield this.getEventStream(address, "0x1::Token::TokenStore", "deposit_events");
             const withdrawEvents = yield this.getEventStream(address, "0x1::Token::TokenStore", "withdraw_events");
             function isEventEqual(event1, event2) {
-                return event1.data.id.creator === event2.data.id.creator && event1.data.id.collectionName === event2.data.id.collectionName && event1.data.id.name === event2.data.id.name;
+                return (event1.data.id.creator === event2.data.id.creator &&
+                    event1.data.id.collectionName === event2.data.id.collectionName &&
+                    event1.data.id.name === event2.data.id.name);
             }
             var tokenIds = [];
             for (var elem of depositEvents) {
@@ -387,7 +422,7 @@ class WalletClient {
                     Buffer.from(name).toString("hex"),
                     scaling_factor.toString(),
                     false,
-                ]
+                ],
             };
             yield this.tokenClient.submitTransactionHelper(account, payload);
         });
@@ -399,7 +434,7 @@ class WalletClient {
                 type: "script_function_payload",
                 function: "0x1::Coin::register",
                 type_arguments: [type_parameter],
-                arguments: []
+                arguments: [],
             };
             yield this.tokenClient.submitTransactionHelper(account, payload);
         });
@@ -411,10 +446,7 @@ class WalletClient {
                 type: "script_function_payload",
                 function: "0x1::Coin::mint",
                 type_arguments: [type_parameter],
-                arguments: [
-                    dst_address.toString(),
-                    amount.toString(),
-                ]
+                arguments: [dst_address.toString(), amount.toString()],
             };
             yield this.tokenClient.submitTransactionHelper(account, payload);
         });
@@ -426,10 +458,7 @@ class WalletClient {
                 type: "script_function_payload",
                 function: "0x1::Coin::transfer",
                 type_arguments: [type_parameter],
-                arguments: [
-                    to_address.toString(),
-                    amount.toString(),
-                ]
+                arguments: [to_address.toString(), amount.toString()],
             };
             yield this.tokenClient.submitTransactionHelper(account, payload);
         });

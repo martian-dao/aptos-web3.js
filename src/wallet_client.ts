@@ -71,6 +71,11 @@ export class RestClient {
     return this.client.waitForTransaction(txnHash);
   }
 
+  async getTransactionStatus(txnHash: string) {
+    const resp = await this.client.getTransaction(txnHash)
+    return resp['success']
+  }
+
   /** Returns the test coin balance associated with the account */
   async accountBalance(
     accountAddress: string | HexString
@@ -257,6 +262,25 @@ export class WalletClient {
     return Promise.resolve(balance);
   }
 
+  async accountTransactions(accountAddress: MaybeHexString){
+    const data = await this.restClient.client.getAccountTransactions(accountAddress)
+    const transactions = data.map((item: any) => ({
+      data: item.payload,
+      from: item.sender,
+      gas: item.gas_used,
+      gasPrice: item.gas_unit_price,
+      hash: item.hash,
+      success: item.success,
+      timestamp: item.timestamp,
+      toAddress: item.payload.arguments[0],
+      price: item.payload.arguments[1],
+      type: item.type,
+      version: item.version,
+      vmStatus: item.vm_status,
+    }));
+    return transactions
+  }
+
   async transfer(
     account: AptosAccount,
     recipient_address: string | HexString,
@@ -413,7 +437,10 @@ export class WalletClient {
       type_arguments: [],
       arguments: args,
     };
-    return await this.tokenClient.submitTransactionHelper(account, payload);
+    const transactionHash = await this.tokenClient.submitTransactionHelper(account, payload);
+    const success = await this.restClient.getTransactionStatus(transactionHash)
+    return {txnHash: transactionHash, success: success};
+    
   }
 
   async rotateAuthKey(code: string, metaData: AccountMetaData) {

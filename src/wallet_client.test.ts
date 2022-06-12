@@ -13,7 +13,14 @@ test("should be able to transfer", async () => {
     
     var bobAccount = await apis.getAccountFromMetaData(bob.code, bob.accounts[0]);
     await apis.transfer(aliceAccount, bobAccount.address(), 15000);
-    expect(await apis.getBalance(bobAccount.address())).toBe(15000); 
+    expect(await apis.getBalance(bobAccount.address())).toBe(15000);
+
+    console.log(await apis.getBalance(bobAccount.address()));
+    console.log(await apis.transfer(bobAccount, aliceAccount.address(), 130));
+    console.log(await apis.getBalance(bobAccount.address()))
+    console.log("alice address", aliceAccount.address(), "bob address", bobAccount.address())
+
+    console.log(await apis.accountTransactions(aliceAccount.address()))
 });
 
 
