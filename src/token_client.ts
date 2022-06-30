@@ -31,7 +31,8 @@ export class TokenClient {
 
   async getTransactionStatus(txnHash: string) {
     const resp = await this.aptosClient.getTransaction(txnHash)
-    return resp['success']
+    // console.log(resp)
+    return {success: resp['success'], vm_status: resp['vm_status']}
   }
 
   // Creates a new collection within the specified account
@@ -52,8 +53,8 @@ export class TokenClient {
       ],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
-    const success = await this.getTransactionStatus(transactionHash)
-    return {txnHash: transactionHash, success: success};
+    const status = await this.getTransactionStatus(transactionHash)
+    return {txnHash: transactionHash, ...status};
   }
 
   // Creates a new token within the specified account
@@ -77,11 +78,12 @@ export class TokenClient {
         supply.toString(),
         supply.toString()+1,
         Buffer.from(uri).toString("hex"),
+        "0"
       ],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
-    const success = await this.getTransactionStatus(transactionHash)
-    return {txnHash: transactionHash, success: success};
+    const status = await this.getTransactionStatus(transactionHash)
+    return {txnHash: transactionHash, ...status};
   }
 
   // Offer token to another account
@@ -106,8 +108,8 @@ export class TokenClient {
       ],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
-    const success = await this.getTransactionStatus(transactionHash)
-    return {txnHash: transactionHash, success: success};
+    const status = await this.getTransactionStatus(transactionHash)
+    return {txnHash: transactionHash, ...status};
   }
 
   // Claim token
@@ -130,8 +132,8 @@ export class TokenClient {
       ],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
-    const success = await this.getTransactionStatus(transactionHash)
-    return {txnHash: transactionHash, success: success};
+    const status = await this.getTransactionStatus(transactionHash)
+    return {txnHash: transactionHash, ...status};
   }
 
   // Cancel token

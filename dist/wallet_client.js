@@ -43,13 +43,9 @@ const faucet_client_1 = require("./faucet_client");
 const hex_string_1 = require("./hex_string");
 const bip39 = __importStar(require("@scure/bip39"));
 const english = __importStar(require("@scure/bip39/wordlists/english"));
-// import BIP32Factory from 'bip32';
-// import * as ecc from 'tiny-secp256k1';
-// import { BIP32Interface } from 'bip32';
 const { HDKey } = require("@scure/bip32");
 const cross_fetch_1 = __importDefault(require("cross-fetch"));
 const assert_1 = __importDefault(require("assert"));
-// const bip32 = BIP32Factory(ecc);
 const COIN_TYPE = 123420;
 const MAX_ACCOUNTS = 5;
 const ADDRESS_GAP = 10;
@@ -82,7 +78,7 @@ class RestClient {
     getTransactionStatus(txnHash) {
         return __awaiter(this, void 0, void 0, function* () {
             const resp = yield this.client.getTransaction(txnHash);
-            return resp['success'];
+            return { success: resp["success"], vm_status: resp["vm_status"] };
         });
     }
     /** Returns the test coin balance associated with the account */
@@ -297,7 +293,7 @@ class WalletClient {
     }
     getSentEvents(address) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.restClient.accountSentEvents(address);
+            return yield this.aptosClient.getAccountTransactions(address);
         });
     }
     getReceivedEvents(address) {
@@ -307,11 +303,6 @@ class WalletClient {
     }
     createCollection(account, name, description, uri) {
         return __awaiter(this, void 0, void 0, function* () {
-            // const collection = await this.getCollection(account.address().toString(), name);
-            // if(collection){
-            //     Promise.reject("collection already present");
-            //     return
-            // }
             return yield this.tokenClient.createCollection(account, name, description, uri);
         });
     }
@@ -336,17 +327,17 @@ class WalletClient {
             return yield this.tokenClient.claimToken(account, sender_address, creator_address, collection_name, token_name);
         });
     }
-    signGenericTransaction(account, func, ...args) {
+    signGenericTransaction(account, func, args, type_args) {
         return __awaiter(this, void 0, void 0, function* () {
             const payload = {
                 type: "script_function_payload",
                 function: func,
-                type_arguments: [],
+                type_arguments: type_args,
                 arguments: args,
             };
             const transactionHash = yield this.tokenClient.submitTransactionHelper(account, payload);
-            const success = yield this.restClient.getTransactionStatus(transactionHash);
-            return { txnHash: transactionHash, success: success };
+            const status = yield this.restClient.getTransactionStatus(transactionHash);
+            return Object.assign({ txnHash: transactionHash }, status);
         });
     }
     rotateAuthKey(code, metaData) {
@@ -365,8 +356,19 @@ class WalletClient {
                 derivationPath: newDerivationPath,
             });
             var newAuthKey = newAccount.authKey().toString().split("0x")[1];
-            console.log(newAuthKey);
-            return yield this.signGenericTransaction(account, "0x1::Account::rotate_authentication_key", newAuthKey);
+            const transactionStatus = yield this.signGenericTransaction(account, "0x1::Account::rotate_authentication_key", [newAuthKey], []);
+            if (!transactionStatus.success) {
+                return {
+                    authkey: "",
+                    success: false,
+                    vm_status: transactionStatus.vm_status,
+                };
+            }
+            return {
+                authkey: "0x" + newAuthKey,
+                success: true,
+                vm_status: transactionStatus.vm_status,
+            };
         });
     }
     getEventStream(address, eventHandleStruct, fieldName) {
@@ -409,6 +411,8 @@ class WalletClient {
                 const resources = yield this.aptosClient.getAccountResources(tokenId.creator);
                 const accountResource = resources.find((r) => r.type === "0x1::Token::Collections");
                 let token = yield this.tokenClient.tableItem(accountResource.data.token_data.handle, "0x1::Token::TokenId", "0x1::Token::TokenData", tokenId);
+                const collectionData = yield this.getCollection(address, token.collection);
+                token.collectionData = collectionData;
                 tokens.push(token);
             }
             return tokens;

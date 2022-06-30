@@ -10,7 +10,10 @@ export declare class TokenClient {
     aptosClient: AptosClient;
     constructor(aptosClient: AptosClient);
     submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload): Promise<string>;
-    getTransactionStatus(txnHash: string): Promise<any>;
+    getTransactionStatus(txnHash: string): Promise<{
+        success: any;
+        vm_status: any;
+    }>;
     createCollection(account: AptosAccount, name: string, description: string, uri: string): Promise<HashWithStatus>;
     createToken(account: AptosAccount, collectionName: string, name: string, description: string, supply: number, uri: string): Promise<HashWithStatus>;
     offerToken(account: AptosAccount, receiver: MaybeHexString, creator: MaybeHexString, collectionName: string, name: string, amount: number): Promise<HashWithStatus>;

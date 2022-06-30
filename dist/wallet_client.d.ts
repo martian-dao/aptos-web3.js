@@ -27,7 +27,10 @@ export declare class RestClient {
     transactionPending(txnHash: string): Promise<boolean>;
     /** Waits up to 10 seconds for a transaction to move past pending state */
     waitForTransaction(txnHash: string): Promise<void>;
-    getTransactionStatus(txnHash: string): Promise<any>;
+    getTransactionStatus(txnHash: string): Promise<{
+        success: any;
+        vm_status: any;
+    }>;
     /** Returns the test coin balance associated with the account */
     accountBalance(accountAddress: string | HexString): Promise<number | null>;
     /** Transfer a given coin amount from a given Account to the recipient's account address.
@@ -64,20 +67,22 @@ export declare class WalletClient {
         vmStatus: any;
     }[]>;
     transfer(account: AptosAccount, recipient_address: string | HexString, amount: number): Promise<void>;
-    getSentEvents(address: string): Promise<Types.Event[]>;
+    getSentEvents(address: MaybeHexString): Promise<Types.OnChainTransaction[]>;
     getReceivedEvents(address: string): Promise<Types.Event[]>;
     createCollection(account: AptosAccount, name: string, description: string, uri: string): Promise<import("./token_client").HashWithStatus>;
     createToken(account: AptosAccount, collection_name: string, name: string, description: string, supply: number, uri: string): Promise<import("./token_client").HashWithStatus>;
     offerToken(account: AptosAccount, receiver_address: string, creator_address: string, collection_name: string, token_name: string, amount: number): Promise<import("./token_client").HashWithStatus>;
     cancelTokenOffer(account: AptosAccount, receiver_address: string, creator_address: string, collection_name: string, token_name: string): Promise<string>;
     claimNFT(account: AptosAccount, sender_address: string, creator_address: string, collection_name: string, token_name: string): Promise<import("./token_client").HashWithStatus>;
-    signGenericTransaction(account: AptosAccount, func: string, ...args: string[]): Promise<{
-        txnHash: string;
+    signGenericTransaction(account: AptosAccount, func: string, args: string[], type_args: string[]): Promise<{
         success: any;
+        vm_status: any;
+        txnHash: string;
     }>;
     rotateAuthKey(code: string, metaData: AccountMetaData): Promise<{
-        txnHash: string;
-        success: any;
+        authkey: string;
+        success: boolean;
+        vm_status: any;
     }>;
     getEventStream(address: string, eventHandleStruct: string, fieldName: string): Promise<any>;
     getTokenIds(address: string): Promise<any[]>;

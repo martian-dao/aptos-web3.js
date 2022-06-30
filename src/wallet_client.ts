@@ -8,16 +8,9 @@ import { Types } from "./types";
 import * as bip39 from "@scure/bip39";
 import * as english from "@scure/bip39/wordlists/english";
 
-// import BIP32Factory from 'bip32';
-// import * as ecc from 'tiny-secp256k1';
-// import { BIP32Interface } from 'bip32';
-
 const { HDKey } = require("@scure/bip32");
-
 import fetch from "cross-fetch";
 import assert from "assert";
-
-// const bip32 = BIP32Factory(ecc);
 
 const COIN_TYPE = 123420;
 const MAX_ACCOUNTS = 5;
@@ -72,8 +65,8 @@ export class RestClient {
   }
 
   async getTransactionStatus(txnHash: string) {
-    const resp = await this.client.getTransaction(txnHash)
-    return resp['success']
+    const resp = await this.client.getTransaction(txnHash);
+    return { success: resp["success"], vm_status: resp["vm_status"] };
   }
 
   /** Returns the test coin balance associated with the account */
@@ -262,8 +255,10 @@ export class WalletClient {
     return Promise.resolve(balance);
   }
 
-  async accountTransactions(accountAddress: MaybeHexString){
-    const data = await this.restClient.client.getAccountTransactions(accountAddress)
+  async accountTransactions(accountAddress: MaybeHexString) {
+    const data = await this.restClient.client.getAccountTransactions(
+      accountAddress
+    );
     const transactions = data.map((item: any) => ({
       data: item.payload,
       from: item.sender,
@@ -278,7 +273,7 @@ export class WalletClient {
       version: item.version,
       vmStatus: item.vm_status,
     }));
-    return transactions
+    return transactions;
   }
 
   async transfer(
@@ -319,8 +314,8 @@ export class WalletClient {
     }
   }
 
-  async getSentEvents(address: string) {
-    return await this.restClient.accountSentEvents(address);
+  async getSentEvents(address: MaybeHexString) {
+    return await this.aptosClient.getAccountTransactions(address);
   }
 
   async getReceivedEvents(address: string) {
@@ -333,14 +328,6 @@ export class WalletClient {
     description: string,
     uri: string
   ) {
-
-    // const collection = await this.getCollection(account.address().toString(), name);
-
-    // if(collection){
-    //     Promise.reject("collection already present");
-    //     return
-    // }
-
     return await this.tokenClient.createCollection(
       account,
       name,
@@ -424,7 +411,8 @@ export class WalletClient {
   async signGenericTransaction(
     account: AptosAccount,
     func: string,
-    ...args: string[]
+    args: string[],
+    type_args: string[]
   ) {
     const payload: {
       function: string;
@@ -434,13 +422,15 @@ export class WalletClient {
     } = {
       type: "script_function_payload",
       function: func,
-      type_arguments: [],
+      type_arguments: type_args,
       arguments: args,
     };
-    const transactionHash = await this.tokenClient.submitTransactionHelper(account, payload);
-    const success = await this.restClient.getTransactionStatus(transactionHash)
-    return {txnHash: transactionHash, success: success};
-    
+    const transactionHash = await this.tokenClient.submitTransactionHelper(
+      account,
+      payload
+    );
+    const status = await this.restClient.getTransactionStatus(transactionHash);
+    return { txnHash: transactionHash, ...status };
   }
 
   async rotateAuthKey(code: string, metaData: AccountMetaData) {
@@ -461,12 +451,26 @@ export class WalletClient {
       derivationPath: newDerivationPath,
     });
     var newAuthKey = newAccount.authKey().toString().split("0x")[1];
-    console.log(newAuthKey);
-    return await this.signGenericTransaction(
+    const transactionStatus = await this.signGenericTransaction(
       account,
       "0x1::Account::rotate_authentication_key",
-      newAuthKey
+      [newAuthKey],
+      []
     );
+
+    if (!transactionStatus.success) {
+      return {
+        authkey: "",
+        success: false,
+        vm_status: transactionStatus.vm_status,
+      };
+    }
+
+    return {
+      authkey: "0x" + newAuthKey,
+      success: true,
+      vm_status: transactionStatus.vm_status,
+    };
   }
 
   async getEventStream(
@@ -535,6 +539,11 @@ export class WalletClient {
         "0x1::Token::TokenData",
         tokenId
       );
+      const collectionData = await this.getCollection(
+        address,
+        token.collection
+      );
+      token.collectionData = collectionData;
       tokens.push(token);
     }
     return tokens;

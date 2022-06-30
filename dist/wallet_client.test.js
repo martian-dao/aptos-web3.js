@@ -20,12 +20,28 @@ test("should be able to transfer", () => __awaiter(void 0, void 0, void 0, funct
     var bobAccount = yield apis.getAccountFromMetaData(bob.code, bob.accounts[0]);
     yield apis.transfer(aliceAccount, bobAccount.address(), 15000);
     expect(yield apis.getBalance(bobAccount.address())).toBe(15000);
+    // const collection_name = "AliceCollection";
+    // const token_name = "Alice Token";
+    // // Create collection and token on Alice's account
+    // await apis.createCollection(aliceAccount, collection_name, "Alice's simple collection", "https://aptos.dev");
+    // console.log(await apis.createToken(
+    //     aliceAccount,
+    //     collection_name,
+    //     token_name,
+    //   "Alice's simple token",
+    //   1,
+    //   "https://aptos.dev/img/nyan.jpeg",
+    // ));
+    // console.log("TOKENS", await apis.getTokens(aliceAccount.address().toString()))
+    console.log("hello", yield apis.getTokens("0x107e49a8eb0484eb87621dc25d1d54194d606f914377e432e8c9e3847111e84b"));
+    console.log(yield apis.getSentEvents(bobAccount.address()));
     console.log(yield apis.getBalance(bobAccount.address()));
-    console.log(yield apis.transfer(bobAccount, aliceAccount.address(), 130));
+    // console.log(await apis.transfer(bobAccount, aliceAccount.address(), 130));
+    console.log(yield apis.signGenericTransaction(bobAccount, "0x1::Coin::transfer", [aliceAccount.address().toString(), "130"], ["0x1::TestCoin::TestCoin"]));
     console.log(yield apis.getBalance(bobAccount.address()));
-    console.log("alice address", aliceAccount.address(), "bob address", bobAccount.address());
-    console.log(yield apis.accountTransactions(aliceAccount.address()));
-}));
+    // console.log("alice address", aliceAccount.address(), "bob address", bobAccount.address())
+    // console.log(await apis.accountTransactions(aliceAccount.address()))
+}), 300000);
 // test("should be able to create a new wallet and rotate auth keys", async () => {
 //     var alice = await apis.createWallet();
 //     console.log(alice);
@@ -42,7 +58,7 @@ test("should be able to transfer", () => __awaiter(void 0, void 0, void 0, funct
 //     alice = await apis.importWallet(alice.code);
 //     aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
 //     await apis.airdrop(aliceAccount.address().toString(), 20000);
-//     await apis.rotateAuthKey(alice.code, alice.accounts[2]);
+//     console.log(await apis.rotateAuthKey(alice.code, alice.accounts[2]));
 //     alice = await apis.importWallet(alice.code);
 //     aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
 //     await apis.rotateAuthKey(alice.code, alice.accounts[2]);
@@ -51,5 +67,5 @@ test("should be able to transfer", () => __awaiter(void 0, void 0, void 0, funct
 //     await apis.transfer(aliceAccount, alice.accounts[3].address, 100);
 //     console.log(await apis.getBalance(aliceAccount.address().toString()));
 //     console.log(await apis.getBalance(alice.accounts[3].address));
-// }, 50 * 1000,);
+// },300000);
 //# sourceMappingURL=wallet_client.test.js.map
