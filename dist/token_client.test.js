@@ -28,9 +28,11 @@ test("full tutorial nft token flow", () => __awaiter(void 0, void 0, void 0, fun
     const token_name = "Alice Token";
     // Create collection and token on Alice's account
     yield tokenClient.createCollection(alice, collection_name, "Alice's simple collection", "https://aptos.dev");
-    yield tokenClient.createToken(alice, "AliceCollection", "AliceToken", "Alice's simple token", 1, "https://aptos.dev/img/nyan.jpeg");
+    console.log(yield tokenClient.createToken(alice, "AliceCollection", "AliceToken", "Alice's simple token", 1, "https://aptos.dev/img/nyan.jpeg"));
+    console.log("ALICE ADDRESS", alice.address());
+    console.log("BOB ADDRESS", bob.address());
     // Transfer Token from Alice's Account to Bob's Account
-    yield tokenClient.offerToken(alice, bob.address().hex(), alice.address().hex(), collection_name, token_name, 1);
-    yield tokenClient.claimToken(bob, alice.address().hex(), alice.address().hex(), collection_name, token_name);
+    // console.log(await tokenClient.offerToken(alice, bob.address().hex(), alice.address().hex(), collection_name, token_name, 1));
+    // await tokenClient.claimToken(bob, alice.address().hex(), alice.address().hex(), collection_name, token_name);
 }), 30 * 1000);
 //# sourceMappingURL=token_client.test.js.map

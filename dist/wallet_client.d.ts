@@ -1,9 +1,10 @@
 /// <reference types="node" />
-import { AptosAccount } from './aptos_account';
-import { TokenClient } from './token_client';
-import { AptosClient } from './aptos_client';
-import { FaucetClient } from './faucet_client';
-import { Types } from './types';
+import { AptosAccount } from "./aptos_account";
+import { TokenClient } from "./token_client";
+import { AptosClient } from "./aptos_client";
+import { FaucetClient } from "./faucet_client";
+import { HexString, MaybeHexString } from "./hex_string";
+import { Types } from "./types";
 export interface TokenId {
     creator: string;
     collectionName: string;
@@ -26,11 +27,15 @@ export declare class RestClient {
     transactionPending(txnHash: string): Promise<boolean>;
     /** Waits up to 10 seconds for a transaction to move past pending state */
     waitForTransaction(txnHash: string): Promise<void>;
+    getTransactionStatus(txnHash: string): Promise<{
+        success: any;
+        vm_status: any;
+    }>;
     /** Returns the test coin balance associated with the account */
-    accountBalance(accountAddress: string): Promise<number | null>;
+    accountBalance(accountAddress: string | HexString): Promise<number | null>;
     /** Transfer a given coin amount from a given Account to the recipient's account address.
-     Returns the sequence number of the transaction used to transfer. */
-    transfer(accountFrom: AptosAccount, recipient: string, amount: number): Promise<string>;
+       Returns the sequence number of the transaction used to transfer. */
+    transfer(accountFrom: AptosAccount, recipient: string | HexString, amount: number): Promise<string>;
     accountResource(accountAddress: string, resourceType: string): Promise<any>;
 }
 export declare class WalletClient {
@@ -46,17 +51,39 @@ export declare class WalletClient {
     getAccountFromMnemonic(code: string): Promise<AptosAccount>;
     getAccountFromMetaData(code: string, metaData: AccountMetaData): Promise<AptosAccount>;
     airdrop(address: string, amount: number): Promise<string[]>;
-    getBalance(address: string): Promise<number>;
-    transfer(account: AptosAccount, recipient_address: string, amount: number): Promise<void>;
-    getSentEvents(address: string): Promise<Types.Event[]>;
+    getBalance(address: string | HexString): Promise<number>;
+    accountTransactions(accountAddress: MaybeHexString): Promise<{
+        data: any;
+        from: any;
+        gas: any;
+        gasPrice: any;
+        hash: any;
+        success: any;
+        timestamp: any;
+        toAddress: any;
+        price: any;
+        type: any;
+        version: any;
+        vmStatus: any;
+    }[]>;
+    transfer(account: AptosAccount, recipient_address: string | HexString, amount: number): Promise<void>;
+    getSentEvents(address: MaybeHexString): Promise<Types.OnChainTransaction[]>;
     getReceivedEvents(address: string): Promise<Types.Event[]>;
-    createCollection(account: AptosAccount, name: string, description: string, uri: string): Promise<string>;
-    createToken(account: AptosAccount, collection_name: string, name: string, description: string, supply: number, uri: string): Promise<string>;
-    offerToken(account: AptosAccount, receiver_address: string, creator_address: string, collection_name: string, token_name: string, amount: number): Promise<string>;
+    createCollection(account: AptosAccount, name: string, description: string, uri: string): Promise<import("./token_client").HashWithStatus>;
+    createToken(account: AptosAccount, collection_name: string, name: string, description: string, supply: number, uri: string): Promise<import("./token_client").HashWithStatus>;
+    offerToken(account: AptosAccount, receiver_address: string, creator_address: string, collection_name: string, token_name: string, amount: number): Promise<import("./token_client").HashWithStatus>;
     cancelTokenOffer(account: AptosAccount, receiver_address: string, creator_address: string, collection_name: string, token_name: string): Promise<string>;
-    claimNFT(account: AptosAccount, sender_address: string, creator_address: string, collection_name: string, token_name: string): Promise<string>;
-    signGenericTransaction(account: AptosAccount, func: string, ...args: string[]): Promise<string>;
-    rotateAuthKey(code: string, metaData: AccountMetaData): Promise<string>;
+    claimNFT(account: AptosAccount, sender_address: string, creator_address: string, collection_name: string, token_name: string): Promise<import("./token_client").HashWithStatus>;
+    signGenericTransaction(account: AptosAccount, func: string, args: string[], type_args: string[]): Promise<{
+        success: any;
+        vm_status: any;
+        txnHash: string;
+    }>;
+    rotateAuthKey(code: string, metaData: AccountMetaData): Promise<{
+        authkey: string;
+        success: boolean;
+        vm_status: any;
+    }>;
     getEventStream(address: string, eventHandleStruct: string, fieldName: string): Promise<any>;
     getTokenIds(address: string): Promise<any[]>;
     getTokens(address: string): Promise<any[]>;

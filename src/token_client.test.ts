@@ -4,7 +4,7 @@ import { AptosClient } from "./aptos_client";
 import { TokenClient } from "./token_client";
 // import { Types } from "./types";
 
-import { NODE_URL, FAUCET_URL } from "./util.test";
+import { FAUCET_URL, NODE_URL } from "./util.test";
 
 test(
   "full tutorial nft token flow",
@@ -26,18 +26,21 @@ test(
     // Create collection and token on Alice's account
     await tokenClient.createCollection(alice, collection_name, "Alice's simple collection", "https://aptos.dev");
 
-    await tokenClient.createToken(
+    console.log(await tokenClient.createToken(
       alice,
       "AliceCollection",
       "AliceToken",
       "Alice's simple token",
       1,
       "https://aptos.dev/img/nyan.jpeg",
-    );
+    ));
+
+    console.log("ALICE ADDRESS", alice.address())
+    console.log("BOB ADDRESS", bob.address())
 
     // Transfer Token from Alice's Account to Bob's Account
-    await tokenClient.offerToken(alice, bob.address().hex(), alice.address().hex(), collection_name, token_name, 1);
-    await tokenClient.claimToken(bob, alice.address().hex(), alice.address().hex(), collection_name, token_name);
+    // console.log(await tokenClient.offerToken(alice, bob.address().hex(), alice.address().hex(), collection_name, token_name, 1));
+    // await tokenClient.claimToken(bob, alice.address().hex(), alice.address().hex(), collection_name, token_name);
   },
   30 * 1000,
 );

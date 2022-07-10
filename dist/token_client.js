@@ -30,6 +30,13 @@ class TokenClient {
             return Promise.resolve(res.hash);
         });
     }
+    getTransactionStatus(txnHash) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const resp = yield this.aptosClient.getTransaction(txnHash);
+            // console.log(resp)
+            return { success: resp['success'], vm_status: resp['vm_status'] };
+        });
+    }
     // Creates a new collection within the specified account
     createCollection(account, name, description, uri) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -44,7 +51,8 @@ class TokenClient {
                 ],
             };
             const transactionHash = yield this.submitTransactionHelper(account, payload);
-            return transactionHash;
+            const status = yield this.getTransactionStatus(transactionHash);
+            return Object.assign({ txnHash: transactionHash }, status);
         });
     }
     // Creates a new token within the specified account
@@ -62,10 +70,12 @@ class TokenClient {
                     supply.toString(),
                     supply.toString() + 1,
                     Buffer.from(uri).toString("hex"),
+                    "0"
                 ],
             };
             const transactionHash = yield this.submitTransactionHelper(account, payload);
-            return transactionHash;
+            const status = yield this.getTransactionStatus(transactionHash);
+            return Object.assign({ txnHash: transactionHash }, status);
         });
     }
     // Offer token to another account
@@ -84,7 +94,8 @@ class TokenClient {
                 ],
             };
             const transactionHash = yield this.submitTransactionHelper(account, payload);
-            return transactionHash;
+            const status = yield this.getTransactionStatus(transactionHash);
+            return Object.assign({ txnHash: transactionHash }, status);
         });
     }
     // Claim token
@@ -102,7 +113,8 @@ class TokenClient {
                 ],
             };
             const transactionHash = yield this.submitTransactionHelper(account, payload);
-            return transactionHash;
+            const status = yield this.getTransactionStatus(transactionHash);
+            return Object.assign({ txnHash: transactionHash }, status);
         });
     }
     // Cancel token
@@ -115,6 +127,8 @@ class TokenClient {
                 arguments: [receiver, creator, tokenCreationNum.toString()],
             };
             const transactionHash = yield this.submitTransactionHelper(account, payload);
+            console.log("Cancel Token Status");
+            this.getTransactionStatus(transactionHash);
             return transactionHash;
         });
     }

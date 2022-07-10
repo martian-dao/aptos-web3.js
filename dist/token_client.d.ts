@@ -2,14 +2,22 @@ import { AptosAccount } from "./aptos_account";
 import { AptosClient } from "./aptos_client";
 import { Types } from "./types";
 import { MaybeHexString } from "./hex_string";
+export interface HashWithStatus {
+    txnHash: string;
+    success: string | boolean;
+}
 export declare class TokenClient {
     aptosClient: AptosClient;
     constructor(aptosClient: AptosClient);
     submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload): Promise<string>;
-    createCollection(account: AptosAccount, name: string, description: string, uri: string): Promise<Types.HexEncodedBytes>;
-    createToken(account: AptosAccount, collectionName: string, name: string, description: string, supply: number, uri: string): Promise<Types.HexEncodedBytes>;
-    offerToken(account: AptosAccount, receiver: MaybeHexString, creator: MaybeHexString, collectionName: string, name: string, amount: number): Promise<Types.HexEncodedBytes>;
-    claimToken(account: AptosAccount, sender: MaybeHexString, creator: MaybeHexString, collectionName: string, name: string): Promise<Types.HexEncodedBytes>;
+    getTransactionStatus(txnHash: string): Promise<{
+        success: any;
+        vm_status: any;
+    }>;
+    createCollection(account: AptosAccount, name: string, description: string, uri: string): Promise<HashWithStatus>;
+    createToken(account: AptosAccount, collectionName: string, name: string, description: string, supply: number, uri: string): Promise<HashWithStatus>;
+    offerToken(account: AptosAccount, receiver: MaybeHexString, creator: MaybeHexString, collectionName: string, name: string, amount: number): Promise<HashWithStatus>;
+    claimToken(account: AptosAccount, sender: MaybeHexString, creator: MaybeHexString, collectionName: string, name: string): Promise<HashWithStatus>;
     cancelTokenOffer(account: AptosAccount, receiver: MaybeHexString, creator: MaybeHexString, tokenCreationNum: number): Promise<Types.HexEncodedBytes>;
     tableItem(handle: string, keyType: string, valueType: string, key: any): Promise<any>;
     /** Retrieve the token's creation_num, which is useful for non-creator operations */
