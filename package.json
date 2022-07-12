@@ -50,11 +50,8 @@
     "brfs": "^2.0.2",
     "buffer": "^6.0.3",
     "js-sha3": "^0.8.0",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "typescript-memoize": "^1.1.0"
   },
-<<<<<<< HEAD
-  "version": "1.0.0"
-=======
   "version": "1.0.9"
->>>>>>> 74d6c2e25270c6c991c6c1d4a9958853a210e788
 }
