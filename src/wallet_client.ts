@@ -545,7 +545,7 @@ export class WalletClient {
 
   async initializeCoin(
     account: AptosAccount,
-    type_parameter: string, // type_parameter: something like 0x${coinTypeAddress}::MoonCoin::MoonCoin
+    coin_type_path: string, // coin_type_path: something like 0x${coinTypeAddress}::MoonCoin::MoonCoin
     name: string,
     symbol: string,
     scaling_factor: number
@@ -558,7 +558,7 @@ export class WalletClient {
       } = {
         type: "script_function_payload",
         function: "0x1::ManagedCoin::initialize",
-        type_arguments: [type_parameter],
+        type_arguments: [coin_type_path],
         arguments: [
           Buffer.from(name).toString("hex"),
           Buffer.from(symbol).toString("hex"),
@@ -570,7 +570,7 @@ export class WalletClient {
   }
 
   /** Registers the coin */
-  async registerCoin(account: AptosAccount, type_parameter: string) { // type_parameter: something like 0x${coinTypeAddress}::MoonCoin::MoonCoin
+  async registerCoin(account: AptosAccount, coin_type_path: string) { // coin_type_path: something like 0x${coinTypeAddress}::MoonCoin::MoonCoin
     const payload: {
       function: string;
       arguments: any[];
@@ -579,7 +579,7 @@ export class WalletClient {
     } = {
       type: "script_function_payload",
       function: "0x1::Coin::register",
-      type_arguments: [type_parameter],
+      type_arguments: [coin_type_path],
       arguments: [],
     };
     return await this.tokenClient.submitTransactionHelper(account, payload);
@@ -588,7 +588,7 @@ export class WalletClient {
   /** Mints the coin */
   async mintCoin(
     account: AptosAccount,
-    type_parameter: string, // type_parameter: something like 0x${coinTypeAddress}::MoonCoin::MoonCoin
+    coin_type_path: string, // coin_type_path: something like 0x${coinTypeAddress}::MoonCoin::MoonCoin
     dst_address: string,
     amount: number
   ) {
@@ -600,7 +600,7 @@ export class WalletClient {
     } = {
       type: "script_function_payload",
       function: "0x1::ManagedCoin::mint",
-      type_arguments: [type_parameter],
+      type_arguments: [coin_type_path],
       arguments: [dst_address.toString(), amount.toString()],
     };
     return await this.tokenClient.submitTransactionHelper(account, payload);
@@ -609,7 +609,7 @@ export class WalletClient {
   /** Transfers the coins */
   async transferCoin(
     account: AptosAccount,
-    type_parameter: string, // type_parameter: something like 0x${coinTypeAddress}::MoonCoin::MoonCoin
+    coin_type_path: string, // coin_type_path: something like 0x${coinTypeAddress}::MoonCoin::MoonCoin
     to_address: string,
     amount: number
   ) {
@@ -621,16 +621,25 @@ export class WalletClient {
     } = {
       type: "script_function_payload",
       function: "0x1::Coin::transfer",
-      type_arguments: [type_parameter],
+      type_arguments: [coin_type_path],
       arguments: [to_address.toString(), amount.toString()],
     };
     return await this.tokenClient.submitTransactionHelper(account, payload);
   }
 
-  async getCoinBalance(address: string, type_parameter: string): Promise<number> { // type_parameter: something like 0x${coinTypeAddress}::MoonCoin::MoonCoin
+  async getCoinData(coin_type_path: string) {
+    const coin_data = await this.getAccountResource(
+      coin_type_path.split("::")[0],
+      `0x1::Coin::CoinInfo<${coin_type_path}>`
+    );
+    console.log(coin_data);
+    return coin_data;
+  }
+
+  async getCoinBalance(address: string, coin_type_path: string): Promise<number> { // coin_type_path: something like 0x${coinTypeAddress}::MoonCoin::MoonCoin
     const coin_info = await this.getAccountResource(
       address,
-      `0x1::Coin::CoinStore<${type_parameter}>`
+      `0x1::Coin::CoinStore<${coin_type_path}>`
     );
     return Number(coin_info["data"]["coin"]["value"]);
   }
