@@ -566,7 +566,11 @@ export class WalletClient {
           false,
         ],
       };
-      return await this.tokenClient.submitTransactionHelper(account, payload)
+      const txnHash = await this.tokenClient.submitTransactionHelper(account, payload)
+      const resp = await this.aptosClient.getTransaction(txnHash);
+      const status = { success: resp["success"], vm_status: resp["vm_status"] };
+
+      return { txnHash: txnHash, ...status };
   }
 
   /** Registers the coin */
@@ -582,7 +586,12 @@ export class WalletClient {
       type_arguments: [coin_type_path],
       arguments: [],
     };
-    return await this.tokenClient.submitTransactionHelper(account, payload);
+  
+    const txnHash = await this.tokenClient.submitTransactionHelper(account, payload)
+    const resp = await this.aptosClient.getTransaction(txnHash);
+    const status = { success: resp["success"], vm_status: resp["vm_status"] };
+
+    return { txnHash: txnHash, ...status };
   }
 
   /** Mints the coin */
@@ -603,7 +612,11 @@ export class WalletClient {
       type_arguments: [coin_type_path],
       arguments: [dst_address.toString(), amount.toString()],
     };
-    return await this.tokenClient.submitTransactionHelper(account, payload);
+    const txnHash = await this.tokenClient.submitTransactionHelper(account, payload)
+    const resp = await this.aptosClient.getTransaction(txnHash);
+    const status = { success: resp["success"], vm_status: resp["vm_status"] };
+
+    return { txnHash: txnHash, ...status };
   }
 
   /** Transfers the coins */
@@ -624,7 +637,11 @@ export class WalletClient {
       type_arguments: [coin_type_path],
       arguments: [to_address.toString(), amount.toString()],
     };
-    return await this.tokenClient.submitTransactionHelper(account, payload);
+    const txnHash = await this.tokenClient.submitTransactionHelper(account, payload)
+    const resp = await this.aptosClient.getTransaction(txnHash);
+    const status = { success: resp["success"], vm_status: resp["vm_status"] };
+
+    return { txnHash: txnHash, ...status };
   }
 
   async getCoinData(coin_type_path: string) {
