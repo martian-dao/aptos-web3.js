@@ -8,6 +8,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && tsc -p .",
+    "publish_module": "npm run build && npm publish --public",
     "lint": "eslint \"**/*.ts\"",
     "test": "jest"
   },
@@ -53,5 +54,5 @@
     "tweetnacl": "^1.0.3",
     "typescript-memoize": "^1.1.0"
   },
-  "version": "1.0.10"
+  "version": "1.0.15"
 }
