@@ -23,9 +23,9 @@ export class TokenClient {
    * @param payload Transaction payload. It depends on transaction type you want to send
    * @returns Promise that resolves to transaction hash
    */
-  async submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload) {
+  async submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload, max_gas_amount: string = "4000") {
     const txnRequest = await this.aptosClient.generateTransaction(account.address(), payload, {
-      max_gas_amount: '8000',
+      max_gas_amount: max_gas_amount,
     });
     const signedTxn = await this.aptosClient.signTransaction(account, txnRequest);
     const res = await this.aptosClient.submitTransaction(signedTxn);
