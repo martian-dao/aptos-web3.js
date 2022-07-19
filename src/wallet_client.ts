@@ -358,21 +358,21 @@ export class WalletClient {
     return await this.aptosClient.signTransaction(account, txnRequest);
   }
 
+  async submitTransaction(signedTxn: Types.SubmitTransactionRequest){
+    return await this.aptosClient.submitTransaction(signedTxn);
+  }
+
   generateBCSTransaction(account: AptosAccount, rawTxn: RawTransaction): Promise<Uint8Array> {
-    return new Promise((resolve) => {
-      resolve(AptosClient.generateBCSTransaction(account, rawTxn));
-    });
+    return Promise.resolve(AptosClient.generateBCSTransaction(account, rawTxn))
   }
   generateBCSSimulation(account: AptosAccount, rawTxn: RawTransaction): Promise<Uint8Array> {
-    return new Promise((resolve) => {
-      resolve(AptosClient.generateBCSSimulation(account, rawTxn));
-    });
+    return Promise.resolve(AptosClient.generateBCSSimulation(account, rawTxn))
   }
 
   async submitSignedBCSTransaction(signedTxn: Uint8Array): Promise<Types.PendingTransaction> {
     return await this.aptosClient.submitSignedBCSTransaction(signedTxn);
   }
-  
+
   async submitBCSSimulation(bcsBody: Uint8Array): Promise<Types.OnChainTransaction> {
     return await this.aptosClient.submitBCSSimulation(bcsBody);
   }

@@ -239,15 +239,14 @@ class WalletClient {
     async signTransaction(account, txnRequest) {
         return await this.aptosClient.signTransaction(account, txnRequest);
     }
+    async submitTransaction(signedTxn) {
+        return await this.aptosClient.submitTransaction(signedTxn);
+    }
     generateBCSTransaction(account, rawTxn) {
-        return new Promise((resolve) => {
-            resolve(aptos_client_1.AptosClient.generateBCSTransaction(account, rawTxn));
-        });
+        return Promise.resolve(aptos_client_1.AptosClient.generateBCSTransaction(account, rawTxn));
     }
     generateBCSSimulation(account, rawTxn) {
-        return new Promise((resolve) => {
-            resolve(aptos_client_1.AptosClient.generateBCSSimulation(account, rawTxn));
-        });
+        return Promise.resolve(aptos_client_1.AptosClient.generateBCSSimulation(account, rawTxn));
     }
     async submitSignedBCSTransaction(signedTxn) {
         return await this.aptosClient.submitSignedBCSTransaction(signedTxn);

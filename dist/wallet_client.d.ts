@@ -62,6 +62,7 @@ export declare class WalletClient {
     }>;
     signAndSubmitTransaction(account: AptosAccount, txnRequest: Types.UserTransactionRequest): Promise<string>;
     signTransaction(account: AptosAccount, txnRequest: Types.UserTransactionRequest): Promise<Types.SubmitTransactionRequest>;
+    submitTransaction(signedTxn: Types.SubmitTransactionRequest): Promise<Types.PendingTransaction>;
     generateBCSTransaction(account: AptosAccount, rawTxn: RawTransaction): Promise<Uint8Array>;
     generateBCSSimulation(account: AptosAccount, rawTxn: RawTransaction): Promise<Uint8Array>;
     submitSignedBCSTransaction(signedTxn: Uint8Array): Promise<Types.PendingTransaction>;
