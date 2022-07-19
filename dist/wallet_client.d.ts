@@ -1,10 +1,11 @@
-/// <reference types="node" />
 import { AptosAccount } from "./aptos_account";
 import { TokenClient } from "./token_client";
 import { AptosClient } from "./aptos_client";
 import { FaucetClient } from "./faucet_client";
 import { HexString, MaybeHexString } from "./hex_string";
 import { Types } from "./types";
+import { Buffer } from "buffer/";
+import { RawTransaction } from "./transaction_builder/aptos_types/transaction";
 export interface TokenId {
     creator: string;
     collectionName: string;
@@ -59,6 +60,13 @@ export declare class WalletClient {
         vm_status: any;
         txnHash: string;
     }>;
+    signAndSubmitTransaction(account: AptosAccount, txnRequest: Types.UserTransactionRequest): Promise<string>;
+    signTransaction(account: AptosAccount, txnRequest: Types.UserTransactionRequest): Promise<Types.SubmitTransactionRequest>;
+    generateBCSTransaction(account: AptosAccount, rawTxn: RawTransaction): Promise<Uint8Array>;
+    generateBCSSimulation(account: AptosAccount, rawTxn: RawTransaction): Promise<Uint8Array>;
+    submitSignedBCSTransaction(signedTxn: Uint8Array): Promise<Types.PendingTransaction>;
+    submitBCSSimulation(bcsBody: Uint8Array): Promise<Types.OnChainTransaction>;
+    signMessage(account: AptosAccount, message: string): Promise<string>;
     rotateAuthKey(code: string, metaData: AccountMetaData): Promise<{
         authkey: string;
         success: boolean;

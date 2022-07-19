@@ -32,6 +32,7 @@ const token_client_1 = require("./token_client");
 const aptos_client_1 = require("./aptos_client");
 const faucet_client_1 = require("./faucet_client");
 const hex_string_1 = require("./hex_string");
+const buffer_1 = require("buffer/");
 const bip39 = __importStar(require("@scure/bip39"));
 const english = __importStar(require("@scure/bip39/wordlists/english"));
 const { HDKey } = require("@scure/bip32");
@@ -52,7 +53,7 @@ class WalletClient {
             return Promise.reject("Incorrect mnemonic passed");
         }
         var seed = bip39.mnemonicToSeedSync(code.toString());
-        const node = HDKey.fromMasterSeed(Buffer.from(seed));
+        const node = HDKey.fromMasterSeed(buffer_1.Buffer.from(seed));
         var accountMetaData = [];
         for (var i = 0; i < MAX_ACCOUNTS; i++) {
             var flag = false;
@@ -100,7 +101,7 @@ class WalletClient {
     }
     async createNewAccount(code) {
         var seed = bip39.mnemonicToSeedSync(code.toString());
-        const node = HDKey.fromMasterSeed(Buffer.from(seed));
+        const node = HDKey.fromMasterSeed(buffer_1.Buffer.from(seed));
         for (var i = 0; i < MAX_ACCOUNTS; i++) {
             const derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0/0`;
             const exKey = node.derive(derivationPath);
@@ -128,13 +129,13 @@ class WalletClient {
     // gives the account at position m/44'/COIN_TYPE'/0'/0/0
     async getAccountFromMnemonic(code) {
         var seed = bip39.mnemonicToSeedSync(code.toString());
-        const node = HDKey.fromMasterSeed(Buffer.from(seed));
+        const node = HDKey.fromMasterSeed(buffer_1.Buffer.from(seed));
         const exKey = node.derive(`m/44'/${COIN_TYPE}'/0'/0/0`);
         return new aptos_account_1.AptosAccount(exKey.privateKey);
     }
     async getAccountFromMetaData(code, metaData) {
         var seed = bip39.mnemonicToSeedSync(code.toString());
-        const node = HDKey.fromMasterSeed(Buffer.from(seed));
+        const node = HDKey.fromMasterSeed(buffer_1.Buffer.from(seed));
         const exKey = node.derive(metaData.derivationPath);
         return new aptos_account_1.AptosAccount(exKey.privateKey, metaData.address);
     }
@@ -228,6 +229,34 @@ class WalletClient {
         const resp = await this.aptosClient.getTransaction(txnHash);
         const status = { success: resp["success"], vm_status: resp["vm_status"] };
         return { txnHash: txnHash, ...status };
+    }
+    async signAndSubmitTransaction(account, txnRequest) {
+        const signedTxn = await this.aptosClient.signTransaction(account, txnRequest);
+        const res = await this.aptosClient.submitTransaction(signedTxn);
+        await this.aptosClient.waitForTransaction(res.hash);
+        return Promise.resolve(res.hash);
+    }
+    async signTransaction(account, txnRequest) {
+        return await this.aptosClient.signTransaction(account, txnRequest);
+    }
+    generateBCSTransaction(account, rawTxn) {
+        return new Promise((resolve) => {
+            resolve(aptos_client_1.AptosClient.generateBCSTransaction(account, rawTxn));
+        });
+    }
+    generateBCSSimulation(account, rawTxn) {
+        return new Promise((resolve) => {
+            resolve(aptos_client_1.AptosClient.generateBCSSimulation(account, rawTxn));
+        });
+    }
+    async submitSignedBCSTransaction(signedTxn) {
+        return await this.aptosClient.submitSignedBCSTransaction(signedTxn);
+    }
+    async submitBCSSimulation(bcsBody) {
+        return await this.aptosClient.submitBCSSimulation(bcsBody);
+    }
+    async signMessage(account, message) {
+        return account.signBuffer(buffer_1.Buffer.from(message)).hex();
     }
     async rotateAuthKey(code, metaData) {
         const account = await this.getAccountFromMetaData(code, metaData);
@@ -358,8 +387,8 @@ class WalletClient {
             function: "0x1::ManagedCoin::initialize",
             type_arguments: [coin_type_path],
             arguments: [
-                Buffer.from(name).toString("hex"),
-                Buffer.from(symbol).toString("hex"),
+                buffer_1.Buffer.from(name).toString("hex"),
+                buffer_1.Buffer.from(symbol).toString("hex"),
                 scaling_factor.toString(),
                 false,
             ],

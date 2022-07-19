@@ -4,6 +4,8 @@ import { AptosClient } from "./aptos_client";
 import { FaucetClient } from "./faucet_client";
 import { HexString, MaybeHexString } from "./hex_string";
 import { Types } from "./types";
+import { Buffer } from "buffer/";
+import {RawTransaction, RawTransactionWithData} from "./transaction_builder/aptos_types/transaction"
 
 import * as bip39 from "@scure/bip39";
 import * as english from "@scure/bip39/wordlists/english";
@@ -343,6 +345,40 @@ export class WalletClient {
     const status = { success: resp["success"], vm_status: resp["vm_status"] };
 
     return { txnHash: txnHash, ...status };
+  }
+
+  async signAndSubmitTransaction(account: AptosAccount, txnRequest: Types.UserTransactionRequest){
+    const signedTxn = await this.aptosClient.signTransaction(account, txnRequest);
+    const res = await this.aptosClient.submitTransaction(signedTxn);
+    await this.aptosClient.waitForTransaction(res.hash);
+    return Promise.resolve(res.hash);
+  }
+
+  async signTransaction(account: AptosAccount, txnRequest: Types.UserTransactionRequest): Promise<Types.SubmitTransactionRequest>{
+    return await this.aptosClient.signTransaction(account, txnRequest);
+  }
+
+  generateBCSTransaction(account: AptosAccount, rawTxn: RawTransaction): Promise<Uint8Array> {
+    return new Promise((resolve) => {
+      resolve(AptosClient.generateBCSTransaction(account, rawTxn));
+    });
+  }
+  generateBCSSimulation(account: AptosAccount, rawTxn: RawTransaction): Promise<Uint8Array> {
+    return new Promise((resolve) => {
+      resolve(AptosClient.generateBCSSimulation(account, rawTxn));
+    });
+  }
+
+  async submitSignedBCSTransaction(signedTxn: Uint8Array): Promise<Types.PendingTransaction> {
+    return await this.aptosClient.submitSignedBCSTransaction(signedTxn);
+  }
+  
+  async submitBCSSimulation(bcsBody: Uint8Array): Promise<Types.OnChainTransaction> {
+    return await this.aptosClient.submitBCSSimulation(bcsBody);
+  }
+ 
+  async signMessage(account: AptosAccount, message: string): Promise<string> {
+    return account.signBuffer(Buffer.from(message)).hex();
   }
 
   async rotateAuthKey(code: string, metaData: AccountMetaData) {

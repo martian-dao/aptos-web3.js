@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">19.04% </span>
+                <span class="strong">7.14% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>8/42</span>
+                <span class='fraction'>3/42</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/3</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">25% </span>
+                <span class="strong">8.33% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/12</span>
+                <span class='fraction'>1/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">19.51% </span>
+                <span class="strong">7.31% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>8/41</span>
+                <span class='fraction'>3/41</span>
             </div>
         
             
@@ -405,11 +405,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -498,7 +498,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -510,7 +510,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -720,12 +720,12 @@ export class TokenClient {
    * @param payload Transaction payload. It depends on transaction type you want to send
    * @returns Promise that resolves to transaction hash
    */
-  async submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload, max_gas_amount: string = "4000") {
-    const txnRequest = await this.aptosClient.generateTransaction(account.address(), payload, {
+<span class="fstat-no" title="function not covered" >  async </span>submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload, max_gas_amount: string = <span class="branch-0 cbranch-no" title="branch not covered" >"4000")</span> {
+    const txnRequest = <span class="cstat-no" title="statement not covered" >await this.aptosClient.generateTransaction(account.address(), payload, {</span>
       max_gas_amount: max_gas_amount,
     });
-    const signedTxn = await this.aptosClient.signTransaction(account, txnRequest);
-    const res = await this.aptosClient.submitTransaction(signedTxn);
+    const signedTxn = <span class="cstat-no" title="statement not covered" >await this.aptosClient.signTransaction(account, txnRequest);</span>
+    const res = <span class="cstat-no" title="statement not covered" >await this.aptosClient.submitTransaction(signedTxn);</span>
 <span class="cstat-no" title="statement not covered" >    await this.aptosClient.waitForTransaction(res.hash);</span>
 <span class="cstat-no" title="statement not covered" >    return Promise.resolve(res.hash);</span>
   }
@@ -806,7 +806,7 @@ export class TokenClient {
    * @param amount Amount of tokens which will be transfered
    * @returns A hash of transaction
    */
-  async offerToken(
+<span class="fstat-no" title="function not covered" >  async </span>offerToken(
     account: AptosAccount,
     receiver: MaybeHexString,
     creator: MaybeHexString,
@@ -814,7 +814,7 @@ export class TokenClient {
     name: string,
     amount: number,
   ): Promise&lt;Types.HexEncodedBytes&gt; {
-    const payload: Types.TransactionPayload = {
+    const payload: Types.TransactionPayload = <span class="cstat-no" title="statement not covered" >{</span>
       type: 'script_function_payload',
       function: '0x1::TokenTransfers::offer_script',
       type_arguments: [],
@@ -826,7 +826,7 @@ export class TokenClient {
         amount.toString(),
       ],
     };
-    const transactionHash = await this.submitTransactionHelper(account, payload);
+    const transactionHash = <span class="cstat-no" title="statement not covered" >await this.submitTransactionHelper(account, payload);</span>
 <span class="cstat-no" title="statement not covered" >    return transactionHash;</span>
   }
 &nbsp;
@@ -1018,7 +1018,7 @@ export class TokenClient {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at Fri Jul 15 2022 01:49:46 GMT+0530 (India Standard Time)
+                at Tue Jul 19 2022 13:47:00 GMT+0530 (India Standard Time)
             </div>
         <script src="../prettify.js"></script>
         <script>
