@@ -447,7 +447,13 @@ class AptosClient {
     }
 }
 __decorate([
+    (0, typescript_memoize_1.MemoizeExpiring)(2 * 60 * 1000) // cache result for 2 minutes
+], AptosClient.prototype, "getAccountResources", null);
+__decorate([
     (0, typescript_memoize_1.MemoizeExpiring)(5 * 60 * 1000) // cache result for 5 minutes
 ], AptosClient.prototype, "getChainId", null);
+__decorate([
+    (0, typescript_memoize_1.MemoizeExpiring)(5 * 60 * 1000) // cache result for 5 minutes
+], AptosClient.prototype, "getTableItem", null);
 exports.AptosClient = AptosClient;
 //# sourceMappingURL=aptos_client.js.map

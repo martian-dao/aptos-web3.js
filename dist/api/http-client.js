@@ -15,6 +15,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HttpClient = exports.ContentType = void 0;
 const axios_1 = __importDefault(require("axios"));
+const fetchAdapter = require("./fetch-adapter");
 var ContentType;
 (function (ContentType) {
     ContentType["Json"] = "application/json";
@@ -34,6 +35,7 @@ class HttpClient {
                 {};
             const requestParams = this.mergeRequestParams(params, secureParams);
             const responseFormat = (format && this.format) || void 0;
+            // @ts-ignore
             if (type === ContentType.FormData && body && body !== null && typeof body === "object") {
                 // @ts-ignore
                 requestParams.headers.common = { Accept: "*/*" };
@@ -55,7 +57,7 @@ class HttpClient {
                 url: path,
             });
         };
-        this.instance = axios_1.default.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "" });
+        this.instance = axios_1.default.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "", adapter: fetchAdapter });
         this.secure = secure;
         this.format = format;
         this.securityWorker = securityWorker;

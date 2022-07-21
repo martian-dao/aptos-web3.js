@@ -481,8 +481,7 @@ export class WalletClient {
       const accountResource: { type: string; data: any } = resources.find(
         (r) => r.type === "0x1::Token::Collections"
       );
-
-      const tableItemRequest: Types.TableItemRequest = {
+      let tableItemRequest: Types.TableItemRequest = {
         key_type: "0x1::Token::TokenId",
         value_type: "0x1::Token::TokenData",
         key: tokenId,
@@ -493,12 +492,6 @@ export class WalletClient {
           tableItemRequest
         )
       ).data;
-
-      const collectionData = await this.getCollection(
-        tokenId.creator,
-        token.collection
-      );
-      token.collectionData = collectionData;
       tokens.push(token);
     }
     return tokens;

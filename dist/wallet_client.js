@@ -320,14 +320,12 @@ class WalletClient {
         for (var tokenId of tokenIds) {
             const resources = await this.aptosClient.getAccountResources(tokenId.creator);
             const accountResource = resources.find((r) => r.type === "0x1::Token::Collections");
-            const tableItemRequest = {
+            let tableItemRequest = {
                 key_type: "0x1::Token::TokenId",
                 value_type: "0x1::Token::TokenData",
                 key: tokenId,
             };
             const token = (await this.aptosClient.getTableItem(accountResource.data.token_data.handle, tableItemRequest)).data;
-            const collectionData = await this.getCollection(tokenId.creator, token.collection);
-            token.collectionData = collectionData;
             tokens.push(token);
         }
         return tokens;

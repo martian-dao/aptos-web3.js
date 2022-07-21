@@ -168,6 +168,7 @@ export class AptosClient {
    * }
    * ```
    */
+  @MemoizeExpiring(2 * 60 * 1000) // cache result for 2 minutes
   async getAccountResources(
     accountAddress: MaybeHexString,
     query?: { version?: Types.LedgerVersion },
@@ -539,6 +540,7 @@ export class AptosClient {
    * @param params Request params
    * @returns Table item value rendered in JSON
    */
+  @MemoizeExpiring(5 * 60 * 1000) // cache result for 5 minutes
   async getTableItem(handle: string, data: Types.TableItemRequest, params?: RequestParams): Promise<any> {
     const tableItem = await this.tables.getTableItem(handle, data, params);
     return tableItem;

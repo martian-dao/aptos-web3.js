@@ -1,5 +1,5 @@
 import { AptosAccount, AptosAccountObject } from './aptos_account';
-
+import * as Nacl from 'tweetnacl';
 const aptosAccountObject: AptosAccountObject = {
   address: '0x978c213990c4833df71548df7ce49d54c759d6b6d932de22b24d56060b7af2aa',
   privateKeyHex:
@@ -47,4 +47,21 @@ test('Signs Strings', () => {
     // eslint-disable-next-line max-len
     '0xc5de9e40ac00b371cd83b1c197fa5b665b7449b33cd3cdd305bb78222e06a671a49625ab9aea8a039d4bb70e275768084d62b094bc1b31964f2357b7c1af7e0d',
   );
+});
+
+test('Signs Message Base64', () => {
+  const a1 = AptosAccount.fromAptosAccountObject(aptosAccountObject);
+  let tmp = a1.signHexStringB64('tempp')
+  let bufTmp = Buffer.from(tmp, 'base64');
+  let bufPubKey = Buffer.from(aptosAccountObject.publicKeyHex.slice(2), 'hex');
+  expect(Nacl.sign.detached.verify(Buffer.from("tempp", "utf8") ,bufTmp, bufPubKey)).toBe(true)
+});
+
+
+test('Signs Message Hex', () => {
+  const a1 = AptosAccount.fromAptosAccountObject(aptosAccountObject);
+  let tmp = a1.signHexString('tempp').hex()
+  let bufTmp = Buffer.from(tmp.slice(2), 'hex');
+  let bufPubKey = Buffer.from(aptosAccountObject.publicKeyHex.slice(2), 'hex');
+  expect(Nacl.sign.detached.verify(Buffer.from("tempp", "hex") ,bufTmp, bufPubKey)).toBe(true)
 });

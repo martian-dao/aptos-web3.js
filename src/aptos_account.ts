@@ -92,6 +92,11 @@ export class AptosAccount {
     return HexString.ensure(Buffer.from(signature).toString('hex').slice(0, 128));
   }
 
+  signBufferB64(buffer: Buffer) {
+    const signature = Nacl.sign.detached(buffer, this.signingKey.secretKey);
+    return Buffer.from(signature).toString("base64");
+  }
+
   /**
    * Signs specified `hexString` with account's private key
    * @param hexString A regular string or HexString to sign
@@ -100,6 +105,11 @@ export class AptosAccount {
   signHexString(hexString: MaybeHexString): HexString {
     const toSign = HexString.ensure(hexString).toBuffer();
     return this.signBuffer(toSign);
+  }
+  
+  signHexStringB64(hexString: string) {
+    const toSign = Buffer.from(hexString, "utf8");
+    return this.signBufferB64(toSign);
   }
 
   /**
