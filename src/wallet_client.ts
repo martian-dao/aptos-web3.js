@@ -5,7 +5,10 @@ import { FaucetClient } from "./faucet_client";
 import { HexString, MaybeHexString } from "./hex_string";
 import { Types } from "./types";
 import { Buffer } from "buffer/";
-import {RawTransaction, RawTransactionWithData} from "./transaction_builder/aptos_types/transaction"
+import {
+  RawTransaction,
+  RawTransactionWithData,
+} from "./transaction_builder/aptos_types/transaction";
 
 import * as bip39 from "@scure/bip39";
 import * as english from "@scure/bip39/wordlists/english";
@@ -159,7 +162,9 @@ export class WalletClient {
     const resources: any = await this.aptosClient.getAccountResources(address);
     for (const key in resources) {
       const resource = resources[key];
-      if (resource["type"] == "0x1::coin::CoinStore<0x1::test_coin::TestCoin>") {
+      if (
+        resource["type"] == "0x1::coin::CoinStore<0x1::test_coin::TestCoin>"
+      ) {
         balance = parseInt(resource["data"]["coin"]["value"]);
       }
     }
@@ -347,36 +352,55 @@ export class WalletClient {
     return { txnHash: txnHash, ...status };
   }
 
-  async signAndSubmitTransaction(account: AptosAccount, txnRequest: Types.UserTransactionRequest){
-    const signedTxn = await this.aptosClient.signTransaction(account, txnRequest);
+  async signAndSubmitTransaction(
+    account: AptosAccount,
+    txnRequest: Types.UserTransactionRequest
+  ) {
+    const signedTxn = await this.aptosClient.signTransaction(
+      account,
+      txnRequest
+    );
     const res = await this.aptosClient.submitTransaction(signedTxn);
     await this.aptosClient.waitForTransaction(res.hash);
     return Promise.resolve(res.hash);
   }
 
-  async signTransaction(account: AptosAccount, txnRequest: Types.UserTransactionRequest): Promise<Types.SubmitTransactionRequest>{
+  async signTransaction(
+    account: AptosAccount,
+    txnRequest: Types.UserTransactionRequest
+  ): Promise<Types.SubmitTransactionRequest> {
     return await this.aptosClient.signTransaction(account, txnRequest);
   }
 
-  async submitTransaction(signedTxn: Types.SubmitTransactionRequest){
+  async submitTransaction(signedTxn: Types.SubmitTransactionRequest) {
     return await this.aptosClient.submitTransaction(signedTxn);
   }
 
-  generateBCSTransaction(account: AptosAccount, rawTxn: RawTransaction): Promise<Uint8Array> {
-    return Promise.resolve(AptosClient.generateBCSTransaction(account, rawTxn))
+  generateBCSTransaction(
+    account: AptosAccount,
+    rawTxn: RawTransaction
+  ): Promise<Uint8Array> {
+    return Promise.resolve(AptosClient.generateBCSTransaction(account, rawTxn));
   }
-  generateBCSSimulation(account: AptosAccount, rawTxn: RawTransaction): Promise<Uint8Array> {
-    return Promise.resolve(AptosClient.generateBCSSimulation(account, rawTxn))
+  generateBCSSimulation(
+    account: AptosAccount,
+    rawTxn: RawTransaction
+  ): Promise<Uint8Array> {
+    return Promise.resolve(AptosClient.generateBCSSimulation(account, rawTxn));
   }
 
-  async submitSignedBCSTransaction(signedTxn: Uint8Array): Promise<Types.PendingTransaction> {
+  async submitSignedBCSTransaction(
+    signedTxn: Uint8Array
+  ): Promise<Types.PendingTransaction> {
     return await this.aptosClient.submitSignedBCSTransaction(signedTxn);
   }
 
-  async submitBCSSimulation(bcsBody: Uint8Array): Promise<Types.OnChainTransaction> {
+  async submitBCSSimulation(
+    bcsBody: Uint8Array
+  ): Promise<Types.OnChainTransaction> {
     return await this.aptosClient.submitBCSSimulation(bcsBody);
   }
- 
+
   async signMessage(account: AptosAccount, message: string): Promise<string> {
     return account.signBuffer(Buffer.from(message)).hex();
   }
@@ -452,20 +476,34 @@ export class WalletClient {
       "0x1::token::TokenStore",
       "withdraw_events"
     );
-    function isEventEqual(event1, event2) {
-      return (
-        event1.data.id.creator === event2.data.id.creator &&
-        event1.data.id.collectionName === event2.data.id.collectionName &&
-        event1.data.id.name === event2.data.id.name
-      );
-    }
+
+    var countDeposit = {};
+    var countWithdraw = {};
     var tokenIds = [];
     for (var elem of depositEvents) {
-      if (
-        !withdrawEvents.some(function (item) {
-          return isEventEqual(item, elem);
-        })
-      ) {
+      const elem_string = JSON.stringify(elem.data.id)
+      countDeposit[elem_string] = countDeposit[
+        elem_string
+      ]
+        ? countDeposit[elem_string] + 1
+        : 1;
+    }
+    for (var elem of withdrawEvents) {
+      const elem_string = JSON.stringify(elem.data.id)
+      countWithdraw[elem_string] = countWithdraw[
+        elem_string
+      ]
+        ? countWithdraw[elem_string] + 1
+        : 1;
+    }
+
+    for (var elem of depositEvents) {
+      const elem_string = JSON.stringify(elem.data.id)
+      const count1 = countDeposit[elem_string];
+      const count2 = countWithdraw[elem_string]
+        ? countWithdraw[elem_string]
+        : 0;
+      if (count1 - count2 == 1) {
         tokenIds.push(elem.data.id);
       }
     }
@@ -473,11 +511,17 @@ export class WalletClient {
   }
 
   async getTokens(address: string) {
+    let localCache = {};
     const tokenIds = await this.getTokenIds(address);
     var tokens = [];
     for (var tokenId of tokenIds) {
-      const resources: Types.AccountResource[] =
-        await this.aptosClient.getAccountResources(tokenId.creator);
+      let resources: Types.AccountResource[];
+      if (tokenId.creator in localCache) {
+        resources = localCache[tokenId.creator];
+      } else {
+        resources = await this.aptosClient.getAccountResources(tokenId.creator);
+        localCache[tokenId.creator] = resources;
+      }
       const accountResource: { type: string; data: any } = resources.find(
         (r) => r.type === "0x1::token::Collections"
       );

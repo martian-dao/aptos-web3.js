@@ -3,13 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const wallet_client_1 = require("./wallet_client");
 const util_test_1 = require("./util.test");
 const apis = new wallet_client_1.WalletClient(util_test_1.NODE_URL, util_test_1.FAUCET_URL);
-test("verify airdrop", async () => {
-    const alice = await apis.createWallet();
-    var aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
-    await apis.airdrop(aliceAccount.address().toString(), 1234);
-    console.log(await apis.getBalance(aliceAccount.address()));
-    // expect(await apis.getBalance(aliceAccount.address())).toBe(1234);
-});
+// test("verify airdrop", async () => {
+//     const alice = await apis.createWallet();
+//     var aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
+//     await apis.airdrop(aliceAccount.address().toString(), 1234);
+//     expect(await apis.getBalance(aliceAccount.address())).toBe(1234);
+// })
 // test("verify transfer", async () => {
 //     const alice = await apis.createWallet();
 //     var aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
@@ -75,31 +74,23 @@ test("verify airdrop", async () => {
 //     await apis.airdrop(aliceAccount.address().toString(), 20000);
 //     const bob = await apis.createWallet();
 //     var bobAccount = await apis.getAccountFromMetaData(bob.code, bob.accounts[0]);
-//     await apis.signGenericTransaction(aliceAccount, "0x1::Coin::transfer", [bobAccount.address().toString(), "15000"], ["0x1::TestCoin::TestCoin"]);
+//     await apis.signGenericTransaction(aliceAccount, "0x1::coin::transfer", [bobAccount.address().toString(), "15000"], ["0x1::test_coin::TestCoin"]);
 //     expect(await apis.getBalance(bobAccount.address())).toBe(15000);
 // })
 // test("verify fungible tokens", async () => {
-//     // a test account which contains the deployed MartianCoin module
-//     const secretkey = new Buffer([
-//         208,  41, 122,   9, 121,  25, 194, 111, 188, 201,  90,
-//         201, 215, 170,  16, 221, 226,  27,  98,  54, 212, 202,
-//         158, 150,  47, 171,  45,  71, 142,  78,  46, 168, 137,
-//          28,  33, 223, 101,  15, 214, 216, 223,  86,  34, 187,
-//         198, 214, 192,  17,  49, 212, 225,  55, 185, 166, 223,
-//         237,  61, 141, 229,  19,  66,  15, 192, 218
-//     ]);
-//     const alice = await apis.getAccountFromPrivateKey(secretkey);
-//     await apis.airdrop(alice.address().toString(), 20000);
+//     const alice = await apis.createWallet();
+//     var aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
+//     await apis.airdrop(aliceAccount.address().toString(), 20000);
 //     const bob = await apis.createWallet();
 //     var bobAccount = await apis.getAccountFromMetaData(bob.code, bob.accounts[0]);
 //     await apis.airdrop(bobAccount.address().toString(), 20000);
-//     const coin_type_path = `${alice.address().toString()}::MartianCoin::MartianCoin`; // the address will change with time
-//     await apis.initializeCoin(alice, coin_type_path, "Martian Coin", "MAR", 6);
-//     await apis.registerCoin(alice, coin_type_path);
-//     await apis.mintCoin(alice, coin_type_path, alice.address().toString(), 3000);
-//     await apis.getCoinBalance(alice.address().toString(), coin_type_path);
+//     const coin_type_path = `${aliceAccount.address().toString()}::MartianCoin::MartianCoin`; // the address will change with time
+//     await apis.initializeCoin(aliceAccount, coin_type_path, "Martian Coin", "MAR", 6);
+//     await apis.registerCoin(aliceAccount, coin_type_path);
+//     await apis.mintCoin(aliceAccount, coin_type_path, aliceAccount.address().toString(), 3000);
+//     await apis.getCoinBalance(aliceAccount.address().toString(), coin_type_path);
 //     await apis.registerCoin(bobAccount, coin_type_path);
-//     await apis.transferCoin(alice, coin_type_path, bobAccount.address().toString(), 1000);
+//     await apis.transferCoin(aliceAccount, coin_type_path, bobAccount.address().toString(), 1000);
 //     expect(await apis.getCoinBalance(bobAccount.address().toString(), coin_type_path)).toBe(1000);
 // })
 // test("should be able to create a new wallet and rotate auth keys", async () => {

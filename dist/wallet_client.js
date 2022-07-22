@@ -145,11 +145,9 @@ class WalletClient {
     async getBalance(address) {
         var balance = 0;
         const resources = await this.aptosClient.getAccountResources(address);
-        console.log(resources);
         for (const key in resources) {
             const resource = resources[key];
             if (resource["type"] == "0x1::coin::CoinStore<0x1::test_coin::TestCoin>") {
-                console.log(balance);
                 balance = parseInt(resource["data"]["coin"]["value"]);
             }
         }
@@ -301,26 +299,46 @@ class WalletClient {
     async getTokenIds(address) {
         const depositEvents = await this.getEventStream(address, "0x1::token::TokenStore", "deposit_events");
         const withdrawEvents = await this.getEventStream(address, "0x1::token::TokenStore", "withdraw_events");
-        function isEventEqual(event1, event2) {
-            return (event1.data.id.creator === event2.data.id.creator &&
-                event1.data.id.collectionName === event2.data.id.collectionName &&
-                event1.data.id.name === event2.data.id.name);
-        }
+        var countDeposit = {};
+        var countWithdraw = {};
         var tokenIds = [];
         for (var elem of depositEvents) {
-            if (!withdrawEvents.some(function (item) {
-                return isEventEqual(item, elem);
-            })) {
+            const elem_string = JSON.stringify(elem.data.id);
+            countDeposit[elem_string] = countDeposit[elem_string]
+                ? countDeposit[elem_string] + 1
+                : 1;
+        }
+        for (var elem of withdrawEvents) {
+            const elem_string = JSON.stringify(elem.data.id);
+            countWithdraw[elem_string] = countWithdraw[elem_string]
+                ? countWithdraw[elem_string] + 1
+                : 1;
+        }
+        for (var elem of depositEvents) {
+            const elem_string = JSON.stringify(elem.data.id);
+            const count1 = countDeposit[elem_string];
+            const count2 = countWithdraw[elem_string]
+                ? countWithdraw[elem_string]
+                : 0;
+            if (count1 - count2 == 1) {
                 tokenIds.push(elem.data.id);
             }
         }
         return tokenIds;
     }
     async getTokens(address) {
+        let localCache = {};
         const tokenIds = await this.getTokenIds(address);
         var tokens = [];
         for (var tokenId of tokenIds) {
-            const resources = await this.aptosClient.getAccountResources(tokenId.creator);
+            let resources;
+            if (tokenId.creator in localCache) {
+                resources = localCache[tokenId.creator];
+            }
+            else {
+                resources = await this.aptosClient.getAccountResources(tokenId.creator);
+                localCache[tokenId.creator] = resources;
+            }
             const accountResource = resources.find((r) => r.type === "0x1::token::Collections");
             let tableItemRequest = {
                 key_type: "0x1::token::TokenId",
@@ -446,6 +464,7 @@ class WalletClient {
     async getCoinBalance(address, coin_type_path) {
         // coin_type_path: something like 0x${coinTypeAddress}::moon_coin::MoonCoin
         const coin_info = await this.getAccountResource(address, `0x1::coin::CoinStore<${coin_type_path}>`);
+        console.log(coin_info);
         return Number(coin_info["data"]["coin"]["value"]);
     }
 }
