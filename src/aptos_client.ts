@@ -1,16 +1,16 @@
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { MemoizeExpiring } from 'typescript-memoize';
-import { Accounts } from './api/Accounts';
-import { Events } from './api/Events';
-import { Transactions } from './api/Transactions';
-import { HttpClient, RequestParams } from './api/http-client';
-import { HexString, MaybeHexString } from './hex_string';
-import { sleep } from './util';
-import { AptosAccount } from './aptos_account';
-import { Types } from './types';
-import { Tables } from './api/Tables';
-import { AptosError } from './api/data-contracts';
-import { TxnBuilderTypes, TransactionBuilderEd25519 } from './transaction_builder';
+import { AxiosRequestConfig, AxiosResponse } from "axios";
+import { MemoizeExpiring } from "typescript-memoize";
+import { Accounts } from "./api/Accounts";
+import { Events } from "./api/Events";
+import { Transactions } from "./api/Transactions";
+import { HttpClient, RequestParams } from "./api/http-client";
+import { HexString, MaybeHexString } from "./hex_string";
+import { sleep } from "./util";
+import { AptosAccount } from "./aptos_account";
+import { Types } from "./types";
+import { Tables } from "./api/Tables";
+import { AptosError } from "./api/data-contracts";
+import { TxnBuilderTypes, TransactionBuilderEd25519 } from "./transaction_builder";
 
 export class RequestError extends Error {
   response?: AxiosResponse<any, Types.AptosError>;
@@ -19,15 +19,15 @@ export class RequestError extends Error {
 
   constructor(message?: string, response?: AxiosResponse<any, Types.AptosError>, requestBody?: string) {
     const data = JSON.stringify(response.data);
-    const hostAndPath = [response.request?.host, response.request?.path].filter((e) => !!e).join('');
-    super(`${message} - ${data}${hostAndPath ? ` @ ${hostAndPath}` : ''}${requestBody ? ` : ${requestBody}` : ''}`);
+    const hostAndPath = [response.request?.host, response.request?.path].filter((e) => !!e).join("");
+    super(`${message} - ${data}${hostAndPath ? ` @ ${hostAndPath}` : ""}${requestBody ? ` : ${requestBody}` : ""}`);
     this.response = response;
     this.requestBody = requestBody;
     Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
   }
 }
 
-export type AptosClientConfig = Omit<AxiosRequestConfig, 'data' | 'cancelToken' | 'method'>;
+export type AptosClientConfig = Omit<AxiosRequestConfig, "data" | "cancelToken" | "method">;
 
 export function raiseForStatus<T>(
   expectedStatus: number,
@@ -168,7 +168,6 @@ export class AptosClient {
    * }
    * ```
    */
-  @MemoizeExpiring(2 * 60 * 1000) // cache result for 2 minutes
   async getAccountResources(
     accountAddress: MaybeHexString,
     query?: { version?: Types.LedgerVersion },
@@ -258,9 +257,9 @@ export class AptosClient {
     return {
       sender: senderAddress.hex(),
       sequence_number: account.sequence_number,
-      max_gas_amount: '1000',
-      gas_unit_price: '1',
-      gas_currency_code: 'XUS',
+      max_gas_amount: "1000",
+      gas_unit_price: "1",
+      gas_currency_code: "XUS",
       // Unix timestamp, in seconds + 10 seconds
       expiration_timestamp_secs: (Math.floor(Date.now() / 1000) + 10).toString(),
       payload,
@@ -297,7 +296,7 @@ export class AptosClient {
     const signatureHex = accountFrom.signHexString(message.substring(2));
 
     const transactionSignature: Types.TransactionSignature = {
-      type: 'ed25519_signature',
+      type: "ed25519_signature",
       public_key: accountFrom.pubKey().hex(),
       signature: signatureHex.hex(),
     };
@@ -322,7 +321,7 @@ export class AptosClient {
    * `event_handle_struct` and `field_name`, then returns events identified by the event key
    * @param address Hex-encoded 16 bytes Aptos account from which events are queried
    * @param eventHandleStruct String representation of an on-chain Move struct type.
-   * (e.g. `0x1::Coin::CoinStore<0x1::TestCoin::TestCoin>`)
+   * (e.g. `0x1::coin::CoinStore<0x1::test_coin::TestCoin>`)
    * @param fieldName The field name of the EventHandle in the struct
    * @param query Optional query object
    * @param query.start The start sequence number in the EVENT STREAM, defaulting to the latest event.
@@ -363,7 +362,7 @@ export class AptosClient {
     txnRequest: Types.UserTransactionRequest,
   ): Promise<Types.OnChainTransaction> {
     const transactionSignature: Types.TransactionSignature = {
-      type: 'ed25519_signature',
+      type: "ed25519_signature",
       public_key: accountFrom.pubKey().hex(),
       // use invalid signature for simulation
       signature: HexString.fromUint8Array(new Uint8Array(64)).hex(),
@@ -385,12 +384,12 @@ export class AptosClient {
     const httpClient = this.transactions.http;
 
     const response = await httpClient.request<Types.PendingTransaction, AptosError>({
-      path: '/transactions',
-      method: 'POST',
+      path: "/transactions",
+      method: "POST",
       body: signedTxn,
       // @ts-ignore
-      type: 'application/x.aptos.signed_transaction+bcs',
-      format: 'json',
+      type: "application/x.aptos.signed_transaction+bcs",
+      format: "json",
     });
 
     raiseForStatus(202, response, signedTxn);
@@ -407,12 +406,12 @@ export class AptosClient {
     const httpClient = this.transactions.http;
 
     const response = await httpClient.request<Types.OnChainTransaction[], AptosError>({
-      path: '/transactions/simulate',
-      method: 'POST',
+      path: "/transactions/simulate",
+      method: "POST",
       body: bcsBody,
       // @ts-ignore
-      type: 'application/x.aptos.signed_transaction+bcs',
-      format: 'json',
+      type: "application/x.aptos.signed_transaction+bcs",
+      format: "json",
     });
 
     raiseForStatus(200, response, bcsBody);
@@ -466,7 +465,7 @@ export class AptosClient {
       return true;
     }
     raiseForStatus(200, response, txnHash);
-    return response.data.type === 'pending_transaction';
+    return response.data.type === "pending_transaction";
   }
 
   /**
@@ -511,9 +510,9 @@ export class AptosClient {
    */
   async getLedgerInfo(params: RequestParams = {}): Promise<Types.LedgerInfo> {
     const result = await this.client.request<Types.LedgerInfo, AptosError>({
-      path: '/',
-      method: 'GET',
-      format: 'json',
+      path: "/",
+      method: "GET",
+      format: "json",
       ...params,
     });
     return result.data;
@@ -540,7 +539,6 @@ export class AptosClient {
    * @param params Request params
    * @returns Table item value rendered in JSON
    */
-  @MemoizeExpiring(5 * 60 * 1000) // cache result for 5 minutes
   async getTableItem(handle: string, data: Types.TableItemRequest, params?: RequestParams): Promise<any> {
     const tableItem = await this.tables.getTableItem(handle, data, params);
     return tableItem;

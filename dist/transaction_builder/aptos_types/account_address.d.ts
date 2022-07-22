@@ -1,5 +1,5 @@
-import { MaybeHexString } from '../../hex_string';
-import { Serializer, Deserializer, Bytes } from '../bcs';
+import { MaybeHexString } from "../../hex_string";
+import { Serializer, Deserializer, Bytes } from "../bcs";
 export declare class AccountAddress {
     static readonly LENGTH: number;
     readonly address: Bytes;

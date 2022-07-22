@@ -83,7 +83,7 @@ export declare class WalletClient {
     /**
      * fungible tokens (coins)
      */
-    initializeCoin(account: AptosAccount, coin_type_path: string, // coin_type_path: something like 0x${coinTypeAddress}::MoonCoin::MoonCoin
+    initializeCoin(account: AptosAccount, coin_type_path: string, // coin_type_path: something like 0x${coinTypeAddress}::moon_coin::MoonCoin
     name: string, symbol: string, scaling_factor: number): Promise<{
         success: any;
         vm_status: any;
@@ -96,14 +96,14 @@ export declare class WalletClient {
         txnHash: string;
     }>;
     /** Mints the coin */
-    mintCoin(account: AptosAccount, coin_type_path: string, // coin_type_path: something like 0x${coinTypeAddress}::MoonCoin::MoonCoin
+    mintCoin(account: AptosAccount, coin_type_path: string, // coin_type_path: something like 0x${coinTypeAddress}::moon_coin::MoonCoin
     dst_address: string, amount: number): Promise<{
         success: any;
         vm_status: any;
         txnHash: string;
     }>;
     /** Transfers the coins */
-    transferCoin(account: AptosAccount, coin_type_path: string, // coin_type_path: something like 0x${coinTypeAddress}::MoonCoin::MoonCoin
+    transferCoin(account: AptosAccount, coin_type_path: string, // coin_type_path: something like 0x${coinTypeAddress}::moon_coin::MoonCoin
     to_address: string, amount: number): Promise<{
         success: any;
         vm_status: any;

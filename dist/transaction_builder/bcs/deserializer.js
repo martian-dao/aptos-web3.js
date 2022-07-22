@@ -12,7 +12,7 @@ class Deserializer {
     }
     read(length) {
         if (this.offset + length > this.buffer.byteLength) {
-            throw new Error('Reached to the end of buffer');
+            throw new Error("Reached to the end of buffer");
         }
         const bytes = this.buffer.slice(this.offset, this.offset + length);
         this.offset += length;
@@ -62,7 +62,7 @@ class Deserializer {
     deserializeBool() {
         const bool = new Uint8Array(this.read(1))[0];
         if (bool !== 1 && bool !== 0) {
-            throw new Error('Invalid boolean value');
+            throw new Error("Invalid boolean value");
         }
         return bool === 1;
     }
@@ -144,7 +144,7 @@ class Deserializer {
             shift += 7;
         }
         if (value > consts_1.MAX_U32_NUMBER) {
-            throw new Error('Overflow while parsing uleb128-encoded uint32 value');
+            throw new Error("Overflow while parsing uleb128-encoded uint32 value");
         }
         return Number(value);
     }

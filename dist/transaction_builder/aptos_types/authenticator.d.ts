@@ -1,7 +1,7 @@
-import { Serializer, Deserializer, Seq } from '../bcs';
-import { AccountAddress } from './account_address';
-import { Ed25519PublicKey, Ed25519Signature } from './ed25519';
-import { MultiEd25519PublicKey, MultiEd25519Signature } from './multi_ed25519';
+import { Serializer, Deserializer, Seq } from "../bcs";
+import { AccountAddress } from "./account_address";
+import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
+import { MultiEd25519PublicKey, MultiEd25519Signature } from "./multi_ed25519";
 export declare abstract class TransactionAuthenticator {
     abstract serialize(serializer: Serializer): void;
     static deserialize(deserializer: Deserializer): TransactionAuthenticator;

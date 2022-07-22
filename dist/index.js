@@ -20,7 +20,6 @@ __exportStar(require("./hex_string"), exports);
 __exportStar(require("./aptos_client"), exports);
 __exportStar(require("./faucet_client"), exports);
 __exportStar(require("./token_client"), exports);
-__exportStar(require("./wallet_client"), exports);
 __exportStar(require("./types"), exports);
 __exportStar(require("./transaction_builder"), exports);
 //# sourceMappingURL=index.js.map

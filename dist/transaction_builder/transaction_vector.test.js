@@ -39,10 +39,10 @@ const aptos_types_1 = require("./aptos_types");
 const hex_string_1 = require("../hex_string");
 const builder_1 = require("./builder");
 // eslint-disable-next-line operator-linebreak
-const VECTOR_FILES_ROOT_DIR = process.env.VECTOR_FILES_ROOT_DIR || path_1.default.resolve(__dirname, '..', '..', '..', '..', '..', 'api', 'goldens');
-const SCRIPT_FUNCTION_VECTOR = path_1.default.join(VECTOR_FILES_ROOT_DIR, 'aptos_api__tests__transaction_vector_test__test_script_function_payload.json');
-const SCRIPT_VECTOR = path_1.default.join(VECTOR_FILES_ROOT_DIR, 'aptos_api__tests__transaction_vector_test__test_script_payload.json');
-const MODULE_VECTOR = path_1.default.join(VECTOR_FILES_ROOT_DIR, 'aptos_api__tests__transaction_vector_test__test_module_payload.json');
+const VECTOR_FILES_ROOT_DIR = process.env.VECTOR_FILES_ROOT_DIR || path_1.default.resolve(__dirname, "..", "..", "..", "..", "..", "api", "goldens");
+const SCRIPT_FUNCTION_VECTOR = path_1.default.join(VECTOR_FILES_ROOT_DIR, "aptos_api__tests__transaction_vector_test__test_script_function_payload.json");
+const SCRIPT_VECTOR = path_1.default.join(VECTOR_FILES_ROOT_DIR, "aptos_api__tests__transaction_vector_test__test_script_payload.json");
+const MODULE_VECTOR = path_1.default.join(VECTOR_FILES_ROOT_DIR, "aptos_api__tests__transaction_vector_test__test_module_payload.json");
 function parseTypeTag(typeTag) {
     if (typeTag.vector) {
         return new aptos_types_1.TypeTagVector(parseTypeTag(typeTag.vector));
@@ -56,72 +56,72 @@ function parseTypeTag(typeTag) {
         return new aptos_types_1.TypeTagStruct(structTag);
     }
     switch (typeTag) {
-        case 'bool':
+        case "bool":
             return new aptos_types_1.TypeTagBool();
-        case 'u8':
+        case "u8":
             return new aptos_types_1.TypeTagU8();
-        case 'u64':
+        case "u64":
             return new aptos_types_1.TypeTagU64();
-        case 'u128':
+        case "u128":
             return new aptos_types_1.TypeTagU128();
-        case 'address':
+        case "address":
             return new aptos_types_1.TypeTagAddress();
-        case 'signer':
+        case "signer":
             return new aptos_types_1.TypeTagSigner();
         default:
-            throw new Error('Unknown type tag');
+            throw new Error("Unknown type tag");
     }
 }
 function parseTransactionArgument(arg) {
     const argHasOwnProperty = (propertyName) => Object.prototype.hasOwnProperty.call(arg, propertyName);
-    if (argHasOwnProperty('U8')) {
+    if (argHasOwnProperty("U8")) {
         // arg.U8 is a number
         return new aptos_types_1.TransactionArgumentU8(arg.U8);
     }
-    if (argHasOwnProperty('U64')) {
+    if (argHasOwnProperty("U64")) {
         // arg.U64 is a string literal
         return new aptos_types_1.TransactionArgumentU64(BigInt(arg.U64));
     }
-    if (argHasOwnProperty('U128')) {
+    if (argHasOwnProperty("U128")) {
         // arg.U128 is a string literal
         return new aptos_types_1.TransactionArgumentU128(BigInt(arg.U128));
     }
-    if (argHasOwnProperty('Address')) {
+    if (argHasOwnProperty("Address")) {
         // arg.Address is a hex string
         return new aptos_types_1.TransactionArgumentAddress(aptos_types_1.AccountAddress.fromHex(arg.Address));
     }
-    if (argHasOwnProperty('U8Vector')) {
+    if (argHasOwnProperty("U8Vector")) {
         // arg.U8Vector is a hex string
         return new aptos_types_1.TransactionArgumentU8Vector(new hex_string_1.HexString(arg.U8Vector).toUint8Array());
     }
-    if (argHasOwnProperty('Bool')) {
+    if (argHasOwnProperty("Bool")) {
         return new aptos_types_1.TransactionArgumentBool(arg.Bool);
     }
-    throw new Error('Invalid Transaction Argument');
+    throw new Error("Invalid Transaction Argument");
 }
 function sign(rawTxn, privateKey) {
     const privateKeyBytes = new hex_string_1.HexString(privateKey).toUint8Array();
     const signingKey = Nacl.sign.keyPair.fromSeed(privateKeyBytes.slice(0, 32));
     const { publicKey } = signingKey;
     const txnBuilder = new builder_1.TransactionBuilderEd25519((signingMessage) => new aptos_types_1.Ed25519Signature(Nacl.sign(signingMessage, signingKey.secretKey).slice(0, 64)), publicKey);
-    return Buffer.from(txnBuilder.sign(rawTxn)).toString('hex');
+    return Buffer.from(txnBuilder.sign(rawTxn)).toString("hex");
 }
 function verify(raw_txn, payload, private_key, expected_output) {
     const rawTxn = new aptos_types_1.RawTransaction(aptos_types_1.AccountAddress.fromHex(raw_txn.sender), BigInt(raw_txn.sequence_number), payload, BigInt(raw_txn.max_gas_amount), BigInt(raw_txn.gas_unit_price), BigInt(raw_txn.expiration_timestamp_secs), new aptos_types_1.ChainId(raw_txn.chain_id));
     const signedTxn = sign(rawTxn, private_key);
     expect(signedTxn).toBe(expected_output);
 }
-describe('Transaction builder vector test', () => {
-    it('should pass on script function payload', () => {
-        const vector = JSON.parse(fs_1.default.readFileSync(SCRIPT_FUNCTION_VECTOR, 'utf8'));
+describe("Transaction builder vector test", () => {
+    it("should pass on script function payload", () => {
+        const vector = JSON.parse(fs_1.default.readFileSync(SCRIPT_FUNCTION_VECTOR, "utf8"));
         vector.forEach(({ raw_txn, signed_txn_bcs, private_key }) => {
             const payload = raw_txn.payload.ScriptFunction;
             const scriptFunctionPayload = new aptos_types_1.TransactionPayloadScriptFunction(aptos_types_1.ScriptFunction.natural(`${payload.module.address}::${payload.module.name}`, payload.function, payload.ty_args.map((tag) => parseTypeTag(tag)), payload.args.map((arg) => new hex_string_1.HexString(arg).toUint8Array())));
             verify(raw_txn, scriptFunctionPayload, private_key, signed_txn_bcs);
         });
     });
-    it('should pass on script payload', () => {
-        const vector = JSON.parse(fs_1.default.readFileSync(SCRIPT_VECTOR, 'utf8'));
+    it("should pass on script payload", () => {
+        const vector = JSON.parse(fs_1.default.readFileSync(SCRIPT_VECTOR, "utf8"));
         vector.forEach(({ raw_txn, signed_txn_bcs, private_key }) => {
             const payload = raw_txn.payload.Script;
             // payload.code is hex string
@@ -130,8 +130,8 @@ describe('Transaction builder vector test', () => {
             verify(raw_txn, scriptPayload, private_key, signed_txn_bcs);
         });
     });
-    it('should pass on module payload', () => {
-        const vector = JSON.parse(fs_1.default.readFileSync(MODULE_VECTOR, 'utf8'));
+    it("should pass on module payload", () => {
+        const vector = JSON.parse(fs_1.default.readFileSync(MODULE_VECTOR, "utf8"));
         vector.forEach(({ raw_txn, signed_txn_bcs, private_key }) => {
             const payload = raw_txn.payload.ModuleBundle.codes;
             // payload.code is hex string

@@ -1,19 +1,19 @@
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { Accounts } from './api/Accounts';
-import { Events } from './api/Events';
-import { Transactions } from './api/Transactions';
-import { HttpClient, RequestParams } from './api/http-client';
-import { MaybeHexString } from './hex_string';
-import { AptosAccount } from './aptos_account';
-import { Types } from './types';
-import { Tables } from './api/Tables';
-import { TxnBuilderTypes } from './transaction_builder';
+import { AxiosRequestConfig, AxiosResponse } from "axios";
+import { Accounts } from "./api/Accounts";
+import { Events } from "./api/Events";
+import { Transactions } from "./api/Transactions";
+import { HttpClient, RequestParams } from "./api/http-client";
+import { MaybeHexString } from "./hex_string";
+import { AptosAccount } from "./aptos_account";
+import { Types } from "./types";
+import { Tables } from "./api/Tables";
+import { TxnBuilderTypes } from "./transaction_builder";
 export declare class RequestError extends Error {
     response?: AxiosResponse<any, Types.AptosError>;
     requestBody?: string;
     constructor(message?: string, response?: AxiosResponse<any, Types.AptosError>, requestBody?: string);
 }
-export declare type AptosClientConfig = Omit<AxiosRequestConfig, 'data' | 'cancelToken' | 'method'>;
+export declare type AptosClientConfig = Omit<AxiosRequestConfig, "data" | "cancelToken" | "method">;
 export declare function raiseForStatus<T>(expectedStatus: number, response: AxiosResponse<T, Types.AptosError>, requestContent?: any): void;
 /**
  * Provides methods for retrieving data from Aptos node.
@@ -165,7 +165,7 @@ export declare class AptosClient {
      * `event_handle_struct` and `field_name`, then returns events identified by the event key
      * @param address Hex-encoded 16 bytes Aptos account from which events are queried
      * @param eventHandleStruct String representation of an on-chain Move struct type.
-     * (e.g. `0x1::Coin::CoinStore<0x1::TestCoin::TestCoin>`)
+     * (e.g. `0x1::coin::CoinStore<0x1::test_coin::TestCoin>`)
      * @param fieldName The field name of the EventHandle in the struct
      * @param query Optional query object
      * @param query.start The start sequence number in the EVENT STREAM, defaulting to the latest event.

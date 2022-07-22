@@ -28,8 +28,8 @@ const SHA3 = __importStar(require("js-sha3"));
 const buffer_1 = require("buffer/");
 const aptos_types_1 = require("./aptos_types");
 const bcs_1 = require("./bcs");
-const RAW_TRANSACTION_SALT = 'APTOS::RawTransaction';
-const RAW_TRANSACTION_WITH_DATA_SALT = 'APTOS::RawTransactionWithData';
+const RAW_TRANSACTION_SALT = "APTOS::RawTransaction";
+const RAW_TRANSACTION_WITH_DATA_SALT = "APTOS::RawTransactionWithData";
 class TransactionBuilder {
     constructor(signingFunction) {
         this.signingFunction = signingFunction;
@@ -44,7 +44,7 @@ class TransactionBuilder {
             hash.update(buffer_1.Buffer.from(RAW_TRANSACTION_WITH_DATA_SALT));
         }
         else {
-            throw new Error('Unknown transaction type.');
+            throw new Error("Unknown transaction type.");
         }
         const prefix = new Uint8Array(hash.arrayBuffer());
         return buffer_1.Buffer.from([...prefix, ...(0, bcs_1.bcsToBytes)(rawTxn)]);

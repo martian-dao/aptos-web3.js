@@ -1,8 +1,8 @@
-import { Deserializer, Serializer, Uint64, Bytes, Seq, Uint8, Uint128 } from '../bcs';
-import { AccountAddress } from './account_address';
-import { TransactionAuthenticator } from './authenticator';
-import { Identifier } from './identifier';
-import { TypeTag } from './type_tag';
+import { Deserializer, Serializer, Uint64, Bytes, Seq, Uint8, Uint128 } from "../bcs";
+import { AccountAddress } from "./account_address";
+import { TransactionAuthenticator } from "./authenticator";
+import { Identifier } from "./identifier";
+import { TypeTag } from "./type_tag";
 export declare class RawTransaction {
     readonly sender: AccountAddress;
     readonly sequence_number: Uint64;
@@ -83,7 +83,7 @@ export declare class ScriptFunction {
     constructor(module_name: ModuleId, function_name: Identifier, ty_args: Seq<TypeTag>, args: Seq<Bytes>);
     /**
      *
-     * @param module Fully qualified module name in format "AccountAddress::ModuleName" e.g. "0x1::Coin"
+     * @param module Fully qualified module name in format "AccountAddress::ModuleName" e.g. "0x1::coin"
      * @param func Function name
      * @param ty_args Type arguments that move function requires.
      *

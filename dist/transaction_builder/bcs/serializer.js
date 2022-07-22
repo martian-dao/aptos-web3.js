@@ -75,8 +75,8 @@ class Serializer {
      * BCS layout for "boolean": One byte. "0x01" for True and "0x00" for False.
      */
     serializeBool(value) {
-        if (typeof value !== 'boolean') {
-            throw new Error('Value needs to be a boolean');
+        if (typeof value !== "boolean") {
+            throw new Error("Value needs to be a boolean");
         }
         const byteValue = value ? 1 : 0;
         this.serialize(new Uint8Array([byteValue]));
@@ -201,7 +201,7 @@ function checkNumberRange(minValue, maxValue, message) {
         descriptor.value = function deco(value) {
             const valueBigInt = BigInt(value.toString());
             if (valueBigInt > BigInt(maxValue.toString()) || valueBigInt < BigInt(minValue.toString())) {
-                throw new Error(message || 'Value is out of range');
+                throw new Error(message || "Value is out of range");
             }
             childFunction.apply(this, [value]);
         };

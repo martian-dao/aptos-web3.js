@@ -1,5 +1,5 @@
-import { Buffer } from 'buffer/';
-import { Types } from './types';
+import { Buffer } from "buffer/";
+import { Types } from "./types";
 export declare type MaybeHexString = HexString | string | Types.HexEncodedBytes;
 /**
  * A util class for working with hex strings.

@@ -1,8 +1,8 @@
-import * as Nacl from 'tweetnacl';
-import * as SHA3 from 'js-sha3';
-import { Buffer } from 'buffer/'; // the trailing slash is important!
-import { HexString, MaybeHexString } from './hex_string';
-import { Types } from './types';
+import * as Nacl from "tweetnacl";
+import * as SHA3 from "js-sha3";
+import { Buffer } from "buffer/"; // the trailing slash is important!
+import { HexString, MaybeHexString } from "./hex_string";
+import { Types } from "./types";
 
 export interface AptosAccountObject {
   address?: string;
@@ -67,7 +67,7 @@ export class AptosAccount {
     if (!this.authKeyCached) {
       const hash = SHA3.sha3_256.create();
       hash.update(Buffer.from(this.signingKey.publicKey));
-      hash.update('\x00');
+      hash.update("\x00");
       this.authKeyCached = new HexString(hash.hex());
     }
     return this.authKeyCached;
@@ -79,7 +79,7 @@ export class AptosAccount {
    * @returns The public key for the associated account
    */
   pubKey(): HexString {
-    return HexString.ensure(Buffer.from(this.signingKey.publicKey).toString('hex'));
+    return HexString.ensure(Buffer.from(this.signingKey.publicKey).toString("hex"));
   }
 
   /**
@@ -89,12 +89,7 @@ export class AptosAccount {
    */
   signBuffer(buffer: Buffer): HexString {
     const signature = Nacl.sign(buffer, this.signingKey.secretKey);
-    return HexString.ensure(Buffer.from(signature).toString('hex').slice(0, 128));
-  }
-
-  signBufferB64(buffer: Buffer) {
-    const signature = Nacl.sign.detached(buffer, this.signingKey.secretKey);
-    return Buffer.from(signature).toString("base64");
+    return HexString.ensure(Buffer.from(signature).toString("hex").slice(0, 128));
   }
 
   /**
@@ -105,11 +100,6 @@ export class AptosAccount {
   signHexString(hexString: MaybeHexString): HexString {
     const toSign = HexString.ensure(hexString).toBuffer();
     return this.signBuffer(toSign);
-  }
-  
-  signHexStringB64(hexString: string) {
-    const toSign = Buffer.from(hexString, "utf8");
-    return this.signBufferB64(toSign);
   }
 
   /**

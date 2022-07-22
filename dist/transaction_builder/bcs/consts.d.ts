@@ -1,4 +1,4 @@
-import { Uint128, Uint16, Uint32, Uint64, Uint8 } from './types';
+import { Uint128, Uint16, Uint32, Uint64, Uint8 } from "./types";
 export declare const MAX_U8_NUMBER: Uint8;
 export declare const MAX_U16_NUMBER: Uint16;
 export declare const MAX_U32_NUMBER: Uint32;

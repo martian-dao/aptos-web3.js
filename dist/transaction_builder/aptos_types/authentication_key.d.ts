@@ -1,6 +1,6 @@
-import { HexString } from '../../hex_string';
-import { Bytes } from '../bcs';
-import { MultiEd25519PublicKey } from './multi_ed25519';
+import { HexString } from "../../hex_string";
+import { Bytes } from "../bcs";
+import { MultiEd25519PublicKey } from "./multi_ed25519";
 /**
  * Each account stores an authentication key. Authentication key enables account owners to rotate
  * their private key(s) associated with the account without changing the address that hosts their account.

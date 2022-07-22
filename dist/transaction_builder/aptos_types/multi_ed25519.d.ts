@@ -1,5 +1,5 @@
-import { Bytes, Deserializer, Seq, Serializer, Uint8 } from '../bcs';
-import { Ed25519PublicKey, Ed25519Signature } from './ed25519';
+import { Bytes, Deserializer, Seq, Serializer, Uint8 } from "../bcs";
+import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 export declare class MultiEd25519PublicKey {
     readonly public_keys: Seq<Ed25519PublicKey>;
     readonly threshold: Uint8;

@@ -5,7 +5,7 @@ const hex_string_1 = require("../../hex_string");
 class AccountAddress {
     constructor(address) {
         if (address.length !== AccountAddress.LENGTH) {
-            throw new Error('Expected address of length 32');
+            throw new Error("Expected address of length 32");
         }
         this.address = address;
     }

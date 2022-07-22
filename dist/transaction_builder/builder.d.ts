@@ -1,5 +1,5 @@
-import { Ed25519Signature, MultiEd25519PublicKey, MultiEd25519Signature, RawTransaction, SigningMessage, MultiAgentRawTransaction } from './aptos_types';
-import { Bytes } from './bcs';
+import { Ed25519Signature, MultiEd25519PublicKey, MultiEd25519Signature, RawTransaction, SigningMessage, MultiAgentRawTransaction } from "./aptos_types";
+import { Bytes } from "./bcs";
 declare type AnyRawTransaction = RawTransaction | MultiAgentRawTransaction;
 /**
  * Function that takes in a Signing Message (serialized raw transaction)

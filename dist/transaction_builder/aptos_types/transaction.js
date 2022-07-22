@@ -122,7 +122,7 @@ class ScriptFunction {
     }
     /**
      *
-     * @param module Fully qualified module name in format "AccountAddress::ModuleName" e.g. "0x1::Coin"
+     * @param module Fully qualified module name in format "AccountAddress::ModuleName" e.g. "0x1::coin"
      * @param func Function name
      * @param ty_args Type arguments that move function requires.
      *
@@ -225,9 +225,9 @@ class ModuleId {
      * @returns
      */
     static fromStr(moduleId) {
-        const parts = moduleId.split('::');
+        const parts = moduleId.split("::");
         if (parts.length !== 2) {
-            throw new Error('Invalid module id.');
+            throw new Error("Invalid module id.");
         }
         return new ModuleId(account_address_1.AccountAddress.fromHex(new hex_string_1.HexString(parts[0])), new identifier_1.Identifier(parts[1]));
     }
@@ -244,19 +244,19 @@ class ModuleId {
 exports.ModuleId = ModuleId;
 class ChangeSet {
     serialize(serializer) {
-        throw new Error('Not implemented.');
+        throw new Error("Not implemented.");
     }
     static deserialize(deserializer) {
-        throw new Error('Not implemented.');
+        throw new Error("Not implemented.");
     }
 }
 exports.ChangeSet = ChangeSet;
 class WriteSet {
     serialize(serializer) {
-        throw new Error('Not implmented.');
+        throw new Error("Not implmented.");
     }
     static deserialize(deserializer) {
-        throw new Error('Not implmented.');
+        throw new Error("Not implmented.");
     }
 }
 exports.WriteSet = WriteSet;
@@ -338,10 +338,10 @@ class TransactionPayload {
 exports.TransactionPayload = TransactionPayload;
 class TransactionPayloadWriteSet extends TransactionPayload {
     serialize(serializer) {
-        throw new Error('Not implemented');
+        throw new Error("Not implemented");
     }
     static load(deserializer) {
-        throw new Error('Not implemented');
+        throw new Error("Not implemented");
     }
 }
 exports.TransactionPayloadWriteSet = TransactionPayloadWriteSet;

@@ -71,7 +71,7 @@ class AptosAccount {
         if (!this.authKeyCached) {
             const hash = SHA3.sha3_256.create();
             hash.update(buffer_1.Buffer.from(this.signingKey.publicKey));
-            hash.update('\x00');
+            hash.update("\x00");
             this.authKeyCached = new hex_string_1.HexString(hash.hex());
         }
         return this.authKeyCached;
@@ -82,7 +82,7 @@ class AptosAccount {
      * @returns The public key for the associated account
      */
     pubKey() {
-        return hex_string_1.HexString.ensure(buffer_1.Buffer.from(this.signingKey.publicKey).toString('hex'));
+        return hex_string_1.HexString.ensure(buffer_1.Buffer.from(this.signingKey.publicKey).toString("hex"));
     }
     /**
      * Signs specified `buffer` with account's private key
@@ -91,7 +91,7 @@ class AptosAccount {
      */
     signBuffer(buffer) {
         const signature = Nacl.sign(buffer, this.signingKey.secretKey);
-        return hex_string_1.HexString.ensure(buffer_1.Buffer.from(signature).toString('hex').slice(0, 128));
+        return hex_string_1.HexString.ensure(buffer_1.Buffer.from(signature).toString("hex").slice(0, 128));
     }
     /**
      * Signs specified `hexString` with account's private key

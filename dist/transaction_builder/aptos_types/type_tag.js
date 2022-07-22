@@ -126,17 +126,17 @@ class StructTag {
     /**
      * Converts a string literal to a StructTag
      * @param structTag String literal in format "AcountAddress::ModuleName::ResourceName",
-     *   e.g. "0x01::TestCoin::TestCoin"
+     *   e.g. "0x01::test_coin::TestCoin"
      * @returns
      */
     static fromString(structTag) {
         // Type args are not supported in string literal
-        if (structTag.includes('<')) {
-            throw new Error('Not implemented');
+        if (structTag.includes("<")) {
+            throw new Error("Not implemented");
         }
-        const parts = structTag.split('::');
+        const parts = structTag.split("::");
         if (parts.length !== 3) {
-            throw new Error('Invalid struct tag string literal.');
+            throw new Error("Invalid struct tag string literal.");
         }
         return new StructTag(account_address_1.AccountAddress.fromHex(parts[0]), new identifier_1.Identifier(parts[1]), new identifier_1.Identifier(parts[2]), []);
     }

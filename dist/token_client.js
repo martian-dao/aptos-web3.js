@@ -19,9 +19,9 @@ class TokenClient {
      * @param payload Transaction payload. It depends on transaction type you want to send
      * @returns Promise that resolves to transaction hash
      */
-    async submitTransactionHelper(account, payload, max_gas_amount = "4000") {
+    async submitTransactionHelper(account, payload) {
         const txnRequest = await this.aptosClient.generateTransaction(account.address(), payload, {
-            max_gas_amount: max_gas_amount,
+            max_gas_amount: "4000",
         });
         const signedTxn = await this.aptosClient.signTransaction(account, txnRequest);
         const res = await this.aptosClient.submitTransaction(signedTxn);
@@ -38,13 +38,13 @@ class TokenClient {
      */
     async createCollection(account, name, description, uri) {
         const payload = {
-            type: 'script_function_payload',
-            function: '0x1::Token::create_unlimited_collection_script',
+            type: "script_function_payload",
+            function: "0x1::token::create_unlimited_collection_script",
             type_arguments: [],
             arguments: [
-                Buffer.from(name).toString('hex'),
-                Buffer.from(description).toString('hex'),
-                Buffer.from(uri).toString('hex'),
+                Buffer.from(name).toString("hex"),
+                Buffer.from(description).toString("hex"),
+                Buffer.from(uri).toString("hex"),
             ],
         };
         const transactionHash = await this.submitTransactionHelper(account, payload);
@@ -63,16 +63,16 @@ class TokenClient {
      */
     async createToken(account, collectionName, name, description, supply, uri, royalty_points_per_million) {
         const payload = {
-            type: 'script_function_payload',
-            function: '0x1::Token::create_unlimited_token_script',
+            type: "script_function_payload",
+            function: "0x1::token::create_unlimited_token_script",
             type_arguments: [],
             arguments: [
-                Buffer.from(collectionName).toString('hex'),
-                Buffer.from(name).toString('hex'),
-                Buffer.from(description).toString('hex'),
+                Buffer.from(collectionName).toString("hex"),
+                Buffer.from(name).toString("hex"),
+                Buffer.from(description).toString("hex"),
                 true,
                 supply.toString(),
-                Buffer.from(uri).toString('hex'),
+                Buffer.from(uri).toString("hex"),
                 royalty_points_per_million.toString(),
             ],
         };
@@ -91,14 +91,14 @@ class TokenClient {
      */
     async offerToken(account, receiver, creator, collectionName, name, amount) {
         const payload = {
-            type: 'script_function_payload',
-            function: '0x1::TokenTransfers::offer_script',
+            type: "script_function_payload",
+            function: "0x1::token_transfers::offer_script",
             type_arguments: [],
             arguments: [
                 receiver,
                 creator,
-                Buffer.from(collectionName).toString('hex'),
-                Buffer.from(name).toString('hex'),
+                Buffer.from(collectionName).toString("hex"),
+                Buffer.from(name).toString("hex"),
                 amount.toString(),
             ],
         };
@@ -116,10 +116,10 @@ class TokenClient {
      */
     async claimToken(account, sender, creator, collectionName, name) {
         const payload = {
-            type: 'script_function_payload',
-            function: '0x1::TokenTransfers::claim_script',
+            type: "script_function_payload",
+            function: "0x1::token_transfers::claim_script",
             type_arguments: [],
-            arguments: [sender, creator, Buffer.from(collectionName).toString('hex'), Buffer.from(name).toString('hex')],
+            arguments: [sender, creator, Buffer.from(collectionName).toString("hex"), Buffer.from(name).toString("hex")],
         };
         const transactionHash = await this.submitTransactionHelper(account, payload);
         return transactionHash;
@@ -135,10 +135,10 @@ class TokenClient {
      */
     async cancelTokenOffer(account, receiver, creator, collectionName, name) {
         const payload = {
-            type: 'script_function_payload',
-            function: '0x1::TokenTransfers::cancel_offer_script',
+            type: "script_function_payload",
+            function: "0x1::token_transfers::cancel_offer_script",
             type_arguments: [],
-            arguments: [receiver, creator, Buffer.from(collectionName).toString('hex'), Buffer.from(name).toString('hex')],
+            arguments: [receiver, creator, Buffer.from(collectionName).toString("hex"), Buffer.from(name).toString("hex")],
         };
         const transactionHash = await this.submitTransactionHelper(account, payload);
         return transactionHash;
@@ -165,11 +165,11 @@ class TokenClient {
      */
     async getCollectionData(creator, collectionName) {
         const resources = await this.aptosClient.getAccountResources(creator);
-        const accountResource = resources.find((r) => r.type === '0x1::Token::Collections');
+        const accountResource = resources.find((r) => r.type === "0x1::token::Collections");
         const { handle } = accountResource.data.collections;
         const getCollectionTableItemRequest = {
-            key_type: '0x1::ASCII::String',
-            value_type: '0x1::Token::Collection',
+            key_type: "0x1::string::String",
+            value_type: "0x1::token::Collection",
             key: collectionName,
         };
         // eslint-disable-next-line no-unused-vars
@@ -200,7 +200,7 @@ class TokenClient {
      * ```
      */
     async getTokenData(creator, collectionName, tokenName) {
-        const collection = await this.aptosClient.getAccountResource(creator, '0x1::Token::Collections');
+        const collection = await this.aptosClient.getAccountResource(creator, "0x1::token::Collections");
         const { handle } = collection.data.token_data;
         const tokenId = {
             creator,
@@ -208,8 +208,8 @@ class TokenClient {
             name: tokenName,
         };
         const getTokenTableItemRequest = {
-            key_type: '0x1::Token::TokenId',
-            value_type: '0x1::Token::TokenData',
+            key_type: "0x1::token::TokenId",
+            value_type: "0x1::token::TokenData",
             key: tokenId,
         };
         const tableItem = await this.aptosClient.getTableItem(handle, getTokenTableItemRequest);
@@ -248,11 +248,11 @@ class TokenClient {
      * ```
      */
     async getTokenBalanceForAccount(account, tokenId) {
-        const tokenStore = await this.aptosClient.getAccountResource(account, '0x1::Token::TokenStore');
+        const tokenStore = await this.aptosClient.getAccountResource(account, "0x1::token::TokenStore");
         const { handle } = tokenStore.data.tokens;
         const getTokenTableItemRequest = {
-            key_type: '0x1::Token::TokenId',
-            value_type: '0x1::Token::Token',
+            key_type: "0x1::token::TokenId",
+            value_type: "0x1::token::Token",
             key: tokenId,
         };
         const tableItem = await this.aptosClient.getTableItem(handle, getTokenTableItemRequest);

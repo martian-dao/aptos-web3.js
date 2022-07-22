@@ -106,7 +106,7 @@ class MultiEd25519Signature {
                 throw new Error(`Invalid bit value ${bit}.`);
             }
             if (dupCheckSet.has(bit)) {
-                throw new Error('Duplicated bits detected.');
+                throw new Error("Duplicated bits detected.");
             }
             dupCheckSet.add(bit);
             const byteOffset = Math.floor(bit / 8);

@@ -18,7 +18,7 @@ class HexString {
      * ```
      */
     constructor(hexString) {
-        if (hexString.startsWith('0x')) {
+        if (hexString.startsWith("0x")) {
             this.hexString = hexString;
         }
         else {
@@ -31,7 +31,7 @@ class HexString {
      * @returns New HexString
      */
     static fromBuffer(buffer) {
-        return new HexString(buffer.toString('hex'));
+        return new HexString(buffer.toString("hex"));
     }
     /**
      * Creates new hex string from Uint8Array
@@ -54,7 +54,7 @@ class HexString {
      * ```
      */
     static ensure(hexString) {
-        if (typeof hexString === 'string') {
+        if (typeof hexString === "string") {
             return new HexString(hexString);
         }
         return hexString;
@@ -94,7 +94,7 @@ class HexString {
      * ```
      */
     toShortString() {
-        const trimmed = this.hexString.replace(/^0x0*/, '');
+        const trimmed = this.hexString.replace(/^0x0*/, "");
         return `0x${trimmed}`;
     }
     /**
@@ -102,7 +102,7 @@ class HexString {
      * @returns Buffer from inner hexString without prefix
      */
     toBuffer() {
-        return buffer_1.Buffer.from(this.noPrefix(), 'hex');
+        return buffer_1.Buffer.from(this.noPrefix(), "hex");
     }
     /**
      * Converts hex string to a Uint8Array

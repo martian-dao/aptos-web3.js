@@ -1,6 +1,6 @@
-import { AptosClient, AptosClientConfig } from './aptos_client';
-import { Types } from './types';
-import { MaybeHexString } from './hex_string';
+import { AptosClient, AptosClientConfig } from "./aptos_client";
+import { Types } from "./types";
+import { MaybeHexString } from "./hex_string";
 /**
  * Class for requsting tokens from faucet
  */

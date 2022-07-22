@@ -1,4 +1,4 @@
-import { Deserializer, Serializer } from '../bcs';
+import { Deserializer, Serializer } from "../bcs";
 export declare class Identifier {
     value: string;
     constructor(value: string);

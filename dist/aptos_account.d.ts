@@ -1,7 +1,7 @@
-import * as Nacl from 'tweetnacl';
-import { Buffer } from 'buffer/';
-import { HexString, MaybeHexString } from './hex_string';
-import { Types } from './types';
+import * as Nacl from "tweetnacl";
+import { Buffer } from "buffer/";
+import { HexString, MaybeHexString } from "./hex_string";
+import { Types } from "./types";
 export interface AptosAccountObject {
     address?: string;
     publicKeyHex?: Types.HexEncodedBytes;

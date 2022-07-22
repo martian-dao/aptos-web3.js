@@ -1,6 +1,6 @@
-import { Deserializer, Seq, Serializer } from '../bcs';
-import { AccountAddress } from './account_address';
-import { Identifier } from './identifier';
+import { Deserializer, Seq, Serializer } from "../bcs";
+import { AccountAddress } from "./account_address";
+import { Identifier } from "./identifier";
 export declare abstract class TypeTag {
     abstract serialize(serializer: Serializer): void;
     static deserialize(deserializer: Deserializer): TypeTag;
@@ -50,7 +50,7 @@ export declare class StructTag {
     /**
      * Converts a string literal to a StructTag
      * @param structTag String literal in format "AcountAddress::ModuleName::ResourceName",
-     *   e.g. "0x01::TestCoin::TestCoin"
+     *   e.g. "0x01::test_coin::TestCoin"
      * @returns
      */
     static fromString(structTag: string): StructTag;

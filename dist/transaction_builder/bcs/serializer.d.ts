@@ -1,4 +1,4 @@
-import { AnyNumber, Bytes, Uint16, Uint32, Uint8 } from './types';
+import { AnyNumber, Bytes, Uint16, Uint32, Uint8 } from "./types";
 export declare class Serializer {
     private buffer;
     private offset;

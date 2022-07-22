@@ -1,7 +1,7 @@
-import { AptosAccount } from './aptos_account';
-import { AptosClient } from './aptos_client';
-import { Types } from './types';
-import { MaybeHexString } from './hex_string';
+import { AptosAccount } from "./aptos_account";
+import { AptosClient } from "./aptos_client";
+import { Types } from "./types";
+import { MaybeHexString } from "./hex_string";
 /**
  * Class for creating, minting and managing minting NFT collections and tokens
  */
@@ -18,7 +18,7 @@ export declare class TokenClient {
      * @param payload Transaction payload. It depends on transaction type you want to send
      * @returns Promise that resolves to transaction hash
      */
-    submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload, max_gas_amount?: string): Promise<string>;
+    submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload): Promise<string>;
     /**
      * Creates a new NFT collection within the specified account
      * @param account AptosAccount where collection will be created

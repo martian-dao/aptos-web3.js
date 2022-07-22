@@ -36,7 +36,7 @@ const hex_string_1 = require("../../hex_string");
 class AuthenticationKey {
     constructor(bytes) {
         if (bytes.length !== AuthenticationKey.LENGTH) {
-            throw new Error('Expected a byte array of length 32');
+            throw new Error("Expected a byte array of length 32");
         }
         this.bytes = bytes;
     }

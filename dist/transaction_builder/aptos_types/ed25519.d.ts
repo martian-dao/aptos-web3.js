@@ -1,4 +1,4 @@
-import { Bytes, Deserializer, Serializer } from '../bcs';
+import { Bytes, Deserializer, Serializer } from "../bcs";
 export declare class Ed25519PublicKey {
     static readonly LENGTH: number;
     readonly value: Bytes;
