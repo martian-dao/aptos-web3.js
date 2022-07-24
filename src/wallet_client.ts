@@ -372,14 +372,18 @@ export class WalletClient {
   ) {
     var hashs = [];
     for (var txnRequest of txnRequests) {
-      txnRequest.sequence_number = (await this.aptosClient.getAccount(account.address().toString())).sequence_number;
-      const signedTxn = await this.aptosClient.signTransaction(
-        account,
-        txnRequest
-      );
-      const res = await this.aptosClient.submitTransaction(signedTxn);
-      await this.aptosClient.waitForTransaction(res.hash);
-      hashs.push(res.hash);
+      try{
+        txnRequest.sequence_number = (await this.aptosClient.getAccount(account.address().toString())).sequence_number;
+        const signedTxn = await this.aptosClient.signTransaction(
+          account,
+          txnRequest
+        );
+        const res = await this.aptosClient.submitTransaction(signedTxn);
+        await this.aptosClient.waitForTransaction(res.hash);
+        hashs.push(res.hash);
+      }catch(err){
+        hashs.push(err.message)
+      }
     }
     return Promise.resolve(hashs);
   }
