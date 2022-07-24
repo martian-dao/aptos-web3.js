@@ -1,1 +1,0 @@
-{"version":3,"file":"identifier.d.ts","sourceRoot":"","sources":["../../../src/transaction_builder/aptos_types/identifier.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,YAAY,EAAE,UAAU,EAAE,MAAM,QAAQ,CAAC;AAElD,qBAAa,UAAU;IACF,KAAK,EAAE,MAAM;gBAAb,KAAK,EAAE,MAAM;IAEzB,SAAS,CAAC,UAAU,EAAE,UAAU,GAAG,IAAI;IAI9C,MAAM,CAAC,WAAW,CAAC,YAAY,EAAE,YAAY,GAAG,UAAU;CAI3D"}

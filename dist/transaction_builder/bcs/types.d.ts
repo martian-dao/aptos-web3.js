@@ -1,9 +1,0 @@
-export declare type Seq<T> = T[];
-export declare type Uint8 = number;
-export declare type Uint16 = number;
-export declare type Uint32 = number;
-export declare type Uint64 = bigint;
-export declare type Uint128 = bigint;
-export declare type AnyNumber = bigint | number;
-export declare type Bytes = Uint8Array;
-//# sourceMappingURL=types.d.ts.map

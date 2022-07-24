@@ -1,3 +1,5 @@
 node_modules
 /logs
-
+coverage
+dist
+package-lock.json
