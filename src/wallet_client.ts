@@ -17,7 +17,7 @@ const { HDKey } = require("@scure/bip32");
 import fetch from "cross-fetch";
 import assert from "assert";
 
-const COIN_TYPE = 123420;
+const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 5;
 const ADDRESS_GAP = 10;
 
@@ -363,6 +363,29 @@ export class WalletClient {
     const res = await this.aptosClient.submitTransaction(signedTxn);
     await this.aptosClient.waitForTransaction(res.hash);
     return Promise.resolve(res.hash);
+  }
+
+  // sign and submit multiple transactions
+  async signAndSubmitTransactions(
+    account: AptosAccount,
+    txnRequests: Types.UserTransactionRequest[]
+  ) {
+    var hashs = [];
+    for (var txnRequest of txnRequests) {
+      try{
+        txnRequest.sequence_number = (await this.aptosClient.getAccount(account.address().toString())).sequence_number;
+        const signedTxn = await this.aptosClient.signTransaction(
+          account,
+          txnRequest
+        );
+        const res = await this.aptosClient.submitTransaction(signedTxn);
+        await this.aptosClient.waitForTransaction(res.hash);
+        hashs.push(res.hash);
+      }catch(err){
+        hashs.push(err.message)
+      }
+    }
+    return Promise.resolve(hashs);
   }
 
   async signTransaction(
