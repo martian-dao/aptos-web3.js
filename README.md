@@ -9,7 +9,7 @@ web3.js library for Aptos
 # Import
 
 ```
-npm i @martiandao/aptos-web3.js
+npm i @martiandao/aptos-web3-bip44.js.js
 ```
 
 # Supported functions
