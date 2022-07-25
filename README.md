@@ -2,7 +2,7 @@
 
 # Introduction
 
-web3.js library for Aptos
+web3.js library for Aptos.
 
 @martiandao/aptos-web3.js is an npm module which allows developers to communicate with the Aptos core code. This module is built on top of [Typescript SDK of Aptos](https://github.com/aptos-labs/aptos-core/tree/main/ecosystem/typescript/sdk).
 
