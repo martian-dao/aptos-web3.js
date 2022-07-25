@@ -9,8 +9,12 @@
   "scripts": {
     "build": "rm -rf dist && tsc -p .",
     "publish_module": "npm run build && npm publish --public",
-    "lint": "eslint \"**/*.ts\"",
-    "test": "jest"
+    "lint": "eslint \"src/wallet_client.test.ts\" \"src/wallet_client.ts\"",
+    "test": "jest -- src/wallet_client.test.ts",
+    "_fmt": "prettier 'src/wallet_client.test.ts' 'src/wallet_client.ts' '.eslintrc.js'",
+    "fmt": "yarn _fmt --write",
+    "fmt:check": "yarn _fmt --check",
+    "cov:clean": "rm -rf coverage"
   },
   "repository": {
     "type": "git",
@@ -32,13 +36,16 @@
     "@typescript-eslint/eslint-plugin": "^5.25.0",
     "@typescript-eslint/parser": "^5.25.0",
     "cross-fetch": "^3.1.5",
-    "eslint": "^8.10.0",
+    "eslint": "^8.20.0",
     "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.25.4",
     "isomorphic-fetch": "^3.0.0",
     "jest": "^27.5.1",
+    "lint-staged": "^13.0.3",
     "node-fetch": "^2.6.7",
-    "prettier": "^2.6.2",
+    "prettier": "^2.7.1",
     "ts-jest": "^27.1.5",
     "ts-loader": "^9.3.0",
     "ts-node": "^10.8.0",
