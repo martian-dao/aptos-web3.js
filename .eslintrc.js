@@ -5,7 +5,6 @@ module.exports = {
       node: true,
     },
     ignorePatterns: ["*.js", "examples/*"],
-    extends: ["airbnb-base", "airbnb-typescript/base", "prettier"],
     parser: "@typescript-eslint/parser",
     parserOptions: {
       tsconfigRootDir: __dirname,
