@@ -4,7 +4,7 @@ module.exports = {
     testEnvironment: "node",
     coveragePathIgnorePatterns: ["api/*"],
     testPathIgnorePatterns: ["dist/*"],
-    collectCoverage: true,
+    collectCoverage: false,
     setupFilesAfterEnv: ['./jest.setup.js'],
     coverageThreshold: {
       global: {

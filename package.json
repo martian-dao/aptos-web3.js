@@ -45,6 +45,7 @@
     "typescript": "^4.6.4"
   },
   "dependencies": {
+    "@microsoft/eslint-formatter-sarif": "^2.1.7",
     "@scure/bip32": "^1.0.1",
     "@scure/bip39": "^1.0.0",
     "axios": "^0.26.1",
