@@ -25,6 +25,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.13.x
+          cache: npm
+
       - name: Install ESLint
         run: |
           npm install eslint@8.10.0
@@ -62,4 +68,4 @@ jobs:
         run: npm ci
         
       - name: Jest
-        run: npm test
+        run: npm test -- src/wallet_client.test.ts
