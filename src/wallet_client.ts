@@ -47,7 +47,16 @@ export class WalletClient {
     this.tokenClient = new TokenClient(this.aptosClient);
   }
 
-  // Get all the accounts of a user from their mnemonic
+  /**
+   * Each mnemonic phrase corresponds to a single wallet
+   * Wallet can contain multiple accounts
+   * An account corresponds to a key pair + address
+   *
+   * Get all the accounts of a user from their mnemonic phrase
+   *
+   * @param code The mnemonic phrase (12 word)
+   * @returns Wallet object containing all accounts of a user
+   */
   async importWallet(code: string): Promise<Wallet> {
     let flag = false;
     let address = "";
@@ -106,12 +115,24 @@ export class WalletClient {
     return { code, accounts: accountMetaData };
   }
 
+  /**
+   * Creates a new wallet which contains a single account,
+   * which is registered on Aptos
+   *
+   * @returns A wallet object
+   */
   async createWallet(): Promise<Wallet> {
     const code = bip39.generateMnemonic(english.wordlist); // mnemonic
     const accountMetadata = await this.createNewAccount(code);
     return { code, accounts: [accountMetadata] };
   }
 
+  /**
+   * Creates a new account in the provided wallet
+   *
+   * @param code mnemonic phrase of the wallet
+   * @returns
+   */
   async createNewAccount(code: string): Promise<AccountMetaData> {
     const seed: Uint8Array = bip39.mnemonicToSeedSync(code.toString());
     const node = HDKey.fromMasterSeed(Buffer.from(seed));
@@ -140,11 +161,24 @@ export class WalletClient {
     throw new Error("Max no. of accounts reached");
   }
 
+  /**
+   * returns an AptosAccount object given a private key and
+   * address of the account
+   *
+   * @param privateKey Private key of an account as a Buffer
+   * @param address address of a user
+   * @returns AptosAccount object
+   */
   static getAccountFromPrivateKey(privateKey: Buffer, address?: string) {
     return new AptosAccount(privateKey, address);
   }
 
-  // gives the account at position m/44'/COIN_TYPE'/0'/0/0
+  /**
+   * returns an AptosAccount at position m/44'/COIN_TYPE'/0'/0/0
+   *
+   * @param code mnemonic phrase of the wallet
+   * @returns AptosAccount object
+   */
   static getAccountFromMnemonic(code: string) {
     const seed: Uint8Array = bip39.mnemonicToSeedSync(code.toString());
     const node = HDKey.fromMasterSeed(Buffer.from(seed));
@@ -152,6 +186,14 @@ export class WalletClient {
     return new AptosAccount(exKey.privateKey);
   }
 
+  /**
+   * returns an AptosAccount object for the desired account
+   * using the metadata of the account
+   *
+   * @param code mnemonic phrase of the wallet
+   * @param metaData metadata of the account to be fetched
+   * @returns
+   */
   static getAccountFromMetaData(code: string, metaData: AccountMetaData) {
     const seed: Uint8Array = bip39.mnemonicToSeedSync(code.toString());
     const node = HDKey.fromMasterSeed(Buffer.from(seed));
@@ -159,12 +201,25 @@ export class WalletClient {
     return new AptosAccount(exKey.privateKey, metaData.address);
   }
 
+  /**
+   * airdrops test coins in the given account
+   *
+   * @param address address of the receiver's account
+   * @param amount amount to be airdropped
+   * @returns list of transaction hashs
+   */
   async airdrop(address: string, amount: number) {
     return Promise.resolve(
       await this.faucetClient.fundAccount(address, amount)
     );
   }
 
+  /**
+   * returns the balance of the said account
+   *
+   * @param address address of the desired account
+   * @returns balance of the account
+   */
   async getBalance(address: string | HexString) {
     let balance = 0;
     const resources: any = await this.aptosClient.getAccountResources(address);
@@ -176,6 +231,12 @@ export class WalletClient {
     return Promise.resolve(balance);
   }
 
+  /**
+   * returns the list of on-chain transactions sent by the said account
+   *
+   * @param accountAddress address of the desired account
+   * @returns list of transactions
+   */
   async accountTransactions(accountAddress: MaybeHexString) {
     const data = await this.aptosClient.getAccountTransactions(accountAddress);
     const transactions = data.map((item: any) => ({
@@ -195,6 +256,14 @@ export class WalletClient {
     return transactions;
   }
 
+  /**
+   * transfers Aptos Coins from signer to receiver
+   *
+   * @param account AptosAccount object of the signing account
+   * @param recipient_address address of the receiver account
+   * @param amount amount of aptos coins to be transferred
+   * @returns transaction hash
+   */
   async transfer(
     account: AptosAccount,
     recipient_address: string | HexString,
@@ -227,12 +296,26 @@ export class WalletClient {
     }
   }
 
+  /**
+   * returns the list of events involving transactions
+   * starting from the said account
+   *
+   * @param address address of the desired account
+   * @returns list of events
+   */
   async getSentEvents(address: MaybeHexString) {
     return Promise.resolve(
       await this.aptosClient.getAccountTransactions(address)
     );
   }
 
+  /**
+   * returns the list of events involving transactions of Aptos Coins
+   * received by the said account
+   *
+   * @param address address of the desired account
+   * @returns list of events
+   */
   async getReceivedEvents(address: string) {
     return Promise.resolve(
       await this.aptosClient.getEventsByEventHandle(
@@ -243,6 +326,15 @@ export class WalletClient {
     );
   }
 
+  /**
+   * creates an NFT collection
+   *
+   * @param account AptosAccount object of the signing account
+   * @param name collection name
+   * @param description collection description
+   * @param uri collection URI
+   * @returns transaction hash
+   */
   async createCollection(
     account: AptosAccount,
     name: string,
@@ -254,6 +346,18 @@ export class WalletClient {
     );
   }
 
+  /**
+   * creates an NFT
+   *
+   * @param account AptosAccount object of the signing account
+   * @param collection_name collection name
+   * @param name NFT name
+   * @param description NFT description
+   * @param supply supply for the NFT
+   * @param uri NFT URI
+   * @param royalty_points_per_million royalty points per million
+   * @returns transaction hash
+   */
   async createToken(
     account: AptosAccount,
     collection_name: string,
@@ -276,6 +380,17 @@ export class WalletClient {
     );
   }
 
+  /**
+   * offers an NFT to another account
+   *
+   * @param account AptosAccount object of the signing account
+   * @param receiver_address address of the receiver account
+   * @param creator_address address of the creator account
+   * @param collection_name collection name
+   * @param token_name NFT name
+   * @param amount amount to receive while offering the token
+   * @returns transaction hash
+   */
   async offerToken(
     account: AptosAccount,
     receiver_address: string,
@@ -296,6 +411,16 @@ export class WalletClient {
     );
   }
 
+  /**
+   * cancels an NFT offer
+   *
+   * @param account AptosAccount of the signing account
+   * @param receiver_address address of the receiver account
+   * @param creator_address address of the creator account
+   * @param collection_name collection name
+   * @param token_name NFT name
+   * @returns transaction hash
+   */
   async cancelTokenOffer(
     account: AptosAccount,
     receiver_address: string,
@@ -314,6 +439,16 @@ export class WalletClient {
     );
   }
 
+  /**
+   * claims offered NFT
+   *
+   * @param account AptosAccount of the signing account
+   * @param sender_address address of the sender account
+   * @param creator_address address of the creator account
+   * @param collection_name collection name
+   * @param token_name NFT name
+   * @returns transaction hash
+   */
   async claimToken(
     account: AptosAccount,
     sender_address: string,
@@ -332,6 +467,15 @@ export class WalletClient {
     );
   }
 
+  /**
+   * sign a generic transaction
+   *
+   * @param account AptosAccount of the signing account
+   * @param func function name to be called
+   * @param args arguments of the function to be called
+   * @param type_args type arguments of the function to be called
+   * @returns transaction hash
+   */
   async signGenericTransaction(
     account: AptosAccount,
     func: string,
@@ -447,6 +591,13 @@ export class WalletClient {
     return Promise.resolve(account.signBuffer(Buffer.from(message)).hex());
   }
 
+  /**
+   * Rotates the auth key
+   *
+   * @param code mnemonic phrase for the desired wallet
+   * @param metaData metadata for the desired account
+   * @returns status object
+   */
   async rotateAuthKey(code: string, metaData: AccountMetaData) {
     const account: AptosAccount = await WalletClient.getAccountFromMetaData(
       code,
@@ -506,7 +657,13 @@ export class WalletClient {
     return Promise.resolve(await response.json());
   }
 
-  // returns a list of token IDs of the tokens in a user's account (including the tokens that were minted)
+  /**
+   * returns a list of token IDs of the tokens in a user's account
+   * (including the tokens that were minted)
+   *
+   * @param address address of the desired account
+   * @returns list of token IDs
+   */
   async getTokenIds(address: string) {
     const countDeposit = {};
     const countWithdraw = {};
@@ -551,6 +708,12 @@ export class WalletClient {
     return tokenIds;
   }
 
+  /**
+   * returns the tokens in an account
+   *
+   * @param address address of the desired account
+   * @returns list of tokens and their collection data
+   */
   async getTokens(address: string) {
     const localCache = {};
     const tokenIds = await this.getTokenIds(address);
@@ -585,6 +748,13 @@ export class WalletClient {
     return tokens;
   }
 
+  /**
+   * returns the token information (including the collection information)
+   * about a said tokenID
+   *
+   * @param tokenId token ID of the desired token
+   * @returns token information
+   */
   async getToken(tokenId: TokenId) {
     const resources: Types.AccountResource[] =
       await this.aptosClient.getAccountResources(tokenId.creator);
@@ -606,7 +776,13 @@ export class WalletClient {
     return token;
   }
 
-  // returns the collection data of a user
+  /**
+   * returns the information about a collection of an account
+   *
+   * @param address address of the desired account
+   * @param collectionName collection name
+   * @returns collection information
+   */
   async getCollection(address: string, collectionName: string) {
     const resources: Types.AccountResource[] =
       await this.aptosClient.getAccountResources(address);
@@ -656,6 +832,13 @@ export class WalletClient {
     return resource;
   }
 
+  /**
+   * returns info about a particular resource inside an account
+   *
+   * @param accountAddress address of the desired account
+   * @param resourceType type of the desired resource
+   * @returns resource information
+   */
   async getAccountResource(
     accountAddress: string,
     resourceType: string
@@ -674,9 +857,17 @@ export class WalletClient {
   }
 
   /**
-   * fungible tokens (coins)
+   * initializes a coin
+   *
+   * precondition: a module of the desired coin has to be deployed in the signer's account
+   *
+   * @param account AptosAccount object of the signing account
+   * @param coin_type_path address path of the desired coin
+   * @param name name of the coin
+   * @param symbol symbol of the coin
+   * @param scaling_factor scaling factor of the coin
+   * @returns transaction hash
    */
-
   async initializeCoin(
     account: AptosAccount,
     coin_type_path: string, // coin_type_path: something like 0x${coinTypeAddress}::moon_coin::MoonCoin
@@ -710,7 +901,16 @@ export class WalletClient {
     return { txnHash, ...status };
   }
 
-  /** Registers the coin */
+  /**
+   * registers a coin for an account
+   *
+   * creates the resource for the desired account such that
+   * the account can start transacting in the desired coin
+   *
+   * @param account AptosAccount object of the signing account
+   * @param coin_type_path address path of the desired coin
+   * @returns transaction hash
+   */
   async registerCoin(account: AptosAccount, coin_type_path: string) {
     // coin_type_path: something like 0x${coinTypeAddress}::moon_coin::MoonCoin
     const payload: {
@@ -735,7 +935,19 @@ export class WalletClient {
     return { txnHash, ...status };
   }
 
-  /** Mints the coin */
+  /**
+   * mints a coin in a receiver account
+   *
+   * precondition: the signer should have minting capability
+   * unless specifically granted, only the account where the module
+   * of the desired coin lies has the minting capability
+   *
+   * @param account AptosAccount object of the signing account
+   * @param coin_type_path address path of the desired coin
+   * @param dst_address address of the receiver account
+   * @param amount amount to be minted
+   * @returns transaction hash
+   */
   async mintCoin(
     account: AptosAccount,
     coin_type_path: string, // coin_type_path: something like 0x${coinTypeAddress}::moon_coin::MoonCoin
@@ -763,7 +975,15 @@ export class WalletClient {
     return { txnHash, ...status };
   }
 
-  /** Transfers the coins */
+  /**
+   * transfers coin (applicable for all altcoins on Aptos) to receiver account
+   *
+   * @param account AptosAccount object of the signing account
+   * @param coin_type_path address path of the desired coin
+   * @param to_address address of the receiver account
+   * @param amount amount to be transferred
+   * @returns transaction hash
+   */
   async transferCoin(
     account: AptosAccount,
     coin_type_path: string, // coin_type_path: something like 0x${coinTypeAddress}::moon_coin::MoonCoin
@@ -791,6 +1011,12 @@ export class WalletClient {
     return { txnHash, ...status };
   }
 
+  /**
+   * returns the information about the coin
+   *
+   * @param coin_type_path address path of the desired coin
+   * @returns coin information
+   */
   async getCoinData(coin_type_path: string) {
     const coinData = await this.getAccountResource(
       coin_type_path.split("::")[0],
@@ -799,6 +1025,13 @@ export class WalletClient {
     return coinData;
   }
 
+  /**
+   * returns the balance of the coin for an account
+   *
+   * @param address address of the desired account
+   * @param coin_type_path address path of the desired coin
+   * @returns number of coins
+   */
   async getCoinBalance(
     address: string,
     coin_type_path: string
