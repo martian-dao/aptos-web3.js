@@ -51,9 +51,9 @@ export class WalletClient {
    * Each mnemonic phrase corresponds to a single wallet
    * Wallet can contain multiple accounts
    * An account corresponds to a key pair + address
-   * 
+   *
    * Get all the accounts of a user from their mnemonic phrase
-   * 
+   *
    * @param code The mnemonic phrase (12 word)
    * @returns Wallet object containing all accounts of a user
    */
@@ -118,7 +118,7 @@ export class WalletClient {
   /**
    * Creates a new wallet which contains a single account,
    * which is registered on Aptos
-   * 
+   *
    * @returns A wallet object
    */
   async createWallet(): Promise<Wallet> {
@@ -129,9 +129,9 @@ export class WalletClient {
 
   /**
    * Creates a new account in the provided wallet
-   * 
+   *
    * @param code mnemonic phrase of the wallet
-   * @returns 
+   * @returns
    */
   async createNewAccount(code: string): Promise<AccountMetaData> {
     const seed: Uint8Array = bip39.mnemonicToSeedSync(code.toString());
@@ -164,7 +164,7 @@ export class WalletClient {
   /**
    * returns an AptosAccount object given a private key and
    * address of the account
-   * 
+   *
    * @param privateKey Private key of an account as a Buffer
    * @param address address of a user
    * @returns AptosAccount object
@@ -175,7 +175,7 @@ export class WalletClient {
 
   /**
    * returns an AptosAccount at position m/44'/COIN_TYPE'/0'/0/0
-   * 
+   *
    * @param code mnemonic phrase of the wallet
    * @returns AptosAccount object
    */
@@ -189,10 +189,10 @@ export class WalletClient {
   /**
    * returns an AptosAccount object for the desired account
    * using the metadata of the account
-   * 
+   *
    * @param code mnemonic phrase of the wallet
    * @param metaData metadata of the account to be fetched
-   * @returns 
+   * @returns
    */
   static getAccountFromMetaData(code: string, metaData: AccountMetaData) {
     const seed: Uint8Array = bip39.mnemonicToSeedSync(code.toString());
@@ -203,7 +203,7 @@ export class WalletClient {
 
   /**
    * airdrops test coins in the given account
-   * 
+   *
    * @param address address of the receiver's account
    * @param amount amount to be airdropped
    * @returns list of transaction hashs
@@ -216,7 +216,7 @@ export class WalletClient {
 
   /**
    * returns the balance of the said account
-   * 
+   *
    * @param address address of the desired account
    * @returns balance of the account
    */
@@ -233,7 +233,7 @@ export class WalletClient {
 
   /**
    * returns the list of on-chain transactions sent by the said account
-   * 
+   *
    * @param accountAddress address of the desired account
    * @returns list of transactions
    */
@@ -258,7 +258,7 @@ export class WalletClient {
 
   /**
    * transfers Aptos Coins from signer to receiver
-   * 
+   *
    * @param account AptosAccount object of the signing account
    * @param recipient_address address of the receiver account
    * @param amount amount of aptos coins to be transferred
@@ -299,7 +299,7 @@ export class WalletClient {
   /**
    * returns the list of events involving transactions
    * starting from the said account
-   * 
+   *
    * @param address address of the desired account
    * @returns list of events
    */
@@ -312,7 +312,7 @@ export class WalletClient {
   /**
    * returns the list of events involving transactions of Aptos Coins
    * received by the said account
-   * 
+   *
    * @param address address of the desired account
    * @returns list of events
    */
@@ -328,7 +328,7 @@ export class WalletClient {
 
   /**
    * creates an NFT collection
-   * 
+   *
    * @param account AptosAccount object of the signing account
    * @param name collection name
    * @param description collection description
@@ -348,7 +348,7 @@ export class WalletClient {
 
   /**
    * creates an NFT
-   * 
+   *
    * @param account AptosAccount object of the signing account
    * @param collection_name collection name
    * @param name NFT name
@@ -382,7 +382,7 @@ export class WalletClient {
 
   /**
    * offers an NFT to another account
-   * 
+   *
    * @param account AptosAccount object of the signing account
    * @param receiver_address address of the receiver account
    * @param creator_address address of the creator account
@@ -413,7 +413,7 @@ export class WalletClient {
 
   /**
    * cancels an NFT offer
-   * 
+   *
    * @param account AptosAccount of the signing account
    * @param receiver_address address of the receiver account
    * @param creator_address address of the creator account
@@ -441,7 +441,7 @@ export class WalletClient {
 
   /**
    * claims offered NFT
-   * 
+   *
    * @param account AptosAccount of the signing account
    * @param sender_address address of the sender account
    * @param creator_address address of the creator account
@@ -469,7 +469,7 @@ export class WalletClient {
 
   /**
    * sign a generic transaction
-   * 
+   *
    * @param account AptosAccount of the signing account
    * @param func function name to be called
    * @param args arguments of the function to be called
@@ -593,7 +593,7 @@ export class WalletClient {
 
   /**
    * Rotates the auth key
-   * 
+   *
    * @param code mnemonic phrase for the desired wallet
    * @param metaData metadata for the desired account
    * @returns status object
@@ -658,9 +658,9 @@ export class WalletClient {
   }
 
   /**
-   * returns a list of token IDs of the tokens in a user's account 
+   * returns a list of token IDs of the tokens in a user's account
    * (including the tokens that were minted)
-   * 
+   *
    * @param address address of the desired account
    * @returns list of token IDs
    */
@@ -710,7 +710,7 @@ export class WalletClient {
 
   /**
    * returns the tokens in an account
-   * 
+   *
    * @param address address of the desired account
    * @returns list of tokens and their collection data
    */
@@ -751,7 +751,7 @@ export class WalletClient {
   /**
    * returns the token information (including the collection information)
    * about a said tokenID
-   * 
+   *
    * @param tokenId token ID of the desired token
    * @returns token information
    */
@@ -778,7 +778,7 @@ export class WalletClient {
 
   /**
    * returns the information about a collection of an account
-   * 
+   *
    * @param address address of the desired account
    * @param collectionName collection name
    * @returns collection information
@@ -834,7 +834,7 @@ export class WalletClient {
 
   /**
    * returns info about a particular resource inside an account
-   * 
+   *
    * @param accountAddress address of the desired account
    * @param resourceType type of the desired resource
    * @returns resource information
@@ -858,9 +858,9 @@ export class WalletClient {
 
   /**
    * initializes a coin
-   * 
+   *
    * precondition: a module of the desired coin has to be deployed in the signer's account
-   * 
+   *
    * @param account AptosAccount object of the signing account
    * @param coin_type_path address path of the desired coin
    * @param name name of the coin
@@ -903,10 +903,10 @@ export class WalletClient {
 
   /**
    * registers a coin for an account
-   * 
+   *
    * creates the resource for the desired account such that
    * the account can start transacting in the desired coin
-   * 
+   *
    * @param account AptosAccount object of the signing account
    * @param coin_type_path address path of the desired coin
    * @returns transaction hash
@@ -937,11 +937,11 @@ export class WalletClient {
 
   /**
    * mints a coin in a receiver account
-   * 
+   *
    * precondition: the signer should have minting capability
    * unless specifically granted, only the account where the module
    * of the desired coin lies has the minting capability
-   * 
+   *
    * @param account AptosAccount object of the signing account
    * @param coin_type_path address path of the desired coin
    * @param dst_address address of the receiver account
@@ -977,7 +977,7 @@ export class WalletClient {
 
   /**
    * transfers coin (applicable for all altcoins on Aptos) to receiver account
-   * 
+   *
    * @param account AptosAccount object of the signing account
    * @param coin_type_path address path of the desired coin
    * @param to_address address of the receiver account
@@ -1013,8 +1013,8 @@ export class WalletClient {
 
   /**
    * returns the information about the coin
-   * 
-   * @param coin_type_path address path of the desired coin 
+   *
+   * @param coin_type_path address path of the desired coin
    * @returns coin information
    */
   async getCoinData(coin_type_path: string) {
@@ -1027,7 +1027,7 @@ export class WalletClient {
 
   /**
    * returns the balance of the coin for an account
-   * 
+   *
    * @param address address of the desired account
    * @param coin_type_path address path of the desired coin
    * @returns number of coins
