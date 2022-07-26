@@ -175,8 +175,34 @@ test("verify signAndSubmitTransactions", async () => {
   await apis.signAndSubmitTransactions(aliceAccount, [txn1, txn2]);
 
   const tokens = await apis.getTokens(aliceAccount.address().toString());
-  console.log(tokens);
   expect(tokens[0].name).toBe(tokenName);
+});
+
+test("very estimate gas fees", async () => {
+  const alice = await apis.createWallet();
+  const aliceAccount = await WalletClient.getAccountFromMetaData(
+    alice.code,
+    alice.accounts[0]
+  );
+  const bob = await apis.createWallet();
+  const bobAccount = await WalletClient.getAccountFromMetaData(
+    bob.code,
+    bob.accounts[0]
+  );
+  await apis.airdrop(aliceAccount.address().toString(), 5000);
+  const txn = await apis.aptosClient.generateTransaction(
+    aliceAccount.address().toString(),
+    {
+      type: "script_function_payload",
+      function: "0x1::coin::transfer",
+      type_arguments: ["0x1::test_coin::TestCoin"],
+      arguments: [bobAccount.address().toString(), "500"],
+    }
+  );
+  const estimatedGas = await apis.estimateGasFees(aliceAccount, txn);
+  const txnHash = await apis.signAndSubmitTransaction(aliceAccount, txn);
+  const txnData: any = await apis.aptosClient.getTransaction(txnHash);
+  expect(estimatedGas).toBe(txnData.gas_used);
 });
 
 // test("verify fungible tokens", async () => {

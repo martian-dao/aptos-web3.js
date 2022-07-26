@@ -555,6 +555,15 @@ export class WalletClient {
     );
   }
 
+  async estimateGasFees(
+    account: AptosAccount,
+    transaction: Types.UserTransactionRequest
+  ): Promise<string> {
+    const simulateResponse: Types.OnChainTransaction =
+      await this.aptosClient.simulateTransaction(account, transaction);
+    return simulateResponse.gas_used;
+  }
+
   async submitTransaction(signedTxn: Types.SubmitTransactionRequest) {
     return Promise.resolve(await this.aptosClient.submitTransaction(signedTxn));
   }
