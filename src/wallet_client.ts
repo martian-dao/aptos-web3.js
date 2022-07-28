@@ -439,7 +439,7 @@ export class WalletClient {
       ) {
         return true;
       }
-      return false
+      return false;
     });
 
     if (change.length > 0) {
@@ -451,7 +451,7 @@ export class WalletClient {
       ).toString();
     }
 
-    return "0"
+    return "0";
   }
 
   async submitTransaction(signedTxn: Types.SubmitTransactionRequest) {
