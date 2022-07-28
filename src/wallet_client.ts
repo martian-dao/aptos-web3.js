@@ -10,6 +10,8 @@ import { FaucetClient } from "./faucet_client";
 import { HexString, MaybeHexString } from "./hex_string";
 import { Types } from "./types";
 import { RawTransaction } from "./transaction_builder/aptos_types/transaction";
+import { BCS, TxnBuilderTypes } from "./transaction_builder";
+import { WriteResource } from "./api/data-contracts";
 
 const { HDKey } = require("@scure/bip32");
 
@@ -32,6 +34,10 @@ export interface AccountMetaData {
 export interface Wallet {
   code: string; // mnemonic
   accounts: AccountMetaData[];
+}
+
+function isNumber(n) {
+  return /^-?[\d.]+(?:e-?\d+)?$/.test(n);
 }
 
 export class WalletClient {
@@ -418,6 +424,37 @@ export class WalletClient {
     const simulateResponse: Types.OnChainTransaction =
       await this.aptosClient.simulateTransaction(account, transaction);
     return simulateResponse.gas_used;
+  }
+
+  async estimateCost(
+    account: AptosAccount,
+    transaction: Types.UserTransactionRequest
+  ): Promise<string> {
+    const txnData: Types.OnChainTransaction =
+      await this.aptosClient.simulateTransaction(account, transaction);
+    const currentBalance = await this.getBalance(account.address());
+    const change = txnData.changes.filter((ch) => {
+      if (ch.type !== "write_resource") {
+        return false;
+      }
+      const write = ch as WriteResource;
+      if (
+        write.data.type === "0x1::coin::CoinStore<0x1::test_coin::TestCoin>" &&
+        write.address === account.address().toString()
+      ) {
+        return true;
+      }
+    });
+
+    if (change.length > 0) {
+      return (
+        currentBalance -
+        parseInt(change[0]["data"].data["coin"].value) -
+        parseInt(txnData.gas_used)
+      ).toString();
+    }
+
+    return "0"
   }
 
   async submitTransaction(signedTxn: Types.SubmitTransactionRequest) {
