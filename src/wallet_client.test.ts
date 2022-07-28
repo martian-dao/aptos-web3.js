@@ -1,6 +1,5 @@
 import { WalletClient } from "./wallet_client";
 import { NODE_URL, FAUCET_URL } from "./util.test";
-import { WriteResource } from "./api/data-contracts";
 
 const apis = new WalletClient(NODE_URL, FAUCET_URL);
 
@@ -213,11 +212,6 @@ test(
     const aliceAccount = await WalletClient.getAccountFromMetaData(
       alice.code,
       alice.accounts[0]
-    );
-    const bob = await apis.createWallet();
-    const bobAccount = await WalletClient.getAccountFromMetaData(
-      bob.code,
-      bob.accounts[0]
     );
     await apis.airdrop(aliceAccount.address().toString(), 10000);
     const collectionName = "AptosCollection";
