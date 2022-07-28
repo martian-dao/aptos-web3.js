@@ -1,5 +1,6 @@
 import { WalletClient } from "./wallet_client";
 import { NODE_URL, FAUCET_URL } from "./util.test";
+import { WriteResource } from "./api/data-contracts";
 
 const apis = new WalletClient(NODE_URL, FAUCET_URL);
 
@@ -139,46 +140,46 @@ test("verify signAndSubmitTransactions", async () => {
   );
   await apis.airdrop(aliceAccount.address().toString(), 20000);
 
-  const collectionName = "AptosCollection";
-  const tokenName = "AptosToken";
+const collectionName = "AptosCollection";
+const tokenName = "AptosToken";
 
-  const txn1 = await apis.aptosClient.generateTransaction(
-    aliceAccount.address().toString(),
-    {
-      type: "script_function_payload",
-      function: "0x1::token::create_unlimited_collection_script",
-      type_arguments: [],
-      arguments: [
-        Buffer.from(collectionName).toString("hex"),
-        Buffer.from("description").toString("hex"),
-        Buffer.from("https://www.aptos.dev").toString("hex"),
-      ],
-    }
-  );
-  const txn2 = await apis.aptosClient.generateTransaction(
-    aliceAccount.address().toString(),
-    {
-      type: "script_function_payload",
-      function: "0x1::token::create_unlimited_token_script",
-      type_arguments: [],
-      arguments: [
-        Buffer.from(collectionName).toString("hex"),
-        Buffer.from(tokenName).toString("hex"),
-        Buffer.from("description").toString("hex"),
-        true,
-        "1",
-        Buffer.from("https://aptos.dev/img/nyan.jpeg").toString("hex"),
-        "0",
-      ],
-    }
-  );
+const txn1 = await apis.aptosClient.generateTransaction(
+  aliceAccount.address().toString(),
+  {
+    type: "script_function_payload",
+    function: "0x1::token::create_unlimited_collection_script",
+    type_arguments: [],
+    arguments: [
+      Buffer.from(collectionName).toString("hex"),
+      Buffer.from("description").toString("hex"),
+      Buffer.from("https://www.aptos.dev").toString("hex"),
+    ],
+  }
+);
+const txn2 = await apis.aptosClient.generateTransaction(
+  aliceAccount.address().toString(),
+  {
+    type: "script_function_payload",
+    function: "0x1::token::create_unlimited_token_script",
+    type_arguments: [],
+    arguments: [
+      Buffer.from(collectionName).toString("hex"),
+      Buffer.from(tokenName).toString("hex"),
+      Buffer.from("description").toString("hex"),
+      true,
+      "1",
+      Buffer.from("https://aptos.dev/img/nyan.jpeg").toString("hex"),
+      "0",
+    ],
+  }
+);
   await apis.signAndSubmitTransactions(aliceAccount, [txn1, txn2]);
 
   const tokens = await apis.getTokens(aliceAccount.address().toString());
   expect(tokens[0].name).toBe(tokenName);
 });
 
-test("very estimate gas fees", async () => {
+test("verify estimate gas fees", async () => {
   const alice = await apis.createWallet();
   const aliceAccount = await WalletClient.getAccountFromMetaData(
     alice.code,
@@ -190,20 +191,82 @@ test("very estimate gas fees", async () => {
     bob.accounts[0]
   );
   await apis.airdrop(aliceAccount.address().toString(), 5000);
-  const txn = await apis.aptosClient.generateTransaction(
-    aliceAccount.address().toString(),
-    {
-      type: "script_function_payload",
-      function: "0x1::coin::transfer",
-      type_arguments: ["0x1::test_coin::TestCoin"],
-      arguments: [bobAccount.address().toString(), "500"],
-    }
-  );
+const txn = await apis.aptosClient.generateTransaction(
+  aliceAccount.address().toString(),
+  {
+    type: "script_function_payload",
+    function: "0x1::coin::transfer",
+    type_arguments: ["0x1::test_coin::TestCoin"],
+    arguments: [bobAccount.address().toString(), "500"],
+  }
+);
   const estimatedGas = await apis.estimateGasFees(aliceAccount, txn);
   const txnHash = await apis.signAndSubmitTransaction(aliceAccount, txn);
   const txnData: any = await apis.aptosClient.getTransaction(txnHash);
   expect(estimatedGas).toBe(txnData.gas_used);
 });
+
+test(
+  "verify estimate cost",
+  async () => {
+    const alice = await apis.createWallet();
+    const aliceAccount = await WalletClient.getAccountFromMetaData(
+      alice.code,
+      alice.accounts[0]
+    );
+    const bob = await apis.createWallet();
+    const bobAccount = await WalletClient.getAccountFromMetaData(
+      bob.code,
+      bob.accounts[0]
+    );
+    await apis.airdrop(aliceAccount.address().toString(), 10000);
+    const collectionName = "AptosCollection";
+    const tokenName = "AptosToken";
+
+    const txn1 = await apis.aptosClient.generateTransaction(
+      aliceAccount.address().toString(),
+      {
+        type: "script_function_payload",
+        function: "0x1::token::create_unlimited_collection_script",
+        type_arguments: [],
+        arguments: [
+          Buffer.from(collectionName).toString("hex"),
+          Buffer.from("description").toString("hex"),
+          Buffer.from("https://www.aptos.dev").toString("hex"),
+        ],
+      }
+    );
+    await apis.signAndSubmitTransactions(aliceAccount, [txn1]);
+
+    const txn2 = await apis.aptosClient.generateTransaction(
+      aliceAccount.address().toString(),
+      {
+        type: "script_function_payload",
+        function: "0x1::token::create_unlimited_token_script",
+        type_arguments: [],
+        arguments: [
+          Buffer.from(collectionName).toString("hex"),
+          Buffer.from(tokenName).toString("hex"),
+          Buffer.from("description").toString("hex"),
+          true,
+          "1",
+          Buffer.from("https://aptos.dev/img/nyan.jpeg").toString("hex"),
+          "0",
+        ],
+      }
+    );
+
+    const estimatedCost = await apis.estimateCost(aliceAccount, txn2);
+    const currentBalance = await apis.getBalance(aliceAccount.address());
+    const txnHash = await apis.signAndSubmitTransaction(aliceAccount, txn2);
+    const txnData: any = await apis.aptosClient.getTransaction(txnHash);
+    const updatedBalance = await apis.getBalance(aliceAccount.address());
+    expect(estimatedCost).toBe(
+      (currentBalance - updatedBalance - txnData.gas_used).toString()
+    );
+  },
+  60 * 1000
+);
 
 // test("verify fungible tokens", async () => {
 //     const alice = await apis.createWallet();
