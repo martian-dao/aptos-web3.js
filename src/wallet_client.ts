@@ -10,7 +10,6 @@ import { FaucetClient } from "./faucet_client";
 import { HexString, MaybeHexString } from "./hex_string";
 import { Types } from "./types";
 import { RawTransaction } from "./transaction_builder/aptos_types/transaction";
-import { BCS, TxnBuilderTypes } from "./transaction_builder";
 import { WriteResource } from "./api/data-contracts";
 
 const { HDKey } = require("@scure/bip32");
@@ -34,10 +33,6 @@ export interface AccountMetaData {
 export interface Wallet {
   code: string; // mnemonic
   accounts: AccountMetaData[];
-}
-
-function isNumber(n) {
-  return /^-?[\d.]+(?:e-?\d+)?$/.test(n);
 }
 
 export class WalletClient {
@@ -444,13 +439,15 @@ export class WalletClient {
       ) {
         return true;
       }
+      return false
     });
 
     if (change.length > 0) {
+      /* eslint-disable @typescript-eslint/dot-notation */
       return (
         currentBalance -
-        parseInt(change[0]["data"].data["coin"].value) -
-        parseInt(txnData.gas_used)
+        parseInt(change[0]["data"].data["coin"].value, 10) -
+        parseInt(txnData.gas_used, 10)
       ).toString();
     }
 
