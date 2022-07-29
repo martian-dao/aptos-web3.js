@@ -855,9 +855,3 @@ export class WalletClient {
     return Number(coinInfo.data.coin.value);
   }
 }
-
-
-
-
-
-
