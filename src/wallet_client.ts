@@ -170,7 +170,7 @@ export class WalletClient {
     let balance = 0;
     const resources: any = await this.aptosClient.getAccountResources(address);
     Object.values(resources).forEach((value: any) => {
-      if (value.type === "0x1::coin::CoinStore<0x1::test_coin::TestCoin>") {
+      if (value.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>") {
         balance = Number(value.data.coin.value);
       }
     });
@@ -214,7 +214,7 @@ export class WalletClient {
       } = {
         type: "script_function_payload",
         function: "0x1::coin::transfer",
-        type_arguments: ["0x1::test_coin::TestCoin"],
+        type_arguments: ["0x1::aptos_coin::AptosCoin"],
 
         arguments: [
           `${HexString.ensure(recipient_address)}`,
@@ -238,7 +238,7 @@ export class WalletClient {
     return Promise.resolve(
       await this.aptosClient.getEventsByEventHandle(
         address,
-        "0x1::coin::CoinStore<0x1::test_coin::TestCoin>",
+        "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>",
         "deposit_events"
       )
     );
@@ -434,7 +434,7 @@ export class WalletClient {
       }
       const write = ch as WriteResource;
       if (
-        write.data.type === "0x1::coin::CoinStore<0x1::test_coin::TestCoin>" &&
+        write.data.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>" &&
         write.address === account.address().toString()
       ) {
         return true;

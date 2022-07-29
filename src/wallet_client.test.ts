@@ -129,7 +129,7 @@ test("verify transferring NFT", async () => {
   expect(aliceTokens.length).toBe(0);
   const bobTokens = await apis.getTokens(bobAccount.address().toString());
   expect(bobTokens[0].name).toBe(tokenName);
-});
+}, 60*1000);
 
 test("verify signAndSubmitTransactions", async () => {
   const alice = await apis.createWallet();
@@ -195,7 +195,7 @@ test("verify estimate gas fees", async () => {
     {
       type: "script_function_payload",
       function: "0x1::coin::transfer",
-      type_arguments: ["0x1::test_coin::TestCoin"],
+      type_arguments: ["0x1::aptos_coin::AptosCoin"],
       arguments: [bobAccount.address().toString(), "500"],
     }
   );
