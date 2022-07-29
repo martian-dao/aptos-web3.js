@@ -434,7 +434,8 @@ export class WalletClient {
       }
       const write = ch as WriteResource;
       if (
-        write.data.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>" &&
+        write.data.type ===
+          "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>" &&
         write.address === account.address().toString()
       ) {
         return true;
