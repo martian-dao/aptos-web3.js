@@ -740,7 +740,6 @@ export class WalletClient {
    */
   async getTokens(address: string, limit?: number, start?: number) {
     const tokenIds = await this.getTokenIds(address, limit, start);
-    console.log({ tokenIds });
     const tokens = [];
     await Promise.all(
       tokenIds.map(async (tokenId) => {
