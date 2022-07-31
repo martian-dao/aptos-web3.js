@@ -70,7 +70,7 @@ test("verify creating collection and NFT", async () => {
   );
 
   const tokens = await apis.getTokens(aliceAccount.address().toString());
-  expect(tokens[0].name).toBe(tokenName);
+  expect(tokens[0].token.name).toBe(tokenName);
 });
 
 test(
@@ -130,7 +130,7 @@ test(
     const aliceTokens = await apis.getTokens(aliceAccount.address().toString());
     expect(aliceTokens.length).toBe(0);
     const bobTokens = await apis.getTokens(bobAccount.address().toString());
-    expect(bobTokens[0].name).toBe(tokenName);
+    expect(bobTokens[0].token.name).toBe(tokenName);
   },
   60 * 1000
 );
@@ -179,7 +179,7 @@ test("verify signAndSubmitTransactions", async () => {
   await apis.signAndSubmitTransactions(aliceAccount, [txn1, txn2]);
 
   const tokens = await apis.getTokens(aliceAccount.address().toString());
-  expect(tokens[0].name).toBe(tokenName);
+  expect(tokens[0].token.name).toBe(tokenName);
 });
 
 test("verify estimate gas fees", async () => {
