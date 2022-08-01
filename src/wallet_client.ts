@@ -305,9 +305,9 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of events
    */
-  async getSentEvents(address: MaybeHexString) {
+  async getSentEvents(address: MaybeHexString, limit?: number, start?: number) {
     return Promise.resolve(
-      await this.aptosClient.getAccountTransactions(address)
+      await this.aptosClient.getAccountTransactions(address, { start, limit })
     );
   }
 
@@ -318,12 +318,13 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of events
    */
-  async getReceivedEvents(address: string) {
+  async getReceivedEvents(address: string, limit?: number, start?: number) {
     return Promise.resolve(
       await this.aptosClient.getEventsByEventHandle(
         address,
         "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>",
-        "deposit_events"
+        "deposit_events",
+        { start, limit }
       )
     );
   }

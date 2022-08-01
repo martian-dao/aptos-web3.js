@@ -266,6 +266,14 @@ test(
   60 * 1000
 );
 
+// test("console.log", async () => {
+//   const alice = await apis.getReceivedEvents(
+//     "0xfb0f1312478305a29533fc59c5db6e5742ee99adc19f81d7bc9c250ccc552bcc"
+//   );
+
+//   expect(true).toBe(true);
+// });
+
 // test("verify fungible tokens", async () => {
 //     const alice = await apis.createWallet();
 //     var aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
