@@ -1,11 +1,7 @@
 import { WalletClient } from "./wallet_client";
 import { NODE_URL, FAUCET_URL } from "./util.test";
-import { hexToUtf8 } from "./util";
 
-const LOCAL_NODE_URL = "http://0.0.0.0:8080";
-const LOCAL_FAUCET_URL = "http://0.0.0.0:8000";
-
-const apis = new WalletClient(LOCAL_NODE_URL, LOCAL_FAUCET_URL);
+const apis = new WalletClient(NODE_URL, FAUCET_URL);
 
 test("verify airdrop", async () => {
   const alice = await apis.createWallet();
