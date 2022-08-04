@@ -365,7 +365,12 @@ export class WalletClient {
     description: string,
     supply: number,
     uri: string,
-    royalty_points_per_million: number = 0
+    royalty_payee_address: MaybeHexString = account.address(),
+    royalty_points_denominator: number = 0,
+    royalty_points_numerator: number = 0,
+    property_keys: Array<string> = [],
+    property_values: Array<string> = [],
+    property_types: Array<string> = [],
   ) {
     return Promise.resolve(
       await this.tokenClient.createToken(
@@ -375,7 +380,12 @@ export class WalletClient {
         description,
         supply,
         uri,
-        royalty_points_per_million
+        royalty_payee_address,
+        royalty_points_denominator,
+        royalty_points_numerator,
+        property_keys,
+        property_values,
+        property_types,
       )
     );
   }
@@ -680,13 +690,13 @@ export class WalletClient {
 
     const depositEvents = await this.getEventStream(
       address,
-      "0x1::token::TokenStore",
+      "0x3::token::TokenStore",
       "deposit_events"
     );
 
     const withdrawEvents = await this.getEventStream(
       address,
-      "0x1::token::TokenStore",
+      "0x3::token::TokenStore",
       "withdraw_events"
     );
 
@@ -738,11 +748,11 @@ export class WalletClient {
         localCache[tokenId.creator] = resources;
       }
       const accountResource: { type: string; data: any } = resources.find(
-        (r) => r.type === "0x1::token::Collections"
+        (r) => r.type === "0x3::token::Collections"
       );
       const tableItemRequest: Types.TableItemRequest = {
-        key_type: "0x1::token::TokenId",
-        value_type: "0x1::token::TokenData",
+        key_type: "0x3::token::TokenId",
+        value_type: "0x3::token::TokenData",
         key: tokenId,
       };
       const token = (
@@ -768,12 +778,12 @@ export class WalletClient {
     const resources: Types.AccountResource[] =
       await this.aptosClient.getAccountResources(tokenId.creator);
     const accountResource: { type: string; data: any } = resources.find(
-      (r) => r.type === "0x1::token::Collections"
+      (r) => r.type === "0x3::token::Collections"
     );
 
     const tableItemRequest: Types.TableItemRequest = {
-      key_type: "0x1::token::TokenId",
-      value_type: "0x1::token::TokenData",
+      key_type: "0x3::token::TokenId",
+      value_type: "0x3::token::TokenData",
       key: tokenId,
     };
     const token = (
@@ -796,7 +806,7 @@ export class WalletClient {
     const resources: Types.AccountResource[] =
       await this.aptosClient.getAccountResources(address);
     const accountResource: { type: string; data: any } = resources.find(
-      (r) => r.type === "0x1::token::Collections"
+      (r) => r.type === "0x3::token::Collections"
     );
 
     const tableItemRequest: Types.TableItemRequest = {

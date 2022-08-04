@@ -146,12 +146,13 @@ test("verify signAndSubmitTransactions", async () => {
     aliceAccount.address().toString(),
     {
       type: "script_function_payload",
-      function: "0x1::token::create_unlimited_collection_script",
+      function: "0x3::token::create_collection_script",
       type_arguments: [],
       arguments: [
         Buffer.from(collectionName).toString("hex"),
         Buffer.from("description").toString("hex"),
         Buffer.from("https://www.aptos.dev").toString("hex"),
+        "1234"
       ],
     }
   );
@@ -159,16 +160,22 @@ test("verify signAndSubmitTransactions", async () => {
     aliceAccount.address().toString(),
     {
       type: "script_function_payload",
-      function: "0x1::token::create_unlimited_token_script",
+      function: "0x3::token::create_token_script",
       type_arguments: [],
       arguments: [
         Buffer.from(collectionName).toString("hex"),
         Buffer.from(tokenName).toString("hex"),
-        Buffer.from("description").toString("hex"),
-        true,
+        Buffer.from("token description").toString("hex"),
         "1",
+        "1234",
         Buffer.from("https://aptos.dev/img/nyan.jpeg").toString("hex"),
+        aliceAccount.address().toString(),
         "0",
+        "0",
+        [false, false, false, false, false],
+        [],
+        [],
+        [],
       ],
     }
   );
@@ -195,7 +202,7 @@ test("very estimate gas fees", async () => {
     {
       type: "script_function_payload",
       function: "0x1::coin::transfer",
-      type_arguments: ["0x1::test_coin::TestCoin"],
+      type_arguments: ["0x1::apts_coin::AptosCoin"],
       arguments: [bobAccount.address().toString(), "500"],
     }
   );
