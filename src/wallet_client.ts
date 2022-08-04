@@ -10,6 +10,7 @@ import { FaucetClient } from "./faucet_client";
 import { HexString, MaybeHexString } from "./hex_string";
 import { Types } from "./types";
 import { RawTransaction } from "./transaction_builder/aptos_types/transaction";
+import { WriteResource } from "./api/data-contracts";
 
 const { HDKey } = require("@scure/bip32");
 
@@ -224,7 +225,7 @@ export class WalletClient {
     let balance = 0;
     const resources: any = await this.aptosClient.getAccountResources(address);
     Object.values(resources).forEach((value: any) => {
-      if (value.type === "0x1::coin::CoinStore<0x1::test_coin::TestCoin>") {
+      if (value.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>") {
         balance = Number(value.data.coin.value);
       }
     });
@@ -282,7 +283,7 @@ export class WalletClient {
       } = {
         type: "script_function_payload",
         function: "0x1::coin::transfer",
-        type_arguments: ["0x1::test_coin::TestCoin"],
+        type_arguments: ["0x1::aptos_coin::AptosCoin"],
 
         arguments: [
           `${HexString.ensure(recipient_address)}`,
@@ -320,7 +321,7 @@ export class WalletClient {
     return Promise.resolve(
       await this.aptosClient.getEventsByEventHandle(
         address,
-        "0x1::coin::CoinStore<0x1::test_coin::TestCoin>",
+        "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>",
         "deposit_events"
       )
     );
@@ -572,6 +573,40 @@ export class WalletClient {
     const simulateResponse: Types.OnChainTransaction =
       await this.aptosClient.simulateTransaction(account, transaction);
     return simulateResponse.gas_used;
+  }
+
+  async estimateCost(
+    account: AptosAccount,
+    transaction: Types.UserTransactionRequest
+  ): Promise<string> {
+    const txnData: Types.OnChainTransaction =
+      await this.aptosClient.simulateTransaction(account, transaction);
+    const currentBalance = await this.getBalance(account.address());
+    const change = txnData.changes.filter((ch) => {
+      if (ch.type !== "write_resource") {
+        return false;
+      }
+      const write = ch as WriteResource;
+      if (
+        write.data.type ===
+          "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>" &&
+        write.address === account.address().toString()
+      ) {
+        return true;
+      }
+      return false;
+    });
+
+    if (change.length > 0) {
+      /* eslint-disable @typescript-eslint/dot-notation */
+      return (
+        currentBalance -
+        parseInt(change[0]["data"].data["coin"].value, 10) -
+        parseInt(txnData.gas_used, 10)
+      ).toString();
+    }
+
+    return "0";
   }
 
   async submitTransaction(signedTxn: Types.SubmitTransactionRequest) {
