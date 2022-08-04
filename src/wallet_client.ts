@@ -10,6 +10,7 @@ import { FaucetClient } from "./faucet_client";
 import { HexString, MaybeHexString } from "./hex_string";
 import { Types } from "./types";
 import { RawTransaction } from "./transaction_builder/aptos_types/transaction";
+import cache from "./utils/cache";
 import { WriteResource } from "./api/data-contracts";
 import { hexToUtf8 } from "./util";
 const { HDKey } = require("@scure/bip32");
@@ -307,9 +308,9 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of events
    */
-  async getSentEvents(address: MaybeHexString) {
+  async getSentEvents(address: MaybeHexString, limit?: number, start?: number) {
     return Promise.resolve(
-      await this.aptosClient.getAccountTransactions(address)
+      await this.aptosClient.getAccountTransactions(address, { start, limit })
     );
   }
 
@@ -320,12 +321,13 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of events
    */
-  async getReceivedEvents(address: string) {
+  async getReceivedEvents(address: string, limit?: number, start?: number) {
     return Promise.resolve(
       await this.aptosClient.getEventsByEventHandle(
         address,
         "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>",
-        "deposit_events"
+        "deposit_events",
+        { start, limit }
       )
     );
   }
@@ -704,14 +706,21 @@ export class WalletClient {
   async getEventStream(
     address: string,
     eventHandleStruct: string,
-    fieldName: string
+    fieldName: string,
+    limit?: number,
+    start?: number
   ) {
-    const response = await fetch(
-      `${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`,
-      {
-        method: "GET",
-      }
-    );
+    let endpointUrl = `${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`;
+    if (limit) {
+      endpointUrl += `?limit=${limit}`;
+    }
+
+    if (start) {
+      endpointUrl += limit ? `&start=${start}` : `?start=${start}`;
+    }
+    const response = await fetch(endpointUrl, {
+      method: "GET",
+    });
 
     if (response.status === 404) {
       return [];
@@ -727,7 +736,7 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of token IDs
    */
-  async getTokenIds(address: string) {
+  async getTokenIds(address: string, limit?: number, start?: number) {
     const countDeposit = {};
     const countWithdraw = {};
     const tokenIds = [];
@@ -735,13 +744,17 @@ export class WalletClient {
     const depositEvents = await this.getEventStream(
       address,
       "0x3::token::TokenStore",
-      "deposit_events"
+      "deposit_events",
+      limit,
+      start
     );
 
     const withdrawEvents = await this.getEventStream(
       address,
       "0x3::token::TokenStore",
-      "withdraw_events"
+      "withdraw_events",
+      limit,
+      start
     );
 
     depositEvents.forEach((element) => {
@@ -765,7 +778,10 @@ export class WalletClient {
         ? countWithdraw[elementString]
         : 0;
       if (count1 - count2 === 1) {
-        tokenIds.push(element.data.id);
+        tokenIds.push({
+          data: element.data.id,
+          sequence_number: element.sequence_number,
+        });
       }
     });
     return tokenIds;
@@ -777,50 +793,54 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of tokens and their collection data
    */
-  async getTokens(address: string) {
-    const localCache = {};
-    const tokenIds = await this.getTokenIds(address);
+  async getTokens(address: string, limit?: number, start?: number) {
+    const tokenIds = await this.getTokenIds(address, limit, start);
     const tokens = [];
-    // eslint-disable-next-line no-restricted-syntax
-    for (const tokenId of tokenIds) {
-      /* eslint-disable no-await-in-loop */
-      let resources: Types.AccountResource[];
-      if (tokenId.token_data_id.creator in localCache) {
-        resources = localCache[tokenId.token_data_id.creator];
-      } else {
-        resources = await this.aptosClient.getAccountResources(
-          tokenId.token_data_id.creator
+    await Promise.all(
+      tokenIds.map(async (tokenId) => {
+        let resources: Types.AccountResource[];
+        if (cache.has(`resources--${tokenId.token_data_id.data.creator}`)) {
+          resources = cache.get(`resources--${tokenId.token_data_id.data.creator}`);
+        } else {
+          resources = await this.aptosClient.getAccountResources(
+            tokenId.token_data_id.data.creator
+          );
+          cache.set(`resources--${tokenId.data.token_data_id.creator}`, resources);
+        }
+
+        const accountResource: { type: string; data: any } = resources.find(
+          (r) => r.type === "0x3::token::Collections"
         );
-        localCache[tokenId.token_data_id.creator] = resources;
-      }
-      const accountResource: { type: string; data: any } = resources.find(
-        (r) => r.type === "0x3::token::Collections"
-      );
+        const tableItemRequest: Types.TableItemRequest = {
+          key_type: "0x3::token::TokenDataId",
+          value_type: "0x3::token::TokenData",
+          key: tokenId.data.token_data_id,
+        };
 
-      const tableItemRequest: Types.TableItemRequest = {
-        key_type: "0x3::token::TokenDataId",
-        value_type: "0x3::token::TokenData",
-        key: tokenId.token_data_id,
-      };
-      const token = (
-        await this.aptosClient.getTableItem(
-          accountResource.data.token_data.handle,
-          tableItemRequest
-        )
-      ).data;
+        const cacheKey = JSON.stringify(tableItemRequest);
 
-      token.description = hexToUtf8(token.description);
-      token.uri = hexToUtf8(token.uri);
-      token.name = hexToUtf8(token.name);
-      token.collection = {
-        name: hexToUtf8(tokenId.token_data_id.name),
-        collection: hexToUtf8(tokenId.token_data_id.collection),
-        creator: tokenId.token_data_id.creator,
-      };
+        let token: any;
+        if (cache.has(cacheKey)) {
+          token = cache.get(cacheKey);
+        } else {
+          token = (
+            await this.aptosClient.getTableItem(
+              accountResource.data.token_data.handle,
+              tableItemRequest
+            )
+          ).data;
+          cache.set(cacheKey, token);
+        }
 
-      tokens.push(token);
-      /* eslint-enable no-await-in-loop */
-    }
+        token.description = hexToUtf8(token.description);
+        token.uri = hexToUtf8(token.uri);
+        token.name = hexToUtf8(token.name);
+        token.collection = hexToUtf8(tokenId.token_data_id.collection),
+        tokens.push({ token, sequence_number: tokenId.sequence_number });
+
+      })
+    );
+
     return tokens;
   }
 
@@ -839,8 +859,8 @@ export class WalletClient {
     );
 
     const tableItemRequest: Types.TableItemRequest = {
-      key_type: "0x3::token::TokenId",
-      value_type: "0x3::token::Token",
+      key_type: "0x3::token::TokenDataId",
+      value_type: "0x3::token::TokenData",
       key: tokenId.token_data_id,
     };
     const token = (
@@ -876,7 +896,7 @@ export class WalletClient {
 
     const tableItemRequest: Types.TableItemRequest = {
       key_type: "0x1::string::String",
-      value_type: "0x1::token::Collection",
+      value_type: "0x3::token::Collection",
       key: collectionName,
     };
     const collection = (
