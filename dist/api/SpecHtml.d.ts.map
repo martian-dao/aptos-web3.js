@@ -1,0 +1,1 @@
+{"version":3,"file":"SpecHtml.d.ts","sourceRoot":"","sources":["../../src/api/SpecHtml.ts"],"names":[],"mappings":"AAWA,OAAO,EAAE,UAAU,EAAE,aAAa,EAAE,MAAM,eAAe,CAAC;AAE1D,qBAAa,QAAQ,CAAC,gBAAgB,GAAG,OAAO;IAC9C,IAAI,EAAE,UAAU,CAAC,gBAAgB,CAAC,CAAC;gBAEvB,IAAI,EAAE,UAAU,CAAC,gBAAgB,CAAC;IAI9C;;;;;;;OAOG;IACH,WAAW,YAAY,aAAa,uDAK/B;CACN"}
