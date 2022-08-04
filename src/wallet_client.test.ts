@@ -70,7 +70,7 @@ test("verify creating collection and NFT", async () => {
   );
 
   const tokens = await apis.getTokens(aliceAccount.address().toString());
-  expect(tokens[0].name).toBe(tokenName);
+  expect(tokens[0].token.name).toBe(tokenName);
 });
 
 test(
@@ -130,7 +130,7 @@ test(
     const aliceTokens = await apis.getTokens(aliceAccount.address().toString());
     expect(aliceTokens.length).toBe(0);
     const bobTokens = await apis.getTokens(bobAccount.address().toString());
-    expect(bobTokens[0].name).toBe(tokenName);
+    expect(bobTokens[0].token.name).toBe(tokenName);
   },
   60 * 1000
 );
@@ -179,7 +179,7 @@ test("verify signAndSubmitTransactions", async () => {
   await apis.signAndSubmitTransactions(aliceAccount, [txn1, txn2]);
 
   const tokens = await apis.getTokens(aliceAccount.address().toString());
-  expect(tokens[0].name).toBe(tokenName);
+  expect(tokens[0].token.name).toBe(tokenName);
 });
 
 test("verify estimate gas fees", async () => {
@@ -265,6 +265,14 @@ test(
   },
   60 * 1000
 );
+
+// test("console.log", async () => {
+//   const alice = await apis.getReceivedEvents(
+//     "0xfb0f1312478305a29533fc59c5db6e5742ee99adc19f81d7bc9c250ccc552bcc"
+//   );
+
+//   expect(true).toBe(true);
+// });
 
 // test("verify fungible tokens", async () => {
 //     const alice = await apis.createWallet();
