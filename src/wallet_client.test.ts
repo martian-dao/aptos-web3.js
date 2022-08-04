@@ -51,7 +51,6 @@ test("verify creating collection and NFT", async () => {
     alice.accounts[0]
   );
 
-  console.log("ALice Address", aliceAccount.address());
 
   await apis.airdrop(aliceAccount.address().toString(), 1000000);
 
@@ -59,13 +58,11 @@ test("verify creating collection and NFT", async () => {
   const tokenName = "Alice Token";
 
   // Create collection and token on Alice's account
-  console.log(
-    await apis.createCollection(
-      aliceAccount,
-      collectionName,
-      "Alice's simple collection",
-      "https://aptos.dev"
-    )
+  await apis.createCollection(
+    aliceAccount,
+    collectionName,
+    "Alice's simple collection",
+    "https://aptos.dev"
   );
 
   await apis.createToken(
@@ -138,7 +135,6 @@ test(
     );
 
     const aliceTokens = await apis.getTokens(aliceAccount.address().toString());
-    console.log(aliceTokens);
     expect(aliceTokens.length).toBe(0);
     const bobTokens = await apis.getTokens(bobAccount.address().toString());
     expect(bobTokens[0].token.name).toBe(tokenName);

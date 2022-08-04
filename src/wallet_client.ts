@@ -295,7 +295,7 @@ export class WalletClient {
         ],
       };
 
-      return await this.tokenClient.submitTransactionHelper(account, payload);
+      return await this.tokenClient.submitTransactionHelper(account, payload, {max_gas_amount: "4000"});
     } catch (err) {
       return Promise.reject(err);
     }
@@ -799,11 +799,11 @@ export class WalletClient {
     await Promise.all(
       tokenIds.map(async (tokenId) => {
         let resources: Types.AccountResource[];
-        if (cache.has(`resources--${tokenId.token_data_id.data.creator}`)) {
-          resources = cache.get(`resources--${tokenId.token_data_id.data.creator}`);
+        if (cache.has(`resources--${tokenId.data.token_data_id.creator}`)) {
+          resources = cache.get(`resources--${tokenId.data.token_data_id.creator}`);
         } else {
           resources = await this.aptosClient.getAccountResources(
-            tokenId.token_data_id.data.creator
+            tokenId.data.token_data_id.creator
           );
           cache.set(`resources--${tokenId.data.token_data_id.creator}`, resources);
         }
@@ -835,7 +835,7 @@ export class WalletClient {
         token.description = hexToUtf8(token.description);
         token.uri = hexToUtf8(token.uri);
         token.name = hexToUtf8(token.name);
-        token.collection = hexToUtf8(tokenId.token_data_id.collection),
+        token.collection = hexToUtf8(tokenId.data.token_data_id.collection),
         tokens.push({ token, sequence_number: tokenId.sequence_number });
 
       })
@@ -872,11 +872,7 @@ export class WalletClient {
     token.description = hexToUtf8(token.description);
     token.uri = hexToUtf8(token.uri);
     token.name = hexToUtf8(token.name);
-    token.collection = {
-      name: hexToUtf8(tokenId.token_data_id.name),
-      collection: hexToUtf8(tokenId.token_data_id.collection),
-      creator: tokenId.token_data_id.creator,
-    };
+    token.collection = hexToUtf8(tokenId.token_data_id.collection)
     return token;
   }
 
