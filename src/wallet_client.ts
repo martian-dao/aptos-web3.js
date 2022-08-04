@@ -11,7 +11,7 @@ import { HexString, MaybeHexString } from "./hex_string";
 import { Types } from "./types";
 import { RawTransaction } from "./transaction_builder/aptos_types/transaction";
 import { WriteResource } from "./api/data-contracts";
-
+import { hexToUtf8 } from "./util";
 const { HDKey } = require("@scure/bip32");
 
 const COIN_TYPE = 637;
@@ -19,9 +19,12 @@ const MAX_ACCOUNTS = 5;
 const ADDRESS_GAP = 10;
 
 export interface TokenId {
-  creator: string;
-  collectionName: string;
-  name: string;
+  property_version: string;
+  token_data_id: {
+    creator: string;
+    collection: string;
+    name: string;
+  };
 }
 
 export interface AccountMetaData {
@@ -371,7 +374,7 @@ export class WalletClient {
     royalty_points_numerator: number = 0,
     property_keys: Array<string> = [],
     property_values: Array<string> = [],
-    property_types: Array<string> = [],
+    property_types: Array<string> = []
   ) {
     return Promise.resolve(
       await this.tokenClient.createToken(
@@ -386,7 +389,7 @@ export class WalletClient {
         royalty_points_numerator,
         property_keys,
         property_values,
-        property_types,
+        property_types
       )
     );
   }
@@ -408,7 +411,8 @@ export class WalletClient {
     creator_address: string,
     collection_name: string,
     token_name: string,
-    amount: number
+    amount: number,
+    property_version: number = 0
   ) {
     return Promise.resolve(
       await this.tokenClient.offerToken(
@@ -417,7 +421,8 @@ export class WalletClient {
         creator_address,
         collection_name,
         token_name,
-        amount
+        amount,
+        property_version
       )
     );
   }
@@ -437,7 +442,8 @@ export class WalletClient {
     receiver_address: string,
     creator_address: string,
     collection_name: string,
-    token_name: string
+    token_name: string,
+    property_version: number = 0
   ) {
     return Promise.resolve(
       await this.tokenClient.cancelTokenOffer(
@@ -445,7 +451,8 @@ export class WalletClient {
         receiver_address,
         creator_address,
         collection_name,
-        token_name
+        token_name,
+        property_version
       )
     );
   }
@@ -465,7 +472,8 @@ export class WalletClient {
     sender_address: string,
     creator_address: string,
     collection_name: string,
-    token_name: string
+    token_name: string,
+    property_version: number = 0
   ) {
     return Promise.resolve(
       await this.tokenClient.claimToken(
@@ -473,7 +481,8 @@ export class WalletClient {
         sender_address,
         creator_address,
         collection_name,
-        token_name
+        token_name,
+        property_version
       )
     );
   }
@@ -776,19 +785,22 @@ export class WalletClient {
     for (const tokenId of tokenIds) {
       /* eslint-disable no-await-in-loop */
       let resources: Types.AccountResource[];
-      if (tokenId.creator in localCache) {
-        resources = localCache[tokenId.creator];
+      if (tokenId.token_data_id.creator in localCache) {
+        resources = localCache[tokenId.token_data_id.creator];
       } else {
-        resources = await this.aptosClient.getAccountResources(tokenId.creator);
-        localCache[tokenId.creator] = resources;
+        resources = await this.aptosClient.getAccountResources(
+          tokenId.token_data_id.creator
+        );
+        localCache[tokenId.token_data_id.creator] = resources;
       }
       const accountResource: { type: string; data: any } = resources.find(
         (r) => r.type === "0x3::token::Collections"
       );
+
       const tableItemRequest: Types.TableItemRequest = {
-        key_type: "0x3::token::TokenId",
+        key_type: "0x3::token::TokenDataId",
         value_type: "0x3::token::TokenData",
-        key: tokenId,
+        key: tokenId.token_data_id,
       };
       const token = (
         await this.aptosClient.getTableItem(
@@ -796,6 +808,16 @@ export class WalletClient {
           tableItemRequest
         )
       ).data;
+
+      token.description = hexToUtf8(token.description);
+      token.uri = hexToUtf8(token.uri);
+      token.name = hexToUtf8(token.name);
+      token.collection = {
+        name: hexToUtf8(tokenId.token_data_id.name),
+        collection: hexToUtf8(tokenId.token_data_id.collection),
+        creator: tokenId.token_data_id.creator,
+      };
+
       tokens.push(token);
       /* eslint-enable no-await-in-loop */
     }
@@ -811,15 +833,15 @@ export class WalletClient {
    */
   async getToken(tokenId: TokenId) {
     const resources: Types.AccountResource[] =
-      await this.aptosClient.getAccountResources(tokenId.creator);
+      await this.aptosClient.getAccountResources(tokenId.token_data_id.creator);
     const accountResource: { type: string; data: any } = resources.find(
       (r) => r.type === "0x3::token::Collections"
     );
 
     const tableItemRequest: Types.TableItemRequest = {
       key_type: "0x3::token::TokenId",
-      value_type: "0x3::token::TokenData",
-      key: tokenId,
+      value_type: "0x3::token::Token",
+      key: tokenId.token_data_id,
     };
     const token = (
       await this.aptosClient.getTableItem(
@@ -827,6 +849,14 @@ export class WalletClient {
         tableItemRequest
       )
     ).data;
+    token.description = hexToUtf8(token.description);
+    token.uri = hexToUtf8(token.uri);
+    token.name = hexToUtf8(token.name);
+    token.collection = {
+      name: hexToUtf8(tokenId.token_data_id.name),
+      collection: hexToUtf8(tokenId.token_data_id.collection),
+      creator: tokenId.token_data_id.creator,
+    };
     return token;
   }
 

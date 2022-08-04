@@ -1,7 +1,11 @@
 import { WalletClient } from "./wallet_client";
 import { NODE_URL, FAUCET_URL } from "./util.test";
+import { hexToUtf8 } from "./util";
 
-const apis = new WalletClient(NODE_URL, FAUCET_URL);
+const LOCAL_NODE_URL = "http://0.0.0.0:8080";
+const LOCAL_FAUCET_URL = "http://0.0.0.0:8000";
+
+const apis = new WalletClient(LOCAL_NODE_URL, LOCAL_FAUCET_URL);
 
 test("verify airdrop", async () => {
   const alice = await apis.createWallet();
@@ -47,17 +51,21 @@ test("verify creating collection and NFT", async () => {
     alice.accounts[0]
   );
 
-  await apis.airdrop(aliceAccount.address().toString(), 20000);
+  console.log("ALice Address", aliceAccount.address());
+
+  await apis.airdrop(aliceAccount.address().toString(), 1000000);
 
   const collectionName = "AliceCollection";
   const tokenName = "Alice Token";
 
   // Create collection and token on Alice's account
-  await apis.createCollection(
-    aliceAccount,
-    collectionName,
-    "Alice's simple collection",
-    "https://aptos.dev"
+  console.log(
+    await apis.createCollection(
+      aliceAccount,
+      collectionName,
+      "Alice's simple collection",
+      "https://aptos.dev"
+    )
   );
 
   await apis.createToken(
@@ -70,6 +78,7 @@ test("verify creating collection and NFT", async () => {
   );
 
   const tokens = await apis.getTokens(aliceAccount.address().toString());
+  console.log(tokens);
   expect(tokens[0].name).toBe(tokenName);
 });
 
@@ -88,8 +97,8 @@ test(
       bob.accounts[0]
     );
 
-    await apis.airdrop(aliceAccount.address().toString(), 20000);
-    await apis.airdrop(bobAccount.address().toString(), 20000);
+    await apis.airdrop(aliceAccount.address().toString(), 1000000);
+    await apis.airdrop(bobAccount.address().toString(), 1000000);
 
     const collectionName = "AliceCollection";
     const tokenName = "Alice Token";
@@ -117,17 +126,20 @@ test(
       aliceAccount.address().toString(),
       collectionName,
       tokenName,
-      1
+      1,
+      0
     );
     await apis.claimToken(
       bobAccount,
       aliceAccount.address().toString(),
       aliceAccount.address().toString(),
       collectionName,
-      tokenName
+      tokenName,
+      0
     );
 
     const aliceTokens = await apis.getTokens(aliceAccount.address().toString());
+    console.log(aliceTokens);
     expect(aliceTokens.length).toBe(0);
     const bobTokens = await apis.getTokens(bobAccount.address().toString());
     expect(bobTokens[0].name).toBe(tokenName);
@@ -141,7 +153,7 @@ test("verify signAndSubmitTransactions", async () => {
     alice.code,
     alice.accounts[0]
   );
-  await apis.airdrop(aliceAccount.address().toString(), 20000);
+  await apis.airdrop(aliceAccount.address().toString(), 1000000);
 
   const collectionName = "AptosCollection";
   const tokenName = "AptosToken";
@@ -156,8 +168,12 @@ test("verify signAndSubmitTransactions", async () => {
         Buffer.from(collectionName).toString("hex"),
         Buffer.from("description").toString("hex"),
         Buffer.from("https://www.aptos.dev").toString("hex"),
-        "1234"
+        "1234",
+        [false, false, false],
       ],
+    },
+    {
+      max_gas_amount: "200000",
     }
   );
   const txn2 = await apis.aptosClient.generateTransaction(
@@ -181,6 +197,9 @@ test("verify signAndSubmitTransactions", async () => {
         [],
         [],
       ],
+    },
+    {
+      max_gas_amount: "200000",
     }
   );
   await apis.signAndSubmitTransactions(aliceAccount, [txn1, txn2]);
@@ -224,7 +243,7 @@ test(
       alice.code,
       alice.accounts[0]
     );
-    await apis.airdrop(aliceAccount.address().toString(), 10000);
+    await apis.airdrop(aliceAccount.address().toString(), 1000000);
     const collectionName = "AptosCollection";
     const tokenName = "AptosToken";
 
@@ -232,35 +251,49 @@ test(
       aliceAccount.address().toString(),
       {
         type: "script_function_payload",
-        function: "0x1::token::create_unlimited_collection_script",
+        function: "0x3::token::create_collection_script",
         type_arguments: [],
         arguments: [
           Buffer.from(collectionName).toString("hex"),
           Buffer.from("description").toString("hex"),
           Buffer.from("https://www.aptos.dev").toString("hex"),
+          "1234",
+          [false, false, false],
         ],
+      },
+      {
+        max_gas_amount: "200000",
       }
     );
+
     await apis.signAndSubmitTransactions(aliceAccount, [txn1]);
 
     const txn2 = await apis.aptosClient.generateTransaction(
       aliceAccount.address().toString(),
       {
         type: "script_function_payload",
-        function: "0x1::token::create_unlimited_token_script",
+        function: "0x3::token::create_token_script",
         type_arguments: [],
         arguments: [
           Buffer.from(collectionName).toString("hex"),
           Buffer.from(tokenName).toString("hex"),
-          Buffer.from("description").toString("hex"),
-          true,
+          Buffer.from("token description").toString("hex"),
           "1",
+          "1234",
           Buffer.from("https://aptos.dev/img/nyan.jpeg").toString("hex"),
+          aliceAccount.address().toString(),
           "0",
+          "0",
+          [false, false, false, false, false],
+          [],
+          [],
+          [],
         ],
+      },
+      {
+        max_gas_amount: "200000",
       }
     );
-
     const estimatedCost = await apis.estimateCost(aliceAccount, txn2);
     const currentBalance = await apis.getBalance(aliceAccount.address());
     const txnHash = await apis.signAndSubmitTransaction(aliceAccount, txn2);

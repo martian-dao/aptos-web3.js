@@ -26,7 +26,7 @@ export class TokenClient {
    */
   async submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload) {
     const txnRequest = await this.aptosClient.generateTransaction(account.address(), payload, {
-      max_gas_amount: "4000",
+      max_gas_amount: "200000",
     });
     const signedTxn = await this.aptosClient.signTransaction(account, txnRequest);
     const res = await this.aptosClient.submitTransaction(signedTxn);
@@ -130,16 +130,18 @@ export class TokenClient {
     collectionName: string,
     name: string,
     amount: number,
+    property_version: number=0,
   ): Promise<Types.HexEncodedBytes> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
-      function: "0x1::token_transfers::offer_script",
+      function: "0x3::token_transfers::offer_script",
       type_arguments: [],
       arguments: [
         receiver,
         creator,
         Buffer.from(collectionName).toString("hex"),
         Buffer.from(name).toString("hex"),
+        property_version.toString(),
         amount.toString(),
       ],
     };
@@ -162,12 +164,13 @@ export class TokenClient {
     creator: MaybeHexString,
     collectionName: string,
     name: string,
+    property_version: number=0,
   ): Promise<Types.HexEncodedBytes> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
-      function: "0x1::token_transfers::claim_script",
+      function: "0x3::token_transfers::claim_script",
       type_arguments: [],
-      arguments: [sender, creator, Buffer.from(collectionName).toString("hex"), Buffer.from(name).toString("hex")],
+      arguments: [sender, creator, Buffer.from(collectionName).toString("hex"), Buffer.from(name).toString("hex"), property_version.toString()],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
     return transactionHash;
@@ -188,12 +191,13 @@ export class TokenClient {
     creator: MaybeHexString,
     collectionName: string,
     name: string,
+    property_version: number=0,
   ): Promise<Types.HexEncodedBytes> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
-      function: "0x1::token_transfers::cancel_offer_script",
+      function: "0x3::token_transfers::cancel_offer_script",
       type_arguments: [],
-      arguments: [receiver, creator, Buffer.from(collectionName).toString("hex"), Buffer.from(name).toString("hex")],
+      arguments: [receiver, creator, Buffer.from(collectionName).toString("hex"), Buffer.from(name).toString("hex"), property_version.toString()],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
     return transactionHash;
