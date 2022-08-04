@@ -47,7 +47,6 @@ test("verify creating collection and NFT", async () => {
     alice.accounts[0]
   );
 
-
   await apis.airdrop(aliceAccount.address().toString(), 1000000);
 
   const collectionName = "AliceCollection";

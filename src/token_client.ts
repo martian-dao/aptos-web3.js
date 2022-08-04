@@ -24,7 +24,7 @@ export class TokenClient {
    * @param payload Transaction payload. It depends on transaction type you want to send
    * @returns Promise that resolves to transaction hash
    */
-  async submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload, options={max_gas_amount: "200000"}) {
+  async submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload, options = { max_gas_amount: "200000" }) {
     const txnRequest = await this.aptosClient.generateTransaction(account.address(), payload, options);
     const signedTxn = await this.aptosClient.signTransaction(account, txnRequest);
     const res = await this.aptosClient.submitTransaction(signedTxn);
@@ -128,7 +128,7 @@ export class TokenClient {
     collectionName: string,
     name: string,
     amount: number,
-    property_version: number=0,
+    property_version: number = 0,
   ): Promise<Types.HexEncodedBytes> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
@@ -162,7 +162,7 @@ export class TokenClient {
     creator: MaybeHexString,
     collectionName: string,
     name: string,
-    property_version: number=0,
+    property_version: number = 0,
   ): Promise<Types.HexEncodedBytes> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
@@ -189,7 +189,7 @@ export class TokenClient {
     creator: MaybeHexString,
     collectionName: string,
     name: string,
-    property_version: number=0,
+    property_version: number = 0,
   ): Promise<Types.HexEncodedBytes> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
@@ -224,7 +224,7 @@ export class TokenClient {
   async getCollectionData(creator: MaybeHexString, collectionName: string): Promise<any> {
     const resources = await this.aptosClient.getAccountResources(creator);
     const accountResource: { type: string; data: any } = resources.find((r) => r.type === "0x3::token::Collections");
-    const { handle }: { handle: string } = accountResource.data.collections;
+    const { handle }: { handle: string } = accountResource.data.collection_data;
     const getCollectionTableItemRequest: Types.TableItemRequest = {
       key_type: "0x1::string::String",
       value_type: "0x3::token::Collection",
@@ -266,12 +266,12 @@ export class TokenClient {
     const { handle } = collection.data.token_data;
     const tokenId = {
       creator,
-      collection: collectionName,
-      name: tokenName,
+      collection: Buffer.from(collectionName).toString("hex"),
+      name: Buffer.from(tokenName).toString("hex"),
     };
 
     const getTokenTableItemRequest: Types.TableItemRequest = {
-      key_type: "0x3::token::TokenId",
+      key_type: "0x3::token::TokenDataId",
       value_type: "0x3::token::TokenData",
       key: tokenId,
     };
@@ -284,14 +284,23 @@ export class TokenClient {
    * Queries token balance for the token creator
    * @deprecated Use getTokenBalanceForAccount instead
    */
-  async getTokenBalance(creator: MaybeHexString, collectionName: string, tokenName: string): Promise<Types.Token> {
-    return this.getTokenBalanceForAccount(creator, {
+
+  async getTokenBalance(
+    creator: MaybeHexString,
+    collectionName: string,
+    tokenName: string,
+    property_version: string = "0",
+  ): Promise<Types.Token> {
+    const tokenDataId: Types.TokenId = {
       creator: creator instanceof HexString ? creator.hex() : creator,
-      collection: collectionName,
-      name: tokenName,
+      collection: Buffer.from(collectionName).toString("hex"),
+      name: Buffer.from(tokenName).toString("hex"),
+    };
+    return this.getTokenBalanceForAccount(creator, {
+      token_data_id: tokenDataId,
+      property_version,
     });
   }
-
   /**
    * Queries token balance for a token account
    * @param account Hex-encoded 16 bytes Aptos account address which created a token
@@ -313,11 +322,12 @@ export class TokenClient {
    * }
    * ```
    */
-  async getTokenBalanceForAccount(account: MaybeHexString, tokenId: Types.TokenId): Promise<Types.Token> {
+  async getTokenBalanceForAccount(account: MaybeHexString, tokenId: any): Promise<Types.Token> {
     const tokenStore: { type: string; data: any } = await this.aptosClient.getAccountResource(
       account,
       "0x3::token::TokenStore",
     );
+
     const { handle } = tokenStore.data.tokens;
 
     const getTokenTableItemRequest: Types.TableItemRequest = {
