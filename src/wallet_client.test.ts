@@ -155,15 +155,12 @@ test("verify signAndSubmitTransactions", async () => {
       function: "0x3::token::create_collection_script",
       type_arguments: [],
       arguments: [
-        Buffer.from(collectionName).toString("hex"),
-        Buffer.from("description").toString("hex"),
-        Buffer.from("https://www.aptos.dev").toString("hex"),
+        collectionName,
+        "description",
+        "https://www.aptos.dev",
         "1234",
         [false, false, false],
       ],
-    },
-    {
-      max_gas_amount: "200000",
     }
   );
   const txn2 = await apis.aptosClient.generateTransaction(
@@ -173,12 +170,12 @@ test("verify signAndSubmitTransactions", async () => {
       function: "0x3::token::create_token_script",
       type_arguments: [],
       arguments: [
-        Buffer.from(collectionName).toString("hex"),
-        Buffer.from(tokenName).toString("hex"),
-        Buffer.from("token description").toString("hex"),
+        collectionName,
+        tokenName,
+        "token description",
         "1",
         "1234",
-        Buffer.from("https://aptos.dev/img/nyan.jpeg").toString("hex"),
+        "https://aptos.dev/img/nyan.jpeg",
         aliceAccount.address().toString(),
         "0",
         "0",
@@ -187,9 +184,6 @@ test("verify signAndSubmitTransactions", async () => {
         [],
         [],
       ],
-    },
-    {
-      max_gas_amount: "200000",
     }
   );
   await apis.signAndSubmitTransactions(aliceAccount, [txn1, txn2]);
@@ -244,15 +238,12 @@ test(
         function: "0x3::token::create_collection_script",
         type_arguments: [],
         arguments: [
-          Buffer.from(collectionName).toString("hex"),
-          Buffer.from("description").toString("hex"),
-          Buffer.from("https://www.aptos.dev").toString("hex"),
+          collectionName,
+          "description",
+          "https://www.aptos.dev",
           "1234",
           [false, false, false],
         ],
-      },
-      {
-        max_gas_amount: "200000",
       }
     );
 
@@ -265,12 +256,12 @@ test(
         function: "0x3::token::create_token_script",
         type_arguments: [],
         arguments: [
-          Buffer.from(collectionName).toString("hex"),
-          Buffer.from(tokenName).toString("hex"),
-          Buffer.from("token description").toString("hex"),
+          collectionName,
+          tokenName,
+          "token description",
           "1",
           "1234",
-          Buffer.from("https://aptos.dev/img/nyan.jpeg").toString("hex"),
+          "https://aptos.dev/img/nyan.jpeg",
           aliceAccount.address().toString(),
           "0",
           "0",
@@ -279,9 +270,6 @@ test(
           [],
           [],
         ],
-      },
-      {
-        max_gas_amount: "200000",
       }
     );
     const estimatedCost = await apis.estimateCost(aliceAccount, txn2);

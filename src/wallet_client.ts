@@ -12,7 +12,7 @@ import { Types } from "./types";
 import { RawTransaction } from "./transaction_builder/aptos_types/transaction";
 import cache from "./utils/cache";
 import { WriteResource } from "./api/data-contracts";
-import { hexToUtf8 } from "./util";
+
 const { HDKey } = require("@scure/bip32");
 
 const COIN_TYPE = 637;
@@ -839,11 +839,8 @@ export class WalletClient {
           cache.set(cacheKey, token);
         }
 
-        token.description = hexToUtf8(token.description);
-        token.uri = hexToUtf8(token.uri);
-        token.name = hexToUtf8(token.name);
-        (token.collection = hexToUtf8(tokenId.data.token_data_id.collection)),
-          tokens.push({ token, sequence_number: tokenId.sequence_number });
+        token.collection = tokenId.data.token_data_id.collection;
+        tokens.push({ token, sequence_number: tokenId.sequence_number });
       })
     );
 
@@ -875,10 +872,7 @@ export class WalletClient {
         tableItemRequest
       )
     ).data;
-    token.description = hexToUtf8(token.description);
-    token.uri = hexToUtf8(token.uri);
-    token.name = hexToUtf8(token.name);
-    token.collection = hexToUtf8(tokenId.token_data_id.collection);
+    token.collection = tokenId.token_data_id.collection;
     return token;
   }
 

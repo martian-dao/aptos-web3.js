@@ -24,7 +24,7 @@ export class TokenClient {
    * @param payload Transaction payload. It depends on transaction type you want to send
    * @returns Promise that resolves to transaction hash
    */
-  async submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload, options = { max_gas_amount: "200000" }) {
+  async submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload, options = { max_gas_amount: "4000" }) {
     const txnRequest = await this.aptosClient.generateTransaction(account.address(), payload, options);
     const signedTxn = await this.aptosClient.signTransaction(account, txnRequest);
     const res = await this.aptosClient.submitTransaction(signedTxn);
@@ -51,9 +51,9 @@ export class TokenClient {
       function: "0x3::token::create_collection_script",
       type_arguments: [],
       arguments: [
-        Buffer.from(name).toString("hex"),
-        Buffer.from(description).toString("hex"),
-        Buffer.from(uri).toString("hex"),
+        name,
+        description,
+        uri,
         NUMBER_MAX.toString(),
         [false, false, false],
       ],
@@ -70,7 +70,13 @@ export class TokenClient {
    * @param description Token description
    * @param supply Token supply
    * @param uri URL to additional info about token
-   * @param royalty_points_per_million the royal points to be provided to creator
+   * @param max The maxium of tokens can be minted from this token
+   * @param royalty_payee_address the address to receive the royalty, the address can be a shared account address.
+   * @param royalty_points_denominator the denominator for calculating royalty
+   * @param royalty_points_numerator the numerator for calculating royalty
+   * @param property_keys the property keys for storing on-chain properties
+   * @param property_values the property values to be stored on-chain
+   * @param property_types the type of property values
    * @returns A hash of transaction
    */
   async createToken(
@@ -92,19 +98,19 @@ export class TokenClient {
       function: "0x3::token::create_token_script",
       type_arguments: [],
       arguments: [
-        Buffer.from(collectionName).toString("hex"),
-        Buffer.from(name).toString("hex"),
-        Buffer.from(description).toString("hex"),
+        collectionName,
+        name,
+        description,
         supply.toString(),
         NUMBER_MAX.toString(),
-        Buffer.from(uri).toString("hex"),
+        uri,
         royalty_payee_address.toString(),
         royalty_points_denominator.toString(),
         royalty_points_numerator.toString(),
         [false, false, false, false, false],
-        property_keys.map((key) => Buffer.from(key).toString("hex")),
-        property_values.map((val) => Buffer.from(val).toString("hex")),
-        property_types.map((typ) => Buffer.from(typ).toString("hex")),
+        property_keys,
+        property_values,
+        property_types,
       ],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
@@ -114,11 +120,12 @@ export class TokenClient {
   /**
    * Transfers specified amount of tokens from account to receiver
    * @param account AptosAccount where token from which tokens will be transfered
-   * @param receiver  Hex-encoded 16 bytes Aptos account address to which tokens will be transfered
-   * @param creator Hex-encoded 16 bytes Aptos account address to which created tokens
+   * @param receiver  Hex-encoded 32 byte Aptos account address to which tokens will be transfered
+   * @param creator Hex-encoded 32 byte Aptos account address to which created tokens
    * @param collectionName Name of collection where token is stored
    * @param name Token name
    * @param amount Amount of tokens which will be transfered
+   * @param property_version the version of token PropertyMap with a default value 0.
    * @returns A hash of transaction
    */
   async offerToken(
@@ -137,8 +144,8 @@ export class TokenClient {
       arguments: [
         receiver,
         creator,
-        Buffer.from(collectionName).toString("hex"),
-        Buffer.from(name).toString("hex"),
+        collectionName,
+        name,
         property_version.toString(),
         amount.toString(),
       ],
@@ -150,10 +157,11 @@ export class TokenClient {
   /**
    * Claims a token on specified account
    * @param account AptosAccount which will claim token
-   * @param sender Hex-encoded 16 bytes Aptos account address which holds a token
-   * @param creator Hex-encoded 16 bytes Aptos account address which created a token
+   * @param sender Hex-encoded 32 byte Aptos account address which holds a token
+   * @param creator Hex-encoded 32 byte Aptos account address which created a token
    * @param collectionName Name of collection where token is stored
    * @param name Token name
+   * @param property_version the version of token PropertyMap with a default value 0.
    * @returns A hash of transaction
    */
   async claimToken(
@@ -168,7 +176,7 @@ export class TokenClient {
       type: "script_function_payload",
       function: "0x3::token_transfers::claim_script",
       type_arguments: [],
-      arguments: [sender, creator, Buffer.from(collectionName).toString("hex"), Buffer.from(name).toString("hex"), property_version.toString()],
+      arguments: [sender, creator, collectionName, name, property_version.toString()],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
     return transactionHash;
@@ -195,7 +203,7 @@ export class TokenClient {
       type: "script_function_payload",
       function: "0x3::token_transfers::cancel_offer_script",
       type_arguments: [],
-      arguments: [receiver, creator, Buffer.from(collectionName).toString("hex"), Buffer.from(name).toString("hex"), property_version.toString()],
+      arguments: [receiver, creator, collectionName, name, property_version.toString()],
     };
     const transactionHash = await this.submitTransactionHelper(account, payload);
     return transactionHash;
@@ -266,7 +274,7 @@ export class TokenClient {
     const { handle } = collection.data.token_data;
     const tokenId = {
       creator,
-      collection: Buffer.from(collectionName).toString("hex"),
+      collection: collectionName,
       name: Buffer.from(tokenName).toString("hex"),
     };
 
@@ -293,8 +301,8 @@ export class TokenClient {
   ): Promise<Types.Token> {
     const tokenDataId: Types.TokenId = {
       creator: creator instanceof HexString ? creator.hex() : creator,
-      collection: Buffer.from(collectionName).toString("hex"),
-      name: Buffer.from(tokenName).toString("hex"),
+      collection: collectionName,
+      name: tokenName,
     };
     return this.getTokenBalanceForAccount(creator, {
       token_data_id: tokenDataId,

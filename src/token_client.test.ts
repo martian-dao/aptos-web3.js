@@ -4,9 +4,7 @@ import { AptosClient } from "./aptos_client";
 import { TokenClient } from "./token_client";
 import { hexToUtf8 } from "./util";
 
-// import { NODE_URL, FAUCET_URL } from "./util.test";
-const NODE_URL = "http://0.0.0.0:8080"
-const FAUCET_URL = "http://0.0.0.0:8000"
+import { NODE_URL, FAUCET_URL } from "./util.test";
 
 test(
   "full tutorial nft token flow",
@@ -63,8 +61,8 @@ test(
     const bobBalance: any = await tokenClient.getTokenBalanceForAccount(bob.address().hex(), {
       token_data_id: {
         creator: alice.address().hex(),
-        collection: Buffer.from(collectionName).toString("hex"),
-        name: Buffer.from(tokenName).toString("hex"),
+        collection: collectionName,
+        name: tokenName,
       },
       property_version: "0"
     });
