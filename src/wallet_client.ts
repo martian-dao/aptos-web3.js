@@ -30,7 +30,7 @@ export interface TokenId {
 
 export interface AccountMetaData {
   derivationPath: string;
-  address: string | HexString;
+  address: string;
   publicKey?: string;
 }
 
