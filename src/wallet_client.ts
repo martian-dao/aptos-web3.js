@@ -849,18 +849,40 @@ export class WalletClient {
   }
 
   /**
+   * returns the resource handle for type 0x3::token::Collections
+   * about a said creator
+   *
+   * @param tokenId token ID of the desired token
+   * @returns resource information
+   */
+  async getTokenResourceHandle(tokenId: TokenId) {
+    const resources: Types.AccountResource[] =
+      await this.aptosClient.getAccountResources(tokenId.token_data_id.creator);
+    const accountResource: { type: string; data: any } = resources.find(
+      (r) => r.type === "0x3::token::Collections"
+    );
+
+    return accountResource.data.token_data.handle;
+  }
+
+  /**
    * returns the token information (including the collection information)
    * about a said tokenID
    *
    * @param tokenId token ID of the desired token
    * @returns token information
    */
-  async getToken(tokenId: TokenId) {
-    const resources: Types.AccountResource[] =
-      await this.aptosClient.getAccountResources(tokenId.token_data_id.creator);
-    const accountResource: { type: string; data: any } = resources.find(
-      (r) => r.type === "0x3::token::Collections"
-    );
+  async getToken(tokenId: TokenId, resourceHandle?: string) {
+    let accountResource: { type: string; data: any };
+    if (!resourceHandle) {
+      const resources: Types.AccountResource[] =
+        await this.aptosClient.getAccountResources(
+          tokenId.token_data_id.creator
+        );
+      accountResource = resources.find(
+        (r) => r.type === "0x3::token::Collections"
+      );
+    }
 
     const tableItemRequest: Types.TableItemRequest = {
       key_type: "0x3::token::TokenDataId",
@@ -869,7 +891,7 @@ export class WalletClient {
     };
     const token = (
       await this.aptosClient.getTableItem(
-        accountResource.data.token_data.handle,
+        resourceHandle || accountResource.data.token_data.handle,
         tableItemRequest
       )
     ).data;
