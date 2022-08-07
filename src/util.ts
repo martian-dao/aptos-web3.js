@@ -7,3 +7,15 @@ export async function sleep(timeMs: number): Promise<null> {
     setTimeout(resolve, timeMs);
   });
 }
+
+export function hexToUtf8(s)
+{
+  try{
+    return decodeURIComponent(
+      s.replace(/\s+/g, '') // remove spaces
+       .replace(/[0-9a-f]{2}/g, '%$&') // add '%' before each 2 characters
+   );
+  }catch(err){
+    return s
+  }
+}
