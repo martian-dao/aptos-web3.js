@@ -762,6 +762,7 @@ export class WalletClient {
         tokenIds.push({
           data: element.data.id,
           sequence_number: element.sequence_number,
+          difference: count1 - count2,
         });
       }
     });
