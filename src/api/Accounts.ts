@@ -52,7 +52,11 @@ export class Accounts<SecurityDataType = unknown> {
    * @summary Get account resources
    * @request GET:/accounts/{address}/resources
    */
-  getAccountResources = (address: Address, query?: { version?: LedgerVersion }, params: RequestParams = {}) =>
+  getAccountResources = (
+    address: Address,
+    query?: { version?: LedgerVersion },
+    params: RequestParams = {}
+  ) =>
     this.http.request<AccountResource[], AptosError>({
       path: `/accounts/${address}/resources`,
       method: "GET",
@@ -72,7 +76,7 @@ export class Accounts<SecurityDataType = unknown> {
     address: Address,
     resourceType: MoveStructTagId,
     query?: { version?: LedgerVersion },
-    params: RequestParams = {},
+    params: RequestParams = {}
   ) =>
     this.http.request<AccountResource, AptosError>({
       path: `/accounts/${address}/resource/${resourceType}`,
@@ -89,7 +93,11 @@ export class Accounts<SecurityDataType = unknown> {
    * @summary Get account modules
    * @request GET:/accounts/{address}/modules
    */
-  getAccountModules = (address: Address, query?: { version?: LedgerVersion }, params: RequestParams = {}) =>
+  getAccountModules = (
+    address: Address,
+    query?: { version?: LedgerVersion },
+    params: RequestParams = {}
+  ) =>
     this.http.request<MoveModule[], AptosError>({
       path: `/accounts/${address}/modules`,
       method: "GET",
@@ -109,7 +117,7 @@ export class Accounts<SecurityDataType = unknown> {
     address: Address,
     moduleName: string,
     query?: { version?: LedgerVersion },
-    params: RequestParams = {},
+    params: RequestParams = {}
   ) =>
     this.http.request<MoveModule, AptosError>({
       path: `/accounts/${address}/module/${moduleName}`,
@@ -126,7 +134,11 @@ export class Accounts<SecurityDataType = unknown> {
    * @summary Get account transactions
    * @request GET:/accounts/{address}/transactions
    */
-  getAccountTransactions = (address: Address, query?: { start?: number; limit?: number }, params: RequestParams = {}) =>
+  getAccountTransactions = (
+    address: Address,
+    query?: { start?: number; limit?: number },
+    params: RequestParams = {}
+  ) =>
     this.http.request<OnChainTransaction[], AptosError>({
       path: `/accounts/${address}/transactions`,
       method: "GET",
@@ -147,7 +159,7 @@ export class Accounts<SecurityDataType = unknown> {
     eventHandleStruct: MoveStructTagId,
     fieldName: string,
     query?: { start?: number; limit?: number },
-    params: RequestParams = {},
+    params: RequestParams = {}
   ) =>
     this.http.request<Event[], AptosError>({
       path: `/accounts/${address}/events/${eventHandleStruct}/${fieldName}`,

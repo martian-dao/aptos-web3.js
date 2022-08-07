@@ -10,6 +10,7 @@ import { FaucetClient } from "./faucet_client";
 import { HexString, MaybeHexString } from "./hex_string";
 import { Types } from "./types";
 import { RawTransaction } from "./transaction_builder/aptos_types/transaction";
+import cache from "./utils/cache";
 import { WriteResource } from "./api/data-contracts";
 
 const { HDKey } = require("@scure/bip32");
@@ -19,9 +20,12 @@ const MAX_ACCOUNTS = 5;
 const ADDRESS_GAP = 10;
 
 export interface TokenId {
-  creator: string;
-  collectionName: string;
-  name: string;
+  property_version: string;
+  token_data_id: {
+    creator: string;
+    collection: string;
+    name: string;
+  };
 }
 
 export interface AccountMetaData {
@@ -291,7 +295,9 @@ export class WalletClient {
         ],
       };
 
-      return await this.tokenClient.submitTransactionHelper(account, payload);
+      return await this.tokenClient.submitTransactionHelper(account, payload, {
+        max_gas_amount: "4000",
+      });
     } catch (err) {
       return Promise.reject(err);
     }
@@ -304,9 +310,9 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of events
    */
-  async getSentEvents(address: MaybeHexString) {
+  async getSentEvents(address: MaybeHexString, limit?: number, start?: number) {
     return Promise.resolve(
-      await this.aptosClient.getAccountTransactions(address)
+      await this.aptosClient.getAccountTransactions(address, { start, limit })
     );
   }
 
@@ -317,12 +323,13 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of events
    */
-  async getReceivedEvents(address: string) {
+  async getReceivedEvents(address: string, limit?: number, start?: number) {
     return Promise.resolve(
       await this.aptosClient.getEventsByEventHandle(
         address,
         "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>",
-        "deposit_events"
+        "deposit_events",
+        { start, limit }
       )
     );
   }
@@ -366,7 +373,12 @@ export class WalletClient {
     description: string,
     supply: number,
     uri: string,
-    royalty_points_per_million: number = 0
+    royalty_payee_address: MaybeHexString = account.address(),
+    royalty_points_denominator: number = 0,
+    royalty_points_numerator: number = 0,
+    property_keys: Array<string> = [],
+    property_values: Array<string> = [],
+    property_types: Array<string> = []
   ) {
     return Promise.resolve(
       await this.tokenClient.createToken(
@@ -376,7 +388,12 @@ export class WalletClient {
         description,
         supply,
         uri,
-        royalty_points_per_million
+        royalty_payee_address,
+        royalty_points_denominator,
+        royalty_points_numerator,
+        property_keys,
+        property_values,
+        property_types
       )
     );
   }
@@ -398,7 +415,8 @@ export class WalletClient {
     creator_address: string,
     collection_name: string,
     token_name: string,
-    amount: number
+    amount: number,
+    property_version: number = 0
   ) {
     return Promise.resolve(
       await this.tokenClient.offerToken(
@@ -407,7 +425,8 @@ export class WalletClient {
         creator_address,
         collection_name,
         token_name,
-        amount
+        amount,
+        property_version
       )
     );
   }
@@ -427,7 +446,8 @@ export class WalletClient {
     receiver_address: string,
     creator_address: string,
     collection_name: string,
-    token_name: string
+    token_name: string,
+    property_version: number = 0
   ) {
     return Promise.resolve(
       await this.tokenClient.cancelTokenOffer(
@@ -435,7 +455,8 @@ export class WalletClient {
         receiver_address,
         creator_address,
         collection_name,
-        token_name
+        token_name,
+        property_version
       )
     );
   }
@@ -455,7 +476,8 @@ export class WalletClient {
     sender_address: string,
     creator_address: string,
     collection_name: string,
-    token_name: string
+    token_name: string,
+    property_version: number = 0
   ) {
     return Promise.resolve(
       await this.tokenClient.claimToken(
@@ -463,7 +485,8 @@ export class WalletClient {
         sender_address,
         creator_address,
         collection_name,
-        token_name
+        token_name,
+        property_version
       )
     );
   }
@@ -685,14 +708,21 @@ export class WalletClient {
   async getEventStream(
     address: string,
     eventHandleStruct: string,
-    fieldName: string
+    fieldName: string,
+    limit?: number,
+    start?: number
   ) {
-    const response = await fetch(
-      `${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`,
-      {
-        method: "GET",
-      }
-    );
+    let endpointUrl = `${this.aptosClient.nodeUrl}/accounts/${address}/events/${eventHandleStruct}/${fieldName}`;
+    if (limit) {
+      endpointUrl += `?limit=${limit}`;
+    }
+
+    if (start) {
+      endpointUrl += limit ? `&start=${start}` : `?start=${start}`;
+    }
+    const response = await fetch(endpointUrl, {
+      method: "GET",
+    });
 
     if (response.status === 404) {
       return [];
@@ -708,21 +738,25 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of token IDs
    */
-  async getTokenIds(address: string) {
+  async getTokenIds(address: string, limit?: number, start?: number) {
     const countDeposit = {};
     const countWithdraw = {};
     const tokenIds = [];
 
     const depositEvents = await this.getEventStream(
       address,
-      "0x1::token::TokenStore",
-      "deposit_events"
+      "0x3::token::TokenStore",
+      "deposit_events",
+      limit,
+      start
     );
 
     const withdrawEvents = await this.getEventStream(
       address,
-      "0x1::token::TokenStore",
-      "withdraw_events"
+      "0x3::token::TokenStore",
+      "withdraw_events",
+      limit,
+      start
     );
 
     depositEvents.forEach((element) => {
@@ -746,7 +780,10 @@ export class WalletClient {
         ? countWithdraw[elementString]
         : 0;
       if (count1 - count2 === 1) {
-        tokenIds.push(element.data.id);
+        tokenIds.push({
+          data: element.data.id,
+          sequence_number: element.sequence_number,
+        });
       }
     });
     return tokenIds;
@@ -758,37 +795,55 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of tokens and their collection data
    */
-  async getTokens(address: string) {
-    const localCache = {};
-    const tokenIds = await this.getTokenIds(address);
+  async getTokens(address: string, limit?: number, start?: number) {
+    const tokenIds = await this.getTokenIds(address, limit, start);
     const tokens = [];
-    // eslint-disable-next-line no-restricted-syntax
-    for (const tokenId of tokenIds) {
-      /* eslint-disable no-await-in-loop */
-      let resources: Types.AccountResource[];
-      if (tokenId.creator in localCache) {
-        resources = localCache[tokenId.creator];
-      } else {
-        resources = await this.aptosClient.getAccountResources(tokenId.creator);
-        localCache[tokenId.creator] = resources;
-      }
-      const accountResource: { type: string; data: any } = resources.find(
-        (r) => r.type === "0x1::token::Collections"
-      );
-      const tableItemRequest: Types.TableItemRequest = {
-        key_type: "0x1::token::TokenId",
-        value_type: "0x1::token::TokenData",
-        key: tokenId,
-      };
-      const token = (
-        await this.aptosClient.getTableItem(
-          accountResource.data.token_data.handle,
-          tableItemRequest
-        )
-      ).data;
-      tokens.push(token);
-      /* eslint-enable no-await-in-loop */
-    }
+    await Promise.all(
+      tokenIds.map(async (tokenId) => {
+        let resources: Types.AccountResource[];
+        if (cache.has(`resources--${tokenId.data.token_data_id.creator}`)) {
+          resources = cache.get(
+            `resources--${tokenId.data.token_data_id.creator}`
+          );
+        } else {
+          resources = await this.aptosClient.getAccountResources(
+            tokenId.data.token_data_id.creator
+          );
+          cache.set(
+            `resources--${tokenId.data.token_data_id.creator}`,
+            resources
+          );
+        }
+
+        const accountResource: { type: string; data: any } = resources.find(
+          (r) => r.type === "0x3::token::Collections"
+        );
+        const tableItemRequest: Types.TableItemRequest = {
+          key_type: "0x3::token::TokenDataId",
+          value_type: "0x3::token::TokenData",
+          key: tokenId.data.token_data_id,
+        };
+
+        const cacheKey = JSON.stringify(tableItemRequest);
+
+        let token: any;
+        if (cache.has(cacheKey)) {
+          token = cache.get(cacheKey);
+        } else {
+          token = (
+            await this.aptosClient.getTableItem(
+              accountResource.data.token_data.handle,
+              tableItemRequest
+            )
+          ).data;
+          cache.set(cacheKey, token);
+        }
+
+        token.collection = tokenId.data.token_data_id.collection;
+        tokens.push({ token, sequence_number: tokenId.sequence_number });
+      })
+    );
+
     return tokens;
   }
 
@@ -801,15 +856,15 @@ export class WalletClient {
    */
   async getToken(tokenId: TokenId) {
     const resources: Types.AccountResource[] =
-      await this.aptosClient.getAccountResources(tokenId.creator);
+      await this.aptosClient.getAccountResources(tokenId.token_data_id.creator);
     const accountResource: { type: string; data: any } = resources.find(
-      (r) => r.type === "0x1::token::Collections"
+      (r) => r.type === "0x3::token::Collections"
     );
 
     const tableItemRequest: Types.TableItemRequest = {
-      key_type: "0x1::token::TokenId",
-      value_type: "0x1::token::TokenData",
-      key: tokenId,
+      key_type: "0x3::token::TokenDataId",
+      value_type: "0x3::token::TokenData",
+      key: tokenId.token_data_id,
     };
     const token = (
       await this.aptosClient.getTableItem(
@@ -817,6 +872,7 @@ export class WalletClient {
         tableItemRequest
       )
     ).data;
+    token.collection = tokenId.token_data_id.collection;
     return token;
   }
 
@@ -831,12 +887,12 @@ export class WalletClient {
     const resources: Types.AccountResource[] =
       await this.aptosClient.getAccountResources(address);
     const accountResource: { type: string; data: any } = resources.find(
-      (r) => r.type === "0x1::token::Collections"
+      (r) => r.type === "0x3::token::Collections"
     );
 
     const tableItemRequest: Types.TableItemRequest = {
       key_type: "0x1::string::String",
-      value_type: "0x1::token::Collection",
+      value_type: "0x3::token::Collection",
       key: collectionName,
     };
     const collection = (
