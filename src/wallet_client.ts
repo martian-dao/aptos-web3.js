@@ -113,7 +113,7 @@ export class WalletClient {
       }
       accountMetaData.push({
         derivationPath,
-        address,
+        address: HexString.ensure(address).toShortString(),
         publicKey,
       });
     }
@@ -157,7 +157,7 @@ export class WalletClient {
         await this.faucetClient.fundAccount(acc.authKey(), 0);
         return {
           derivationPath,
-          address,
+          address: HexString.ensure(address).toShortString(),
           publicKey: acc.pubKey().toString(),
         };
       }

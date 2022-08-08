@@ -30,7 +30,7 @@ export class FaucetClient extends AptosClient {
    * @returns Hashes of submitted transactions
    */
   async fundAccount(address: MaybeHexString, amount: number): Promise<Types.HexEncodedBytes[]> {
-    const url = `${this.faucetUrl}/mint?amount=${amount}&address=${HexString.ensure(address).noPrefix()}`;
+    const url = `${this.faucetUrl}/mint?amount=${amount}&address=${HexString.ensure(address).toShortString()}`;
     const response = await axios.post<Array<string>>(url, {}, { validateStatus: () => true });
     raiseForStatus(200, response);
 
