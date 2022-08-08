@@ -40,6 +40,43 @@ test("verify signMessage", async () => {
   await WalletClient.signMessage(aliceAccount, "This is a test message");
 });
 
+test("verify get token resource handle", async () => {
+  const alice = await apis.createWallet();
+  const aliceAccount = await WalletClient.getAccountFromMetaData(
+    alice.code,
+    alice.accounts[0]
+  );
+
+  await apis.airdrop(aliceAccount.address().toString(), 1000000);
+
+  const collectionName = "AliceCollection";
+  const tokenName = "Alice Token";
+
+  // Create collection and token on Alice's account
+  await apis.createCollection(
+    aliceAccount,
+    collectionName,
+    "Alice's simple collection",
+    "https://aptos.dev"
+  );
+
+  await apis.createToken(
+    aliceAccount,
+    collectionName,
+    tokenName,
+    "Alice's simple token",
+    1,
+    "https://aptos.dev/img/nyan.jpeg"
+  );
+
+  const tokens = await apis.getTokenIds(aliceAccount.address().toString());
+  const token = tokens[0].data;
+
+  const resourceHandle = await apis.getTokenResourceHandle(token);
+  const tokenData = await apis.getToken(token, resourceHandle);
+  expect(tokenData.name).toBe(tokenName);
+});
+
 test("verify creating collection and NFT", async () => {
   const alice = await apis.createWallet();
   const aliceAccount = await WalletClient.getAccountFromMetaData(
