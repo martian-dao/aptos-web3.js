@@ -301,6 +301,7 @@ export class AptosClient {
   ): Promise<Types.UserTransactionRequest> {
     const senderAddress = HexString.ensure(sender);
     const account = await this.getAccount(senderAddress);
+    const getLedgerInfo = await this.getLedgerInfo()
     return {
       sender: senderAddress.hex(),
       sequence_number: account.sequence_number,
@@ -309,7 +310,7 @@ export class AptosClient {
       gas_currency_code: "XUS",
       // Unix timestamp, in seconds + 10 seconds
       expiration_timestamp_secs: (
-        Math.floor(Date.now() / 1000) + 10
+        parseInt(getLedgerInfo.ledger_timestamp) + 60
       ).toString(),
       payload,
       ...(options || {}),
