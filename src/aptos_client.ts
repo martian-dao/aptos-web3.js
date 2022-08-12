@@ -310,7 +310,7 @@ export class AptosClient {
       gas_currency_code: "APT",
       // Unix timestamp, in seconds + 10 seconds
       expiration_timestamp_secs: (
-        parseInt(getLedgerInfo.ledger_timestamp) + 60
+        Math.floor(parseInt(getLedgerInfo.ledger_timestamp)/1000) + 60
       ).toString(),
       payload,
       ...(options || {}),
