@@ -1166,4 +1166,18 @@ export class WalletClient {
     );
     return Number(coinInfo.data.coin.value);
   }
+
+  async publishModule(account: AptosAccount, moduleHex: string) {
+    const payload = {
+      type: "module_bundle_payload",
+      modules: [{ bytecode: `0x${moduleHex}` }],
+    };
+    const txnHash = await this.tokenClient.submitTransactionHelper(
+      account,
+      payload
+    );
+    const resp: any = await this.aptosClient.getTransaction(txnHash);
+    const status = { success: resp.success, vm_status: resp.vm_status };
+    return { txnHash, ...status };
+  }
 }
