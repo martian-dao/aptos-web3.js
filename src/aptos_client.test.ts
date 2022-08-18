@@ -44,14 +44,29 @@ test("gets transactions", async () => {
 test("gets genesis resources", async () => {
   const client = new AptosClient(NODE_URL);
   const resources = await client.getAccountResources("0x1");
+<<<<<<< HEAD
   const accountResource = resources.find((r) => r.type === account);
   expect(accountResource).toBeDefined();
+=======
+  const accountResource = resources.find(
+    (r) => r.type === "0x1::account::Account"
+  );
+  expect((accountResource.data as AnyObject).self_address).toBe("0x1");
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
 });
 
 test("gets the Account resource", async () => {
   const client = new AptosClient(NODE_URL);
+<<<<<<< HEAD
   const accountResource = await client.getAccountResource("0x1", account);
   expect(accountResource).toBeDefined();
+=======
+  const accountResource = await client.getAccountResource(
+    "0x1",
+    "0x1::account::Account"
+  );
+  expect((accountResource.data as AnyObject).self_address).toBe("0x1");
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
 });
 
 test("gets ledger info", async () => {
@@ -70,8 +85,50 @@ test("gets account modules", async () => {
 
 test("gets the AptosCoin module", async () => {
   const client = new AptosClient(NODE_URL);
+<<<<<<< HEAD
   const module = await client.getAccountModule("0x1", "aptos_coin");
   expect(module!.abi!.address).toBe("0x1");
+=======
+  const module = await client.getAccountModule("0x1", "test_coin");
+  expect(module.abi.address).toBe("0x1");
+});
+
+test("test raiseForStatus", async () => {
+  const testData = { hello: "wow" };
+  const fakeResponse: AxiosResponse = {
+    status: 200,
+    statusText: "Status Text",
+    data: "some string",
+    request: {
+      host: "host",
+      path: "/path",
+    },
+  } as AxiosResponse;
+
+  // Shouldn't throw
+  raiseForStatus(200, fakeResponse, testData);
+  raiseForStatus(200, fakeResponse);
+
+  // an error, oh no!
+  fakeResponse.status = 500;
+  expect(() => raiseForStatus(200, fakeResponse, testData)).toThrow(
+    'Status Text - "some string" @ host/path : {"hello":"wow"}'
+  );
+
+  expect(() => raiseForStatus(200, fakeResponse)).toThrow(
+    'Status Text - "some string" @ host/path'
+  );
+
+  // Just a wild test to make sure it doesn't break: request is `any`!
+  delete fakeResponse.request;
+  expect(() => raiseForStatus(200, fakeResponse, testData)).toThrow(
+    'Status Text - "some string" : {"hello":"wow"}'
+  );
+
+  expect(() => raiseForStatus(200, fakeResponse)).toThrow(
+    'Status Text - "some string"'
+  );
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
 });
 
 test(
@@ -83,12 +140,20 @@ test(
     const account1 = new AptosAccount();
     await faucetClient.fundAccount(account1.address(), 50000);
     let resources = await client.getAccountResources(account1.address());
+<<<<<<< HEAD
     let accountResource = resources.find((r) => r.type === aptosCoin);
     expect((accountResource!.data as any).coin.value).toBe("50000");
+=======
+    let accountResource = resources.find(
+      (r) => r.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>"
+    );
+    expect((accountResource.data as any).coin.value).toBe("5000");
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
 
     const account2 = new AptosAccount();
     await faucetClient.fundAccount(account2.address(), 0);
     resources = await client.getAccountResources(account2.address());
+<<<<<<< HEAD
     accountResource = resources.find((r) => r.type === aptosCoin);
     expect((accountResource!.data as any).coin.value).toBe("0");
 
@@ -140,6 +205,45 @@ test(
       "0x1::coin::transfer",
       ["0x1::aptos_coin::AptosCoin"],
       [account2.address(), 400],
+=======
+    accountResource = resources.find(
+      (r) => r.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>"
+    );
+    expect((accountResource.data as any).coin.value).toBe("0");
+
+    const token = new TxnBuilderTypes.TypeTagStruct(
+      TxnBuilderTypes.StructTag.fromString("0x1::aptos_coin::AptosCoin")
+    );
+
+    const scriptFunctionPayload =
+      new TxnBuilderTypes.TransactionPayloadScriptFunction(
+        TxnBuilderTypes.ScriptFunction.natural(
+          "0x1::coin",
+          "transfer",
+          [token],
+          [
+            BCS.bcsToBytes(
+              TxnBuilderTypes.AccountAddress.fromHex(account2.address())
+            ),
+            BCS.bcsSerializeUint64(717),
+          ]
+        )
+      );
+
+    const [{ sequence_number: sequnceNumber }, chainId] = await Promise.all([
+      client.getAccount(account1.address()),
+      client.getChainId(),
+    ]);
+
+    const rawTxn = new TxnBuilderTypes.RawTransaction(
+      TxnBuilderTypes.AccountAddress.fromHex(account1.address()),
+      BigInt(sequnceNumber),
+      scriptFunctionPayload,
+      1000n,
+      1n,
+      BigInt(Math.floor(Date.now() / 1000) + 10),
+      new TxnBuilderTypes.ChainId(chainId)
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
     );
 
     const bcsTxn = AptosClient.generateBCSTransaction(account1, rawTxn);
@@ -148,10 +252,17 @@ test(
     await client.waitForTransaction(transactionRes.hash);
 
     resources = await client.getAccountResources(account2.address());
+<<<<<<< HEAD
     accountResource = resources.find((r) => r.type === aptosCoin);
     expect((accountResource!.data as any).coin.value).toBe("400");
+=======
+    accountResource = resources.find(
+      (r) => r.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>"
+    );
+    expect((accountResource.data as any).coin.value).toBe("717");
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
   },
-  30 * 1000,
+  30 * 1000
 );
 
 test(
@@ -169,21 +280,32 @@ test(
         new TxnBuilderTypes.Ed25519PublicKey(account2.signingKey.publicKey),
         new TxnBuilderTypes.Ed25519PublicKey(account3.signingKey.publicKey),
       ],
-      2,
+      2
     );
 
-    const authKey = TxnBuilderTypes.AuthenticationKey.fromMultiEd25519PublicKey(multiSigPublicKey);
+    const authKey =
+      TxnBuilderTypes.AuthenticationKey.fromMultiEd25519PublicKey(
+        multiSigPublicKey
+      );
 
     const mutisigAccountAddress = authKey.derivedAddress();
     await faucetClient.fundAccount(mutisigAccountAddress, 5000000);
 
     let resources = await client.getAccountResources(mutisigAccountAddress);
+<<<<<<< HEAD
     let accountResource = resources.find((r) => r.type === aptosCoin);
     expect((accountResource!.data as any).coin.value).toBe("5000000");
+=======
+    let accountResource = resources.find(
+      (r) => r.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>"
+    );
+    expect((accountResource.data as any).coin.value).toBe("5000");
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
 
     const account4 = new AptosAccount();
     await faucetClient.fundAccount(account4.address(), 0);
     resources = await client.getAccountResources(account4.address());
+<<<<<<< HEAD
     accountResource = resources.find((r) => r.type === aptosCoin);
     expect((accountResource!.data as any).coin.value).toBe("0");
 
@@ -199,22 +321,67 @@ test(
     );
 
     const rawTxn = await client.generateRawTransaction(mutisigAccountAddress, entryFunctionPayload);
+=======
+    accountResource = resources.find(
+      (r) => r.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>"
+    );
+    expect((accountResource.data as any).coin.value).toBe("0");
 
-    const txnBuilder = new TransactionBuilderMultiEd25519((signingMessage: TxnBuilderTypes.SigningMessage) => {
-      const sigHexStr1 = account1.signBuffer(signingMessage);
-      const sigHexStr3 = account3.signBuffer(signingMessage);
-      const bitmap = TxnBuilderTypes.MultiEd25519Signature.createBitmap([0, 2]);
+    const token = new TxnBuilderTypes.TypeTagStruct(
+      TxnBuilderTypes.StructTag.fromString("0x1::aptos_coin::AptosCoin")
+    );
 
-      const muliEd25519Sig = new TxnBuilderTypes.MultiEd25519Signature(
-        [
-          new TxnBuilderTypes.Ed25519Signature(sigHexStr1.toUint8Array()),
-          new TxnBuilderTypes.Ed25519Signature(sigHexStr3.toUint8Array()),
-        ],
-        bitmap,
+    const scriptFunctionPayload =
+      new TxnBuilderTypes.TransactionPayloadScriptFunction(
+        TxnBuilderTypes.ScriptFunction.natural(
+          "0x1::coin",
+          "transfer",
+          [token],
+          [
+            BCS.bcsToBytes(
+              TxnBuilderTypes.AccountAddress.fromHex(account4.address())
+            ),
+            BCS.bcsSerializeUint64(123),
+          ]
+        )
       );
 
-      return muliEd25519Sig;
-    }, multiSigPublicKey);
+    const [{ sequence_number: sequnceNumber }, chainId] = await Promise.all([
+      client.getAccount(mutisigAccountAddress),
+      client.getChainId(),
+    ]);
+
+    const rawTxn = new TxnBuilderTypes.RawTransaction(
+      TxnBuilderTypes.AccountAddress.fromHex(mutisigAccountAddress),
+      BigInt(sequnceNumber),
+      scriptFunctionPayload,
+      1000n,
+      1n,
+      BigInt(Math.floor(Date.now() / 1000) + 10),
+      new TxnBuilderTypes.ChainId(chainId)
+    );
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
+
+    const txnBuilder = new TransactionBuilderMultiEd25519(
+      (signingMessage: TxnBuilderTypes.SigningMessage) => {
+        const sigHexStr1 = account1.signBuffer(signingMessage);
+        const sigHexStr3 = account3.signBuffer(signingMessage);
+        const bitmap = TxnBuilderTypes.MultiEd25519Signature.createBitmap([
+          0, 2,
+        ]);
+
+        const muliEd25519Sig = new TxnBuilderTypes.MultiEd25519Signature(
+          [
+            new TxnBuilderTypes.Ed25519Signature(sigHexStr1.toUint8Array()),
+            new TxnBuilderTypes.Ed25519Signature(sigHexStr3.toUint8Array()),
+          ],
+          bitmap
+        );
+
+        return muliEd25519Sig;
+      },
+      multiSigPublicKey
+    );
 
     const bcsTxn = txnBuilder.sign(rawTxn);
     const transactionRes = await client.submitSignedBCSTransaction(bcsTxn);
@@ -222,10 +389,17 @@ test(
     await client.waitForTransaction(transactionRes.hash);
 
     resources = await client.getAccountResources(account4.address());
+<<<<<<< HEAD
     accountResource = resources.find((r) => r.type === aptosCoin);
     expect((accountResource!.data as any).coin.value).toBe("123");
+=======
+    accountResource = resources.find(
+      (r) => r.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>"
+    );
+    expect((accountResource.data as any).coin.value).toBe("123");
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
   },
-  30 * 1000,
+  30 * 1000
 );
 
 test(
@@ -245,10 +419,25 @@ test(
     const checkAptosCoin = async () => {
       const resources1 = await client.getAccountResources(account1.address());
       const resources2 = await client.getAccountResources(account2.address());
+<<<<<<< HEAD
       const account1Resource = resources1.find((r) => r.type === aptosCoin);
       const account2Resource = resources2.find((r) => r.type === aptosCoin);
       expect((account1Resource!.data as { coin: { value: string } }).coin.value).toBe("1000000");
       expect((account2Resource!.data as { coin: { value: string } }).coin.value).toBe("1000000");
+=======
+      const account1Resource = resources1.find(
+        (r) => r.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>"
+      );
+      const account2Resource = resources2.find(
+        (r) => r.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>"
+      );
+      expect(
+        (account1Resource.data as { coin: { value: string } }).coin.value
+      ).toBe("5000");
+      expect(
+        (account2Resource.data as { coin: { value: string } }).coin.value
+      ).toBe("1000");
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
     };
     await checkAptosCoin();
 
@@ -258,8 +447,19 @@ test(
       type_arguments: ["0x1::aptos_coin::AptosCoin"],
       arguments: [account2.address().hex(), "100000"],
     };
+<<<<<<< HEAD
     const txnRequest = await client.generateTransaction(account1.address(), payload);
     const transactionRes = (await client.simulateTransaction(account1, txnRequest))[0];
+=======
+    const txnRequest = await client.generateTransaction(
+      account1.address(),
+      payload
+    );
+    const transactionRes = await client.simulateTransaction(
+      account1,
+      txnRequest
+    );
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
     expect(parseInt(transactionRes.gas_used, 10) > 0);
     expect(transactionRes.success);
     const account2AptosCoin = transactionRes.changes.filter((change) => {
@@ -269,15 +469,22 @@ test(
       const write = change as Gen.WriteResource;
 
       return (
+<<<<<<< HEAD
         write.address === account2.address().hex() &&
         write.data.type === aptosCoin &&
         (write.data.data as { coin: { value: string } }).coin.value === "1100000"
+=======
+        write.address === account2.address().toShortString() &&
+        write.data.type ===
+          "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>" &&
+        (write.data.data as { coin: { value: string } }).coin.value === "2000"
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
       );
     });
     expect(account2AptosCoin).toHaveLength(1);
     await checkAptosCoin();
   },
-  30 * 1000,
+  30 * 1000
 );
 
 test(
@@ -328,8 +535,14 @@ test(
 
       return (
         write.address === account2.address().toShortString() &&
+<<<<<<< HEAD
         write.data.type === aptosCoin &&
         (write.data.data as { coin: { value: string } }).coin.value === "11000"
+=======
+        write.data.type ===
+          "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>" &&
+        (write.data.data as { coin: { value: string } }).coin.value === "2000"
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
       );
     });
     expect(account2AptosCoin).toHaveLength(1);
@@ -347,10 +560,34 @@ test(
 
     const alice = new AptosAccount();
     const bob = new AptosAccount();
+<<<<<<< HEAD
 
     // Fund both Alice's and Bob's Account
     await faucetClient.fundAccount(alice.address(), 10000000);
     await faucetClient.fundAccount(bob.address(), 10000000);
+=======
+    const aliceAccountAddress = TxnBuilderTypes.AccountAddress.fromHex(
+      alice.address()
+    );
+    const bobAccountAddress = TxnBuilderTypes.AccountAddress.fromHex(
+      bob.address()
+    );
+
+    await faucetClient.fundAccount(alice.address(), 5000);
+
+    let resources = await client.getAccountResources(alice.address());
+    let accountResource = resources.find(
+      (r) => r.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>"
+    );
+    expect((accountResource.data as any).coin.value).toBe("5000");
+
+    await faucetClient.fundAccount(bob.address(), 6000);
+    resources = await client.getAccountResources(bob.address());
+    accountResource = resources.find(
+      (r) => r.type === "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>"
+    );
+    expect((accountResource.data as any).coin.value).toBe("6000");
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
 
     const collectionName = "AliceCollection";
     const tokenName = "Alice Token";
@@ -362,6 +599,7 @@ test(
     }
 
     // Create collection and token on Alice's account
+<<<<<<< HEAD
     await ensureTxnSuccess(
       tokenClient.createCollection(alice, collectionName, "Alice's simple collection", "https://aptos.dev"),
     );
@@ -413,42 +651,117 @@ test(
         ],
       ),
     );
+=======
+    // eslint-disable-next-line quotes
+    await tokenClient.createCollection(
+      alice,
+      collectionName,
+      "Alice's simple collection",
+      "https://aptos.dev"
+    );
+
+    await tokenClient.createToken(
+      alice,
+      collectionName,
+      tokenName,
+      // eslint-disable-next-line quotes
+      "Alice's simple token",
+      1,
+      "https://aptos.dev/img/nyan.jpeg",
+      "0"
+    );
+
+    let aliceBalance = await tokenClient.getTokenBalance(
+      alice.address().hex(),
+      collectionName,
+      tokenName
+    );
+    expect(aliceBalance.value).toBe("1");
+
+    const scriptFunctionPayload =
+      new TxnBuilderTypes.TransactionPayloadScriptFunction(
+        TxnBuilderTypes.ScriptFunction.natural(
+          "0x1::token",
+          "direct_transfer_script",
+          [],
+          [
+            BCS.bcsToBytes(aliceAccountAddress),
+            BCS.bcsSerializeStr(collectionName),
+            BCS.bcsSerializeStr(tokenName),
+            BCS.bcsSerializeUint64(1),
+          ]
+        )
+      );
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
 
     const rawTxn = await client.generateRawTransaction(alice.address(), entryFunctionPayload);
     const multiAgentTxn = new TxnBuilderTypes.MultiAgentRawTransaction(rawTxn, [
       TxnBuilderTypes.AccountAddress.fromHex(bob.address()),
     ]);
 
+<<<<<<< HEAD
+=======
+    const rawTxn = new TxnBuilderTypes.RawTransaction(
+      aliceAccountAddress,
+      BigInt(sequnceNumber),
+      scriptFunctionPayload,
+      1000n,
+      1n,
+      BigInt(Math.floor(Date.now() / 1000) + 10),
+      new TxnBuilderTypes.ChainId(chainId)
+    );
+
+    const multiAgentTxn = new TxnBuilderTypes.MultiAgentRawTransaction(rawTxn, [
+      bobAccountAddress,
+    ]);
+
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
     const aliceSignature = new TxnBuilderTypes.Ed25519Signature(
-      alice.signBuffer(TransactionBuilder.getSigningMessage(multiAgentTxn)).toUint8Array(),
+      alice
+        .signBuffer(TransactionBuilder.getSigningMessage(multiAgentTxn))
+        .toUint8Array()
     );
 
     const aliceAuthenticator = new TxnBuilderTypes.AccountAuthenticatorEd25519(
       new TxnBuilderTypes.Ed25519PublicKey(alice.signingKey.publicKey),
-      aliceSignature,
+      aliceSignature
     );
 
     const bobSignature = new TxnBuilderTypes.Ed25519Signature(
-      bob.signBuffer(TransactionBuilder.getSigningMessage(multiAgentTxn)).toUint8Array(),
+      bob
+        .signBuffer(TransactionBuilder.getSigningMessage(multiAgentTxn))
+        .toUint8Array()
     );
 
     const bobAuthenticator = new TxnBuilderTypes.AccountAuthenticatorEd25519(
       new TxnBuilderTypes.Ed25519PublicKey(bob.signingKey.publicKey),
-      bobSignature,
+      bobSignature
     );
 
+<<<<<<< HEAD
     const multiAgentAuthenticator = new TxnBuilderTypes.TransactionAuthenticatorMultiAgent(
       aliceAuthenticator, // sender authenticator
       [TxnBuilderTypes.AccountAddress.fromHex(bob.address())], // secondary signer addresses
       [bobAuthenticator], // secondary signer authenticators
     );
+=======
+    const multiAgentAuthenticator =
+      new TxnBuilderTypes.TransactionAuthenticatorMultiAgent(
+        aliceAuthenticator, // sender authenticator
+        [bobAccountAddress], // secondary signer addresses
+        [bobAuthenticator] // secondary signer authenticators
+      );
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
 
-    const bcsTxn = BCS.bcsToBytes(new TxnBuilderTypes.SignedTransaction(rawTxn, multiAgentAuthenticator));
+    const bcsTxn = BCS.bcsToBytes(
+      new TxnBuilderTypes.SignedTransaction(rawTxn, multiAgentAuthenticator)
+    );
 
     const transactionRes = await client.submitSignedBCSTransaction(bcsTxn);
 
     await client.waitForTransaction(transactionRes.hash);
 
+<<<<<<< HEAD
     const transaction = await client.getTransactionByHash(transactionRes.hash);
     expect((transaction as any)?.success).toBe(true);
 
@@ -457,6 +770,43 @@ test(
 
     const bobBalance = await tokenClient.getTokenBalanceForAccount(bob.address().hex(), tokenId);
     expect(bobBalance.amount).toBe("1");
+=======
+    const transaction = await client.transactions.getTransaction(
+      transactionRes.hash
+    );
+    expect((transaction.data as any)?.success).toBe(true);
+
+    aliceBalance = await tokenClient.getTokenBalance(
+      alice.address().hex(),
+      collectionName,
+      tokenName
+    );
+
+    expect(aliceBalance.value).toBe("0");
+
+    const bobTokenStore = await client.getAccountResource(
+      bob.address(),
+      "0x1::token::TokenStore"
+    );
+
+    const handle = (bobTokenStore.data as any).tokens?.handle;
+
+    const getTokenTableItemRequest = {
+      key_type: "0x1::token::TokenId",
+      value_type: "0x1::token::Token",
+      key: {
+        creator: alice.address().hex(),
+        collection: collectionName,
+        name: tokenName,
+      },
+    };
+
+    const bobTokenTableItem = await client.getTableItem(
+      handle,
+      getTokenTableItemRequest
+    );
+    expect(bobTokenTableItem?.data?.value).toBe("1");
+>>>>>>> ca9f3bf193f8df56f636e8cb8d9091bdffd4ad10
   },
-  30 * 1000,
+  30 * 1000
 );

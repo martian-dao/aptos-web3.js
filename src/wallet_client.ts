@@ -134,7 +134,7 @@ export class WalletClient {
       }
       accountMetaData.push({
         derivationPath,
-        address,
+        address: HexString.ensure(address).toShortString(),
         publicKey,
       });
     }
@@ -178,7 +178,7 @@ export class WalletClient {
         await this.faucetClient.fundAccount(acc.authKey(), 0);
         return {
           derivationPath,
-          address,
+          address: HexString.ensure(address).toShortString(),
           publicKey: acc.pubKey().toString(),
         };
       }
@@ -432,7 +432,8 @@ export class WalletClient {
     creator_address: string,
     collection_name: string,
     token_name: string,
-    amount: number
+    amount: number,
+    property_version: number = 0
   ) {
     return Promise.resolve(
       await this.tokenClient.offerToken(
@@ -441,7 +442,8 @@ export class WalletClient {
         creator_address,
         collection_name,
         token_name,
-        amount
+        amount,
+        property_version
       )
     );
   }
@@ -461,7 +463,8 @@ export class WalletClient {
     receiver_address: string,
     creator_address: string,
     collection_name: string,
-    token_name: string
+    token_name: string,
+    property_version: number = 0
   ) {
     return Promise.resolve(
       await this.tokenClient.cancelTokenOffer(
@@ -469,7 +472,8 @@ export class WalletClient {
         receiver_address,
         creator_address,
         collection_name,
-        token_name
+        token_name,
+        property_version
       )
     );
   }
@@ -489,7 +493,8 @@ export class WalletClient {
     sender_address: string,
     creator_address: string,
     collection_name: string,
-    token_name: string
+    token_name: string,
+    property_version: number = 0
   ) {
     return Promise.resolve(
       await this.tokenClient.claimToken(
@@ -497,7 +502,8 @@ export class WalletClient {
         sender_address,
         creator_address,
         collection_name,
-        token_name
+        token_name,
+        property_version
       )
     );
   }
@@ -1135,5 +1141,19 @@ export class WalletClient {
       `0x1::coin::CoinStore<${coin_type_path}>`
     );
     return Number(coinInfo.data.coin.value);
+  }
+
+  async publishModule(account: AptosAccount, moduleHex: string) {
+    const payload = {
+      type: "module_bundle_payload",
+      modules: [{ bytecode: `0x${moduleHex}` }],
+    };
+    const txnHash = await this.tokenClient.submitTransactionHelper(
+      account,
+      payload
+    );
+    const resp: any = await this.aptosClient.getTransactionByHash(txnHash);
+    const status = { success: resp.success, vm_status: resp.vm_status };
+    return { txnHash, ...status };
   }
 }
