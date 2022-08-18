@@ -1,7 +1,10 @@
 import { AptosAccount } from "./aptos_account";
 import { AptosClient } from "./aptos_client";
 import { Types } from "./types";
+import * as TokenTypes from "./token_types";
 import { HexString, MaybeHexString } from "./hex_string";
+import * as Gen from "./generated/index";
+
 const NUMBER_MAX: number = 9007199254740991;
 
 /**
@@ -24,9 +27,21 @@ export class TokenClient {
    * @param payload Transaction payload. It depends on transaction type you want to send
    * @returns Promise that resolves to transaction hash
    */
-  async submitTransactionHelper(account: AptosAccount, payload: Types.TransactionPayload, options = { max_gas_amount: "4000" }) {
-    const txnRequest = await this.aptosClient.generateTransaction(account.address(), payload, options);
-    const signedTxn = await this.aptosClient.signTransaction(account, txnRequest);
+
+  async submitTransactionHelper(
+    account: AptosAccount,
+    payload: Gen.TransactionPayload,
+    options = { max_gas_amount: "4000" }
+  ) {
+    const txnRequest = await this.aptosClient.generateTransaction(
+      account.address(),
+      payload,
+      options
+    );
+    const signedTxn = await this.aptosClient.signTransaction(
+      account,
+      txnRequest
+    );
     const res = await this.aptosClient.submitTransaction(signedTxn);
     await this.aptosClient.waitForTransaction(res.hash);
     return Promise.resolve(res.hash);
@@ -44,7 +59,7 @@ export class TokenClient {
     account: AptosAccount,
     name: string,
     description: string,
-    uri: string,
+    uri: string
   ): Promise<Types.HexEncodedBytes> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
@@ -58,7 +73,10 @@ export class TokenClient {
         [false, false, false],
       ],
     };
-    const transactionHash = await this.submitTransactionHelper(account, payload);
+    const transactionHash = await this.submitTransactionHelper(
+      account,
+      payload
+    );
     return transactionHash;
   }
 
@@ -91,7 +109,7 @@ export class TokenClient {
     royalty_points_numerator: number = 0,
     property_keys: Array<string> = [],
     property_values: Array<string> = [],
-    property_types: Array<string> = [],
+    property_types: Array<string> = []
   ): Promise<Types.HexEncodedBytes> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
@@ -113,7 +131,10 @@ export class TokenClient {
         property_types,
       ],
     };
-    const transactionHash = await this.submitTransactionHelper(account, payload);
+    const transactionHash = await this.submitTransactionHelper(
+      account,
+      payload
+    );
     return transactionHash;
   }
 
@@ -135,7 +156,7 @@ export class TokenClient {
     collectionName: string,
     name: string,
     amount: number,
-    property_version: number = 0,
+    property_version: number = 0
   ): Promise<Types.HexEncodedBytes> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
@@ -150,7 +171,10 @@ export class TokenClient {
         amount.toString(),
       ],
     };
-    const transactionHash = await this.submitTransactionHelper(account, payload);
+    const transactionHash = await this.submitTransactionHelper(
+      account,
+      payload
+    );
     return transactionHash;
   }
 
@@ -170,15 +194,24 @@ export class TokenClient {
     creator: MaybeHexString,
     collectionName: string,
     name: string,
-    property_version: number = 0,
+    property_version: number = 0
   ): Promise<Types.HexEncodedBytes> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
       function: "0x3::token_transfers::claim_script",
       type_arguments: [],
-      arguments: [sender, creator, collectionName, name, property_version.toString()],
+      arguments: [
+        sender,
+        creator,
+        collectionName,
+        name,
+        property_version.toString(),
+      ],
     };
-    const transactionHash = await this.submitTransactionHelper(account, payload);
+    const transactionHash = await this.submitTransactionHelper(
+      account,
+      payload
+    );
     return transactionHash;
   }
 
@@ -197,15 +230,24 @@ export class TokenClient {
     creator: MaybeHexString,
     collectionName: string,
     name: string,
-    property_version: number = 0,
+    property_version: number = 0
   ): Promise<Types.HexEncodedBytes> {
     const payload: Types.TransactionPayload = {
       type: "script_function_payload",
       function: "0x3::token_transfers::cancel_offer_script",
       type_arguments: [],
-      arguments: [receiver, creator, collectionName, name, property_version.toString()],
+      arguments: [
+        receiver,
+        creator,
+        collectionName,
+        name,
+        property_version.toString(),
+      ],
     };
-    const transactionHash = await this.submitTransactionHelper(account, payload);
+    const transactionHash = await this.submitTransactionHelper(
+      account,
+      payload
+    );
     return transactionHash;
   }
 
@@ -229,9 +271,14 @@ export class TokenClient {
    *  }
    * ```
    */
-  async getCollectionData(creator: MaybeHexString, collectionName: string): Promise<any> {
+  async getCollectionData(
+    creator: MaybeHexString,
+    collectionName: string
+  ): Promise<any> {
     const resources = await this.aptosClient.getAccountResources(creator);
-    const accountResource: { type: string; data: any } = resources.find((r) => r.type === "0x3::token::Collections");
+    const accountResource: { type: string; data: any } = resources.find(
+      (r) => r.type === "0x3::token::Collections"
+    );
     const { handle }: { handle: string } = accountResource.data.collection_data;
     const getCollectionTableItemRequest: Types.TableItemRequest = {
       key_type: "0x1::string::String",
@@ -239,7 +286,10 @@ export class TokenClient {
       key: collectionName,
     };
     // eslint-disable-next-line no-unused-vars
-    const collectionTable = await this.aptosClient.getTableItem(handle, getCollectionTableItemRequest);
+    const collectionTable = await this.aptosClient.getTableItem(
+      handle,
+      getCollectionTableItemRequest
+    );
     return collectionTable;
   }
 
@@ -266,11 +316,16 @@ export class TokenClient {
    *   }
    * ```
    */
-  async getTokenData(creator: MaybeHexString, collectionName: string, tokenName: string): Promise<Types.TokenData> {
-    const collection: { type: string; data: any } = await this.aptosClient.getAccountResource(
-      creator,
-      "0x3::token::Collections",
-    );
+  async getTokenData(
+    creator: MaybeHexString,
+    collectionName: string,
+    tokenName: string
+  ): Promise<TokenTypes.TokenData> {
+    const collection: { type: string; data: any } =
+      await this.aptosClient.getAccountResource(
+        creator,
+        "0x3::token::Collections"
+      );
     const { handle } = collection.data.token_data;
     const tokenId = {
       creator,
@@ -284,7 +339,10 @@ export class TokenClient {
       key: tokenId,
     };
 
-    const tableItem = await this.aptosClient.getTableItem(handle, getTokenTableItemRequest);
+    const tableItem = await this.aptosClient.getTableItem(
+      handle,
+      getTokenTableItemRequest
+    );
     return tableItem.data;
   }
 
@@ -297,8 +355,8 @@ export class TokenClient {
     creator: MaybeHexString,
     collectionName: string,
     tokenName: string,
-    property_version: string = "0",
-  ): Promise<Types.Token> {
+    property_version: string = "0"
+  ): Promise<TokenTypes.Token> {
     const tokenDataId: Types.TokenId = {
       creator: creator instanceof HexString ? creator.hex() : creator,
       collection: collectionName,
@@ -330,11 +388,16 @@ export class TokenClient {
    * }
    * ```
    */
-  async getTokenBalanceForAccount(account: MaybeHexString, tokenId: any): Promise<Types.Token> {
-    const tokenStore: { type: string; data: any } = await this.aptosClient.getAccountResource(
-      account,
-      "0x3::token::TokenStore",
-    );
+
+  async getTokenBalanceForAccount(
+    account: MaybeHexString,
+    tokenId: any
+  ): Promise<TokenTypes.Token> {
+    const tokenStore: { type: string; data: any } =
+      await this.aptosClient.getAccountResource(
+        account,
+        "0x3::token::TokenStore"
+      );
 
     const { handle } = tokenStore.data.tokens;
 
@@ -344,7 +407,10 @@ export class TokenClient {
       key: tokenId,
     };
 
-    const tableItem = await this.aptosClient.getTableItem(handle, getTokenTableItemRequest);
+    const tableItem = await this.aptosClient.getTableItem(
+      handle,
+      getTokenTableItemRequest
+    );
     return tableItem.data;
   }
 }

@@ -1,3 +1,6 @@
+// Copyright (c) Aptos
+// SPDX-License-Identifier: Apache-2.0
+
 export type Nullable<T> = { [P in keyof T]: T[P] | null };
 
 export type AnyObject = { [key: string]: any };
@@ -8,14 +11,15 @@ export async function sleep(timeMs: number): Promise<null> {
   });
 }
 
-export function hexToUtf8(s)
-{
-  try{
-    return decodeURIComponent(
-      s.replace(/\s+/g, '') // remove spaces
-       .replace(/[0-9a-f]{2}/g, '%$&') // add '%' before each 2 characters
-   );
-  }catch(err){
-    return s
+export const DEFAULT_VERSION_PATH_BASE = "/v1";
+
+export function fixNodeUrl(nodeUrl: string): string {
+  let out = `${nodeUrl}`;
+  if (out.endsWith("/")) {
+    out = out.substring(0, out.length - 1);
   }
+  if (!out.endsWith(DEFAULT_VERSION_PATH_BASE)) {
+    out = `${out}${DEFAULT_VERSION_PATH_BASE}`;
+  }
+  return out;
 }

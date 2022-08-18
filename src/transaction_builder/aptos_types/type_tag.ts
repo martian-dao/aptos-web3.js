@@ -1,3 +1,6 @@
+// Copyright (c) Aptos
+// SPDX-License-Identifier: Apache-2.0
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable class-methods-use-this */
 import { Deserializer, Seq, Serializer, deserializeVector, serializeVector } from "../bcs";
@@ -134,8 +137,8 @@ export class StructTag {
 
   /**
    * Converts a string literal to a StructTag
-   * @param structTag String literal in format "AcountAddress::ModuleName::ResourceName",
-   *   e.g. "0x01::test_coin::TestCoin"
+   * @param structTag String literal in format "AcountAddress::module_name::ResourceName",
+   *   e.g. "0x1::aptos_coin::AptosCoin"
    * @returns
    */
   static fromString(structTag: string): StructTag {

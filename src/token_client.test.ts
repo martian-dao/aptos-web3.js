@@ -2,7 +2,6 @@ import { FaucetClient } from "./faucet_client";
 import { AptosAccount } from "./aptos_account";
 import { AptosClient } from "./aptos_client";
 import { TokenClient } from "./token_client";
-import { hexToUtf8 } from "./util";
 
 import { NODE_URL, FAUCET_URL } from "./util.test";
 
@@ -42,7 +41,7 @@ test(
     let aliceBalance: any = await tokenClient.getTokenBalance(alice.address().hex(), collectionName, tokenName);
     expect(aliceBalance.amount).toBe("1");
     const tokenData = await tokenClient.getTokenData(alice.address().hex(), collectionName, tokenName);
-    expect(hexToUtf8(tokenData.uri)).toBe("https://aptos.dev/img/nyan.jpeg");
+    expect(tokenData.uri).toBe("https://aptos.dev/img/nyan.jpeg");
 
     await tokenClient.offerToken(alice, bob.address().hex(), alice.address().hex(), collectionName, tokenName, 1);
     aliceBalance = await tokenClient.getTokenBalance(alice.address().hex(), collectionName, tokenName);
