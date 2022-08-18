@@ -72,7 +72,6 @@ test("verify get token resource handle", async () => {
   const tokens = await apis.getTokenIds(aliceAccount.address().toString());
   const token = tokens[0].data;
 
-
   const resourceHandle = await apis.getTokenResourceHandle(token);
   const tokenData = await apis.getToken(token, resourceHandle);
   expect(tokenData.name).toBe(tokenName);

@@ -29,7 +29,6 @@ export interface TokenId {
   };
 }
 
-
 export interface AccountMetaData {
   derivationPath: string;
   address: string;
@@ -518,7 +517,6 @@ export class WalletClient {
     args: string[],
     type_args: string[]
   ) {
-
     const payload: Gen.TransactionPayload = {
       type: "script_function_payload",
       function: func,
@@ -526,10 +524,7 @@ export class WalletClient {
       arguments: args,
     };
 
-    const txnHash = await this.submitTransactionHelper(
-      account,
-      payload
-    );
+    const txnHash = await this.submitTransactionHelper(account, payload);
 
     const resp: any = await this.aptosClient.getTransactionByHash(txnHash);
     const status = { success: resp.success, vm_status: resp.vm_status };
@@ -607,7 +602,7 @@ export class WalletClient {
       transaction
     );
 
-    const txnData = simulateResponse[0]
+    const txnData = simulateResponse[0];
     const currentBalance = await this.getBalance(account.address());
     const change = txnData.changes.filter((ch) => {
       if (ch.type !== "write_resource") {
@@ -752,7 +747,7 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of token IDs
    */
-   async getTokenIds(address: string, limit?: number, start?: number) {
+  async getTokenIds(address: string, limit?: number, start?: number) {
     const countDeposit = {};
     const countWithdraw = {};
     const tokenIds = [];
@@ -810,7 +805,7 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of tokens and their collection data
    */
-   async getTokens(address: string, limit?: number, start?: number) {
+  async getTokens(address: string, limit?: number, start?: number) {
     const tokenIds = await this.getTokenIds(address, limit, start);
     const tokens = [];
     await Promise.all(
@@ -845,11 +840,9 @@ export class WalletClient {
         if (cache.has(cacheKey)) {
           token = cache.get(cacheKey);
         } else {
-          token = (
-            await this.aptosClient.getTableItem(
-              accountResource.data.token_data.handle,
-              tableItemRequest
-            )
+          token = await this.aptosClient.getTableItem(
+            accountResource.data.token_data.handle,
+            tableItemRequest
           );
           cache.set(cacheKey, token);
         }
@@ -868,7 +861,7 @@ export class WalletClient {
    * @param tokenId token ID of the desired token
    * @returns token information
    */
-   async getToken(tokenId: TokenId, resourceHandle?: string) {
+  async getToken(tokenId: TokenId, resourceHandle?: string) {
     let accountResource: { type: string; data: any };
     if (!resourceHandle) {
       const resources: Types.AccountResource[] =
@@ -885,11 +878,9 @@ export class WalletClient {
       value_type: "0x3::token::TokenData",
       key: tokenId.token_data_id,
     };
-    const token = (
-      await this.aptosClient.getTableItem(
-        resourceHandle || accountResource.data.token_data.handle,
-        tableItemRequest
-      )
+    const token = await this.aptosClient.getTableItem(
+      resourceHandle || accountResource.data.token_data.handle,
+      tableItemRequest
     );
     token.collection = tokenId.token_data_id.collection;
     return token;
@@ -902,7 +893,7 @@ export class WalletClient {
    * @param tokenId token ID of the desired token
    * @returns resource information
    */
-   async getTokenResourceHandle(tokenId: TokenId) {
+  async getTokenResourceHandle(tokenId: TokenId) {
     const resources: Types.AccountResource[] =
       await this.aptosClient.getAccountResources(tokenId.token_data_id.creator);
     const accountResource: { type: string; data: any } = resources.find(
@@ -912,7 +903,6 @@ export class WalletClient {
     return accountResource.data.token_data.handle;
   }
 
-
   /**
    * returns the information about a collection of an account
    *
@@ -920,7 +910,7 @@ export class WalletClient {
    * @param collectionName collection name
    * @returns collection information
    */
-   async getCollection(address: string, collectionName: string) {
+  async getCollection(address: string, collectionName: string) {
     const resources: Types.AccountResource[] =
       await this.aptosClient.getAccountResources(address);
     const accountResource: { type: string; data: any } = resources.find(
@@ -932,11 +922,9 @@ export class WalletClient {
       value_type: "0x3::token::Collection",
       key: collectionName,
     };
-    const collection = (
-      await this.aptosClient.getTableItem(
-        accountResource.data.collections.handle,
-        tableItemRequest
-      )
+    const collection = await this.aptosClient.getTableItem(
+      accountResource.data.collections.handle,
+      tableItemRequest
     );
     return collection;
   }
@@ -959,11 +947,9 @@ export class WalletClient {
       value_type: valueType,
       key,
     };
-    const resource = (
-      await this.aptosClient.getTableItem(
-        accountResource.data[fieldName].handle,
-        tableItemRequest
-      )
+    const resource = await this.aptosClient.getTableItem(
+      accountResource.data[fieldName].handle,
+      tableItemRequest
     );
     return resource;
   }
@@ -1023,10 +1009,7 @@ export class WalletClient {
       ],
     };
 
-    const txnHash = await this.submitTransactionHelper(
-      account,
-      payload
-    );
+    const txnHash = await this.submitTransactionHelper(account, payload);
     const resp: any = await this.aptosClient.getTransactionByHash(txnHash);
     const status = { success: resp.success, vm_status: resp.vm_status };
 
@@ -1052,10 +1035,7 @@ export class WalletClient {
       arguments: [],
     };
 
-    const txnHash = await this.submitTransactionHelper(
-      account,
-      payload
-    );
+    const txnHash = await this.submitTransactionHelper(account, payload);
     const resp: any = await this.aptosClient.getTransactionByHash(txnHash);
     const status = { success: resp.success, vm_status: resp.vm_status };
 
@@ -1088,10 +1068,7 @@ export class WalletClient {
       arguments: [dst_address.toString(), amount.toString()],
     };
 
-    const txnHash = await this.submitTransactionHelper(
-      account,
-      payload
-    );
+    const txnHash = await this.submitTransactionHelper(account, payload);
     const resp: any = await this.aptosClient.getTransactionByHash(txnHash);
     const status = { success: resp.success, vm_status: resp.vm_status };
 
@@ -1120,10 +1097,7 @@ export class WalletClient {
       arguments: [to_address.toString(), amount.toString()],
     };
 
-    const txnHash = await this.submitTransactionHelper(
-      account,
-      payload
-    );
+    const txnHash = await this.submitTransactionHelper(account, payload);
     const resp: any = await this.aptosClient.getTransactionByHash(txnHash);
     const status = { success: resp.success, vm_status: resp.vm_status };
 
