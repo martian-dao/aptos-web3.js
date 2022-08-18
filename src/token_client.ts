@@ -1,6 +1,7 @@
 import { AptosAccount } from "./aptos_account";
 import { AptosClient } from "./aptos_client";
 import { Types } from "./types";
+import * as TokenTypes from "./token_types";
 import { HexString, MaybeHexString } from "./hex_string";
 import * as Gen from "./generated/index";
 
@@ -319,7 +320,7 @@ export class TokenClient {
     creator: MaybeHexString,
     collectionName: string,
     tokenName: string
-  ): Promise<Types.TokenData> {
+  ): Promise<TokenTypes.TokenData> {
     const collection: { type: string; data: any } =
       await this.aptosClient.getAccountResource(
         creator,
@@ -355,7 +356,7 @@ export class TokenClient {
     collectionName: string,
     tokenName: string,
     property_version: string = "0"
-  ): Promise<Types.Token> {
+  ): Promise<TokenTypes.Token> {
     const tokenDataId: Types.TokenId = {
       creator: creator instanceof HexString ? creator.hex() : creator,
       collection: collectionName,
@@ -391,7 +392,7 @@ export class TokenClient {
   async getTokenBalanceForAccount(
     account: MaybeHexString,
     tokenId: any
-  ): Promise<Types.Token> {
+  ): Promise<TokenTypes.Token> {
     const tokenStore: { type: string; data: any } =
       await this.aptosClient.getAccountResource(
         account,

@@ -396,7 +396,7 @@ test(
     // Transfer Token from Alice's Account to Bob's Account
     await tokenClient.getCollectionData(alice.address().hex(), collectionName);
     let aliceBalance = await tokenClient.getTokenBalanceForAccount(alice.address().hex(), tokenId);
-    expect(aliceBalance.value).toBe("1");
+    expect(aliceBalance.amount).toBe("1");
 
     const entryFunctionPayload = new TxnBuilderTypes.TransactionPayloadEntryFunction(
       TxnBuilderTypes.EntryFunction.natural(
@@ -452,10 +452,10 @@ test(
     expect((transaction as any)?.success).toBe(true);
 
     aliceBalance = await tokenClient.getTokenBalanceForAccount(alice.address().hex(), tokenId);
-    expect(aliceBalance.value).toBe("0");
+    expect(aliceBalance.amount).toBe("0");
 
     const bobBalance = await tokenClient.getTokenBalanceForAccount(bob.address().hex(), tokenId);
-    expect(bobBalance.value).toBe("1");
+    expect(bobBalance.amount).toBe("1");
   },
   30 * 1000,
 );
