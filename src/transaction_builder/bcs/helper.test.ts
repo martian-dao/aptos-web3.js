@@ -1,3 +1,6 @@
+// Copyright (c) Aptos
+// SPDX-License-Identifier: Apache-2.0
+
 import { AccountAddress } from "../aptos_types";
 import { Deserializer } from "./deserializer";
 import {
@@ -13,6 +16,7 @@ import {
   bcsToBytes,
   deserializeVector,
   serializeVector,
+  serializeVectorWithFunc,
 } from "./helper";
 import { Serializer } from "./serializer";
 
@@ -85,4 +89,8 @@ test("bcsSerializeFixedBytes", () => {
   expect(bcsSerializeFixedBytes(new Uint8Array([0x41, 0x70, 0x74, 0x6f, 0x73]))).toEqual(
     new Uint8Array([0x41, 0x70, 0x74, 0x6f, 0x73]),
   );
+});
+
+test("serializeVectorWithFunc", () => {
+  expect(serializeVectorWithFunc([false, true], "serializeBool")).toEqual(new Uint8Array([0x2, 0x0, 0x1]));
 });

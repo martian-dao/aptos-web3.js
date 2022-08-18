@@ -10,9 +10,11 @@ import { FaucetClient } from "./faucet_client";
 import { HexString, MaybeHexString } from "./hex_string";
 import { Types } from "./types";
 import { RawTransaction } from "./transaction_builder/aptos_types/transaction";
-import * as Gen from "./generated/index"; 
+import * as Gen from "./generated/index";
 import cache from "./utils/cache";
 import { WriteResource } from "./api/data-contracts";
+import { AnyNumber } from "./transaction_builder/bcs";
+import { MAX_U64_BIG_INT } from "./transaction_builder/bcs/consts";
 
 const { HDKey } = require("@scure/bip32");
 
@@ -21,10 +23,14 @@ const MAX_ACCOUNTS = 5;
 const ADDRESS_GAP = 10;
 
 export interface TokenId {
-  creator: string;
-  collectionName: string;
-  name: string;
+  property_version: string;
+  token_data_id: {
+    creator: string;
+    collection: string;
+    name: string;
+  };
 }
+
 
 export interface AccountMetaData {
   derivationPath: string;
@@ -50,6 +56,25 @@ export class WalletClient {
     this.tokenClient = new TokenClient(this.aptosClient);
   }
 
+  async submitTransactionHelper(
+    account: AptosAccount,
+    payload: Gen.TransactionPayload,
+    options = { max_gas_amount: "4000" }
+  ) {
+    const txnRequest = await this.aptosClient.generateTransaction(
+      account.address(),
+      payload,
+      options
+    );
+    const signedTxn = await this.aptosClient.signTransaction(
+      account,
+      txnRequest
+    );
+    const res = await this.aptosClient.submitTransaction(signedTxn);
+    await this.aptosClient.waitForTransaction(res.hash);
+    return Promise.resolve(res.hash);
+  }
+
   /**
    * Each mnemonic phrase corresponds to a single wallet
    * Wallet can contain multiple accounts
@@ -60,6 +85,7 @@ export class WalletClient {
    * @param code The mnemonic phrase (12 word)
    * @returns Wallet object containing all accounts of a user
    */
+
   async importWallet(code: string): Promise<Wallet> {
     let flag = false;
     let address = "";
@@ -279,13 +305,7 @@ export class WalletClient {
 
       const payload: Gen.TransactionPayload = {
         type: "script_function_payload",
-        function: {
-          module: {
-            address: "0x1",
-            name: "coin",
-          },
-          name: "transfer",
-        },
+        function: "0x1::coin::transfer",
         type_arguments: ["0x1::aptos_coin::AptosCoin"],
 
         arguments: [
@@ -294,7 +314,7 @@ export class WalletClient {
         ],
       };
 
-      return await this.tokenClient.submitTransactionHelper(account, payload);
+      return await this.submitTransactionHelper(account, payload);
     } catch (err) {
       return Promise.reject(err);
     }
@@ -321,12 +341,8 @@ export class WalletClient {
    * @returns list of events
    */
   async getReceivedEvents(address: string, limit?: number, start?: BigInt) {
-    const eventHandleStruct: Gen.MoveStructTag = {
-      address: "0x1",
-      module: "coin",
-      name: "CoinStore",
-      generic_type_params: ["0x1::aptos_coin::AptosCoin"]
-    }
+    const eventHandleStruct =
+      "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
     return Promise.resolve(
       await this.aptosClient.getEventsByEventHandle(
         address,
@@ -369,6 +385,7 @@ export class WalletClient {
    * @param royalty_points_per_million royalty points per million
    * @returns transaction hash
    */
+
   async createToken(
     account: AptosAccount,
     collection_name: string,
@@ -376,12 +393,13 @@ export class WalletClient {
     description: string,
     supply: number,
     uri: string,
+    max: AnyNumber = MAX_U64_BIG_INT,
     royalty_payee_address: MaybeHexString = account.address(),
     royalty_points_denominator: number = 0,
     royalty_points_numerator: number = 0,
     property_keys: Array<string> = [],
     property_values: Array<string> = [],
-    property_types: Array<string> = [],
+    property_types: Array<string> = []
   ) {
     return Promise.resolve(
       await this.tokenClient.createToken(
@@ -391,6 +409,7 @@ export class WalletClient {
         description,
         supply,
         uri,
+        max,
         royalty_payee_address,
         royalty_points_denominator,
         royalty_points_numerator,
@@ -504,26 +523,14 @@ export class WalletClient {
     type_args: string[]
   ) {
 
-    const functionBreakdown = func.split("::")
-
-    if(functionBreakdown.length !== 3){
-      throw new Error("Invalid function")
-    }
-
     const payload: Gen.TransactionPayload = {
       type: "script_function_payload",
-      function: {
-        module: {
-          address: functionBreakdown[0],
-          name: functionBreakdown[1],
-        },
-        name: functionBreakdown[2],
-      },
+      function: func,
       type_arguments: type_args,
       arguments: args,
     };
 
-    const txnHash = await this.tokenClient.submitTransactionHelper(
+    const txnHash = await this.submitTransactionHelper(
       account,
       payload
     );
@@ -588,8 +595,10 @@ export class WalletClient {
     account: AptosAccount,
     transaction: Gen.SubmitTransactionRequest
   ): Promise<string> {
-    const simulateResponse: any =
-      await this.aptosClient.simulateTransaction(account, transaction);
+    const simulateResponse: any = await this.aptosClient.simulateTransaction(
+      account,
+      transaction
+    );
     return simulateResponse.gas_used;
   }
 
@@ -597,8 +606,10 @@ export class WalletClient {
     account: AptosAccount,
     transaction: Gen.SubmitTransactionRequest
   ): Promise<string> {
-    const txnData: any=
-      await this.aptosClient.simulateTransaction(account, transaction);
+    const txnData: any = await this.aptosClient.simulateTransaction(
+      account,
+      transaction
+    );
     const currentBalance = await this.getBalance(account.address());
     const change = txnData.changes.filter((ch) => {
       if (ch.type !== "write_resource") {
@@ -851,26 +862,50 @@ export class WalletClient {
    * @param tokenId token ID of the desired token
    * @returns token information
    */
-  async getToken(tokenId: TokenId) {
-    const resources: any =
-      await this.aptosClient.getAccountResources(tokenId.creator);
-    const accountResource: { type: string; data: any } = resources.find(
-      (r) => r.type === "0x1::token::Collections"
-    );
+   async getToken(tokenId: TokenId, resourceHandle?: string) {
+    let accountResource: { type: string; data: any };
+    if (!resourceHandle) {
+      const resources: Types.AccountResource[] =
+        await this.aptosClient.getAccountResources(
+          tokenId.token_data_id.creator
+        );
+      accountResource = resources.find(
+        (r) => r.type === "0x3::token::Collections"
+      );
+    }
 
     const tableItemRequest: Types.TableItemRequest = {
-      key_type: "0x1::token::TokenId",
-      value_type: "0x1::token::TokenData",
-      key: tokenId,
+      key_type: "0x3::token::TokenDataId",
+      value_type: "0x3::token::TokenData",
+      key: tokenId.token_data_id,
     };
     const token = (
       await this.aptosClient.getTableItem(
-        accountResource.data.token_data.handle,
+        resourceHandle || accountResource.data.token_data.handle,
         tableItemRequest
       )
     ).data;
+    token.collection = tokenId.token_data_id.collection;
     return token;
   }
+
+   /**
+   * returns the resource handle for type 0x3::token::Collections
+   * about a said creator
+   *
+   * @param tokenId token ID of the desired token
+   * @returns resource information
+   */
+    async getTokenResourceHandle(tokenId: TokenId) {
+      const resources: Types.AccountResource[] =
+        await this.aptosClient.getAccountResources(tokenId.token_data_id.creator);
+      const accountResource: { type: string; data: any } = resources.find(
+        (r) => r.type === "0x3::token::Collections"
+      );
+  
+      return accountResource.data.token_data.handle;
+    }
+  
 
   /**
    * returns the information about a collection of an account
@@ -880,8 +915,7 @@ export class WalletClient {
    * @returns collection information
    */
   async getCollection(address: string, collectionName: string) {
-    const resources: any =
-      await this.aptosClient.getAccountResources(address);
+    const resources: any = await this.aptosClient.getAccountResources(address);
     const accountResource: { type: string; data: any } = resources.find(
       (r) => r.type === "0x1::token::Collections"
     );
@@ -908,8 +942,7 @@ export class WalletClient {
     valueType: string,
     key: any
   ) {
-    const resources: any =
-      await this.aptosClient.getAccountResources(address);
+    const resources: any = await this.aptosClient.getAccountResources(address);
     const accountResource: { type: string; data: any } = resources.find(
       (r) => r.type === resourceType
     );
@@ -973,13 +1006,7 @@ export class WalletClient {
   ) {
     const payload: Gen.TransactionPayload = {
       type: "script_function_payload",
-      function: {
-        module: {
-          address: "0x1",
-          name: "managed_coin",
-        },
-        name: "initialize",
-      },      
+      function: "0x1::managed_coin::initialize",
       type_arguments: [coin_type_path],
       arguments: [
         Buffer.from(name).toString("hex"),
@@ -989,7 +1016,7 @@ export class WalletClient {
       ],
     };
 
-    const txnHash = await this.tokenClient.submitTransactionHelper(
+    const txnHash = await this.submitTransactionHelper(
       account,
       payload
     );
@@ -1013,18 +1040,12 @@ export class WalletClient {
     // coin_type_path: something like 0x${coinTypeAddress}::moon_coin::MoonCoin
     const payload: Gen.TransactionPayload = {
       type: "script_function_payload",
-      function:{
-        module: {
-          address: "0x1",
-          name: "coin",
-        },
-        name: "register",
-      },      
+      function: "0x1::coins::register",
       type_arguments: [coin_type_path],
       arguments: [],
     };
 
-    const txnHash = await this.tokenClient.submitTransactionHelper(
+    const txnHash = await this.submitTransactionHelper(
       account,
       payload
     );
@@ -1053,21 +1074,14 @@ export class WalletClient {
     dst_address: string,
     amount: number
   ) {
-
     const payload: Gen.TransactionPayload = {
       type: "script_function_payload",
-      function:{
-        module: {
-          address: "0x1",
-          name: "managed_coin",
-        },
-        name: "mint",
-      },      
+      function: "0x1::managed_coin::mint",
       type_arguments: [coin_type_path],
       arguments: [dst_address.toString(), amount.toString()],
     };
 
-    const txnHash = await this.tokenClient.submitTransactionHelper(
+    const txnHash = await this.submitTransactionHelper(
       account,
       payload
     );
@@ -1092,21 +1106,14 @@ export class WalletClient {
     to_address: string,
     amount: number
   ) {
-
     const payload: Gen.TransactionPayload = {
       type: "script_function_payload",
-      function:{
-        module: {
-          address: "0x1",
-          name: "coin",
-        },
-        name: "transfer",
-      },      
+      function: "0x1::coin::transfer",
       type_arguments: [coin_type_path],
       arguments: [to_address.toString(), amount.toString()],
     };
 
-    const txnHash = await this.tokenClient.submitTransactionHelper(
+    const txnHash = await this.submitTransactionHelper(
       account,
       payload
     );

@@ -3,196 +3,231 @@ import { NODE_URL, FAUCET_URL } from "./util.test";
 
 const apis = new WalletClient(NODE_URL, FAUCET_URL);
 
-test("verify airdrop", async () => {
+// test("verify airdrop", async () => {
+//   const alice = await apis.createWallet();
+//   const aliceAccount = await WalletClient.getAccountFromMetaData(
+//     alice.code,
+//     alice.accounts[0]
+//   );
+//   await apis.airdrop(aliceAccount.address().toString(), 1234);
+//   expect(await apis.getBalance(aliceAccount.address())).toBe(1234);
+// });
+
+// test("verify transfer", async () => {
+//   const alice = await apis.createWallet();
+//   const aliceAccount = await WalletClient.getAccountFromMetaData(
+//     alice.code,
+//     alice.accounts[0]
+//   );
+
+//   await apis.airdrop(aliceAccount.address().toString(), 20000);
+//   const bob = await apis.createWallet();
+
+//   const bobAccount = await WalletClient.getAccountFromMetaData(
+//     bob.code,
+//     bob.accounts[0]
+//   );
+//   await apis.transfer(aliceAccount, bobAccount.address(), 15000);
+//   expect(await apis.getBalance(bobAccount.address())).toBe(15000);
+// });
+
+// test("verify signMessage", async () => {
+//   const alice = await apis.createWallet();
+//   const aliceAccount = await WalletClient.getAccountFromMetaData(
+//     alice.code,
+//     alice.accounts[0]
+//   );
+//   await WalletClient.signMessage(aliceAccount, "This is a test message");
+// });
+
+test("verify get token resource handle", async () => {
   const alice = await apis.createWallet();
   const aliceAccount = await WalletClient.getAccountFromMetaData(
     alice.code,
     alice.accounts[0]
   );
-  await apis.airdrop(aliceAccount.address().toString(), 1234);
-  expect(await apis.getBalance(aliceAccount.address())).toBe(1234);
-});
 
-test("verify transfer", async () => {
-  const alice = await apis.createWallet();
-  const aliceAccount = await WalletClient.getAccountFromMetaData(
-    alice.code,
-    alice.accounts[0]
-  );
-
-  await apis.airdrop(aliceAccount.address().toString(), 20000);
-  const bob = await apis.createWallet();
-
-  const bobAccount = await WalletClient.getAccountFromMetaData(
-    bob.code,
-    bob.accounts[0]
-  );
-  await apis.transfer(aliceAccount, bobAccount.address(), 15000);
-  expect(await apis.getBalance(bobAccount.address())).toBe(15000);
-});
-
-test("verify signMessage", async () => {
-  const alice = await apis.createWallet();
-  const aliceAccount = await WalletClient.getAccountFromMetaData(
-    alice.code,
-    alice.accounts[0]
-  );
-  await WalletClient.signMessage(aliceAccount, "This is a test message");
-});
-
-test("verify creating collection and NFT", async () => {
-  const alice = await apis.createWallet();
-  const aliceAccount = await WalletClient.getAccountFromMetaData(
-    alice.code,
-    alice.accounts[0]
-  );
-
-  await apis.airdrop(aliceAccount.address().toString(), 20000);
+  console.log(await apis.airdrop(aliceAccount.address().toString(), 1000000));
 
   const collectionName = "AliceCollection";
   const tokenName = "Alice Token";
 
   // Create collection and token on Alice's account
-  await apis.createCollection(
+  console.log(await apis.createCollection(
     aliceAccount,
     collectionName,
     "Alice's simple collection",
     "https://aptos.dev"
-  );
+  ));
 
-  await apis.createToken(
+  console.log(await apis.createToken(
     aliceAccount,
     collectionName,
     tokenName,
     "Alice's simple token",
     1,
     "https://aptos.dev/img/nyan.jpeg"
-  );
+  ));
 
-  const tokens = await apis.getTokens(aliceAccount.address().toString());
-  expect(tokens[0].token.name).toBe(tokenName);
+  const tokens = await apis.getTokenIds(aliceAccount.address().toString());
+  const token = tokens[0].data;
+
+
+  const resourceHandle = await apis.getTokenResourceHandle(token);
+  const tokenData = await apis.getToken(token, resourceHandle);
+  expect(tokenData.name).toBe(tokenName);
 });
 
-test(
-  "verify transferring NFT",
-  async () => {
-    const alice = await apis.createWallet();
-    const aliceAccount = await WalletClient.getAccountFromMetaData(
-      alice.code,
-      alice.accounts[0]
-    );
+// test("verify creating collection and NFT", async () => {
+//   const alice = await apis.createWallet();
+//   const aliceAccount = await WalletClient.getAccountFromMetaData(
+//     alice.code,
+//     alice.accounts[0]
+//   );
 
-    const bob = await apis.createWallet();
-    const bobAccount = await WalletClient.getAccountFromMetaData(
-      bob.code,
-      bob.accounts[0]
-    );
+//   await apis.airdrop(aliceAccount.address().toString(), 1000000);
+//   const collectionName = "AliceCollection";
+//   const tokenName = "Alice Token";
 
-    await apis.airdrop(aliceAccount.address().toString(), 20000);
-    await apis.airdrop(bobAccount.address().toString(), 20000);
+//   // Create collection and token on Alice's account
+//   await apis.createCollection(
+//     aliceAccount,
+//     collectionName,
+//     "Alice's simple collection",
+//     "https://aptos.dev"
+//   );
 
-    const collectionName = "AliceCollection";
-    const tokenName = "Alice Token";
+//   await apis.createToken(
+//     aliceAccount,
+//     collectionName,
+//     tokenName,
+//     "Alice's simple token",
+//     1,
+//     "https://aptos.dev/img/nyan.jpeg"
+//   );
 
-    // Create collection and token on Alice's account
-    await apis.createCollection(
-      aliceAccount,
-      collectionName,
-      "Alice's simple collection",
-      "https://aptos.dev"
-    );
+//   const tokens = await apis.getTokens(aliceAccount.address().toString());
+//   expect(tokens[0].token.name).toBe(tokenName);
+// });
 
-    await apis.createToken(
-      aliceAccount,
-      collectionName,
-      tokenName,
-      "Alice's simple token",
-      1,
-      "https://aptos.dev/img/nyan.jpeg"
-    );
+// // test(
+// //   "verify transferring NFT",
+// //   async () => {
+// //     const alice = await apis.createWallet();
+// //     const aliceAccount = await WalletClient.getAccountFromMetaData(
+// //       alice.code,
+// //       alice.accounts[0]
+// //     );
 
-    await apis.offerToken(
-      aliceAccount,
-      bobAccount.address().toString(),
-      aliceAccount.address().toString(),
-      collectionName,
-      tokenName,
-      1
-    );
-    await apis.claimToken(
-      bobAccount,
-      aliceAccount.address().toString(),
-      aliceAccount.address().toString(),
-      collectionName,
-      tokenName
-    );
+// //     const bob = await apis.createWallet();
+// //     const bobAccount = await WalletClient.getAccountFromMetaData(
+// //       bob.code,
+// //       bob.accounts[0]
+// //     );
 
-    const aliceTokens = await apis.getTokens(aliceAccount.address().toString());
-    expect(aliceTokens.length).toBe(0);
-    const bobTokens = await apis.getTokens(bobAccount.address().toString());
-    expect(bobTokens[0].token.name).toBe(tokenName);
-  },
-  60 * 1000
-);
+// //     await apis.airdrop(aliceAccount.address().toString(), 1000000);
+// //     await apis.airdrop(bobAccount.address().toString(), 1000000);
 
-test("verify signAndSubmitTransactions", async () => {
-  const alice = await apis.createWallet();
-  const aliceAccount = await WalletClient.getAccountFromMetaData(
-    alice.code,
-    alice.accounts[0]
-  );
-  await apis.airdrop(aliceAccount.address().toString(), 20000);
+// //     const collectionName = "AliceCollection";
+// //     const tokenName = "Alice Token";
 
-  const collectionName = "AptosCollection";
-  const tokenName = "AptosToken";
+// //     // Create collection and token on Alice's account
+// //     await apis.createCollection(
+// //       aliceAccount,
+// //       collectionName,
+// //       "Alice's simple collection",
+// //       "https://aptos.dev"
+// //     );
 
-  const txn1 = await apis.aptosClient.generateTransaction(
-    aliceAccount.address().toString(),
-    {
-      type: "script_function_payload",
-      function: {
-        module: {
-          address: "0x3",
-          name: "token"
-        },
-        name: "create_unlimited_collection_script"
-      },
-      type_arguments: [],
-      arguments: [
-        Buffer.from(collectionName).toString("hex"),
-        Buffer.from("description").toString("hex"),
-        Buffer.from("https://www.aptos.dev").toString("hex"),
-      ],
-    }
-  );
-  const txn2 = await apis.aptosClient.generateTransaction(
-    aliceAccount.address().toString(),
-    {
-      type: "script_function_payload",
-      function: {
-        module: {
-          address: "0x3",
-          name: "token"
-        },
-        name: "create_unlimited_token_script"
-      },      
-      type_arguments: [],
-      arguments: [
-        Buffer.from(collectionName).toString("hex"),
-        Buffer.from(tokenName).toString("hex"),
-        Buffer.from("description").toString("hex"),
-        true,
-        "1",
-        Buffer.from("https://aptos.dev/img/nyan.jpeg").toString("hex"),
-        "0",
-      ],
-    }
-  );
-  await apis.signAndSubmitTransactions(aliceAccount, [txn1, txn2]);
+// //     await apis.createToken(
+// //       aliceAccount,
+// //       collectionName,
+// //       tokenName,
+// //       "Alice's simple token",
+// //       1,
+// //       "https://aptos.dev/img/nyan.jpeg"
+// //     );
 
-  const tokens = await apis.getTokens(aliceAccount.address().toString());
-  expect(tokens[0].token.name).toBe(tokenName);
-});
+// //     await apis.offerToken(
+// //       aliceAccount,
+// //       bobAccount.address().toString(),
+// //       aliceAccount.address().toString(),
+// //       collectionName,
+// //       tokenName,
+// //       1,
+// //       0
+// //     );
+// //     await apis.claimToken(
+// //       bobAccount,
+// //       aliceAccount.address().toString(),
+// //       aliceAccount.address().toString(),
+// //       collectionName,
+// //       tokenName,
+// //       0
+// //     );
+
+// //     const aliceTokens = await apis.getTokens(aliceAccount.address().toString());
+// //     expect(aliceTokens.length).toBe(0);
+// //     const bobTokens = await apis.getTokens(bobAccount.address().toString());
+// //     expect(bobTokens[0].token.name).toBe(tokenName);
+// //   },
+// //   60 * 1000
+// // );
+
+// test("verify signAndSubmitTransactions", async () => {
+//   const alice = await apis.createWallet();
+//   const aliceAccount = await WalletClient.getAccountFromMetaData(
+//     alice.code,
+//     alice.accounts[0]
+//   );
+//   await apis.airdrop(aliceAccount.address().toString(), 1000000);
+
+//   const collectionName = "AptosCollection";
+//   const tokenName = "AptosToken";
+
+//   const txn1 = await apis.aptosClient.generateTransaction(
+//     aliceAccount.address().toString(),
+//     {
+//       type: "script_function_payload",
+//       function: "0x3::token::create_collection_script",
+//       type_arguments: [],
+//       arguments: [
+//         collectionName,
+//         "description",
+//         "https://www.aptos.dev",
+//         "1234",
+//         [false, false, false],
+//       ],
+//     }
+//   );
+//   const txn2 = await apis.aptosClient.generateTransaction(
+//     aliceAccount.address().toString(),
+//     {
+//       type: "script_function_payload",
+//       function: "0x3::token::create_token_script",
+//       type_arguments: [],
+//       arguments: [
+//         collectionName,
+//         tokenName,
+//         "token description",
+//         "1",
+//         "1234",
+//         "https://aptos.dev/img/nyan.jpeg",
+//         aliceAccount.address().toString(),
+//         "0",
+//         "0",
+//         [false, false, false, false, false],
+//         [],
+//         [],
+//         [],
+//       ],
+//     }
+//   );
+//   await apis.signAndSubmitTransactions(aliceAccount, [txn1, txn2]);
+
+//   const tokens = await apis.getTokens(aliceAccount.address().toString());
+//   expect(tokens[0].token.name).toBe(tokenName);
+// });
 
 // test("verify estimate gas fees", async () => {
 //   const alice = await apis.createWallet();
@@ -229,7 +264,7 @@ test("verify signAndSubmitTransactions", async () => {
 //       alice.code,
 //       alice.accounts[0]
 //     );
-//     await apis.airdrop(aliceAccount.address().toString(), 10000);
+//     await apis.airdrop(aliceAccount.address().toString(), 1000000);
 //     const collectionName = "AptosCollection";
 //     const tokenName = "AptosToken";
 
@@ -237,39 +272,47 @@ test("verify signAndSubmitTransactions", async () => {
 //       aliceAccount.address().toString(),
 //       {
 //         type: "script_function_payload",
-//         function: "0x1::token::create_unlimited_collection_script",
+//         function: "0x3::token::create_collection_script",
 //         type_arguments: [],
 //         arguments: [
-//           Buffer.from(collectionName).toString("hex"),
-//           Buffer.from("description").toString("hex"),
-//           Buffer.from("https://www.aptos.dev").toString("hex"),
+//           collectionName,
+//           "description",
+//           "https://www.aptos.dev",
+//           "1234",
+//           [false, false, false],
 //         ],
 //       }
 //     );
+
 //     await apis.signAndSubmitTransactions(aliceAccount, [txn1]);
 
 //     const txn2 = await apis.aptosClient.generateTransaction(
 //       aliceAccount.address().toString(),
 //       {
 //         type: "script_function_payload",
-//         function: "0x1::token::create_unlimited_token_script",
+//         function: "0x3::token::create_token_script",
 //         type_arguments: [],
 //         arguments: [
-//           Buffer.from(collectionName).toString("hex"),
-//           Buffer.from(tokenName).toString("hex"),
-//           Buffer.from("description").toString("hex"),
-//           true,
+//           collectionName,
+//           tokenName,
+//           "token description",
 //           "1",
-//           Buffer.from("https://aptos.dev/img/nyan.jpeg").toString("hex"),
+//           "1234",
+//           "https://aptos.dev/img/nyan.jpeg",
+//           aliceAccount.address().toString(),
 //           "0",
+//           "0",
+//           [false, false, false, false, false],
+//           [],
+//           [],
+//           [],
 //         ],
 //       }
 //     );
-
 //     const estimatedCost = await apis.estimateCost(aliceAccount, txn2);
 //     const currentBalance = await apis.getBalance(aliceAccount.address());
 //     const txnHash = await apis.signAndSubmitTransaction(aliceAccount, txn2);
-//     const txnData: any = await apis.aptosClient.getTransaction(txnHash);
+//     const txnData: any = await apis.aptosClient.getTransactionByHash(txnHash);
 //     const updatedBalance = await apis.getBalance(aliceAccount.address());
 //     expect(estimatedCost).toBe(
 //       (currentBalance - updatedBalance - txnData.gas_used).toString()
@@ -278,68 +321,68 @@ test("verify signAndSubmitTransactions", async () => {
 //   60 * 1000
 // );
 
-// test("console.log", async () => {
-//   const alice = await apis.getReceivedEvents(
-//     "0xfb0f1312478305a29533fc59c5db6e5742ee99adc19f81d7bc9c250ccc552bcc"
-//   );
+// // test("console.log", async () => {
+// //   const alice = await apis.getReceivedEvents(
+// //     "0xfb0f1312478305a29533fc59c5db6e5742ee99adc19f81d7bc9c250ccc552bcc"
+// //   );
 
-//   expect(true).toBe(true);
-// });
+// //   expect(true).toBe(true);
+// // });
 
-// test("verify fungible tokens", async () => {
-//     const alice = await apis.createWallet();
-//     var aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
-//     await apis.airdrop(aliceAccount.address().toString(), 20000);
+// // test("verify fungible tokens", async () => {
+// //     const alice = await apis.createWallet();
+// //     var aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
+// //     await apis.airdrop(aliceAccount.address().toString(), 20000);
 
-//     const bob = await apis.createWallet();
-//     var bobAccount = await apis.getAccountFromMetaData(bob.code, bob.accounts[0]);
-//     await apis.airdrop(bobAccount.address().toString(), 20000);
-//     // the address will change with time
-//     const coin_type_path = `${aliceAccount.address().toString()}::MartianCoin::MartianCoin`;
+// //     const bob = await apis.createWallet();
+// //     var bobAccount = await apis.getAccountFromMetaData(bob.code, bob.accounts[0]);
+// //     await apis.airdrop(bobAccount.address().toString(), 20000);
+// //     // the address will change with time
+// //     const coin_type_path = `${aliceAccount.address().toString()}::MartianCoin::MartianCoin`;
 
-//     await apis.initializeCoin(aliceAccount, coin_type_path, "Martian Coin", "MAR", 6);
-//     await apis.registerCoin(aliceAccount, coin_type_path);
-//     await apis.mintCoin(aliceAccount, coin_type_path, aliceAccount.address().toString(), 3000);
-//     await apis.getCoinBalance(aliceAccount.address().toString(), coin_type_path);
+// //     await apis.initializeCoin(aliceAccount, coin_type_path, "Martian Coin", "MAR", 6);
+// //     await apis.registerCoin(aliceAccount, coin_type_path);
+// //     await apis.mintCoin(aliceAccount, coin_type_path, aliceAccount.address().toString(), 3000);
+// //     await apis.getCoinBalance(aliceAccount.address().toString(), coin_type_path);
 
-//     await apis.registerCoin(bobAccount, coin_type_path);
-//     await apis.transferCoin(aliceAccount, coin_type_path, bobAccount.address().toString(), 1000);
+// //     await apis.registerCoin(bobAccount, coin_type_path);
+// //     await apis.transferCoin(aliceAccount, coin_type_path, bobAccount.address().toString(), 1000);
 
-//     expect(await apis.getCoinBalance(bobAccount.address().toString(), coin_type_path)).toBe(1000);
-// })
+// //     expect(await apis.getCoinBalance(bobAccount.address().toString(), coin_type_path)).toBe(1000);
+// // })
 
-// test("should be able to create a new wallet and rotate auth keys", async () => {
-//     // var alice = await apis.createWallet();
-//     // console.log(alice);
+// // test("should be able to create a new wallet and rotate auth keys", async () => {
+// //     // var alice = await apis.createWallet();
+// //     // console.log(alice);
 
-//     // var aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
+// //     // var aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
 
-//     // await apis.rotateAuthKey(alice.code, alice.accounts[0]);
-//     const tmp = "fresh left easily alpha round wood someone unfair draft fly vital observe"
-//     const alice = await apis.importWallet(tmp);
-//     await apis.airdrop(alice[0].address().toString(), 20000);
-//     // await apis.createNewAccount(alice.code);
-//     // alice = await apis.importWallet(alice.code);
+// //     // await apis.rotateAuthKey(alice.code, alice.accounts[0]);
+// //     const tmp = "fresh left easily alpha round wood someone unfair draft fly vital observe"
+// //     const alice = await apis.importWallet(tmp);
+// //     await apis.airdrop(alice[0].address().toString(), 20000);
+// //     // await apis.createNewAccount(alice.code);
+// //     // alice = await apis.importWallet(alice.code);
 
-//     // await apis.createNewAccount(alice.code);
-//     // alice = await apis.importWallet(alice.code);
+// //     // await apis.createNewAccount(alice.code);
+// //     // alice = await apis.importWallet(alice.code);
 
-//     // await apis.createNewAccount(alice.code);
-//     // alice = await apis.importWallet(alice.code);
+// //     // await apis.createNewAccount(alice.code);
+// //     // alice = await apis.importWallet(alice.code);
 
-//     // aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
-//     // await apis.airdrop(aliceAccount.address().toString(), 20000);
+// //     // aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
+// //     // await apis.airdrop(aliceAccount.address().toString(), 20000);
 
-//     // console.log(await apis.rotateAuthKey(alice.code, alice.accounts[2]));
-//     // alice = await apis.importWallet(alice.code);
+// //     // console.log(await apis.rotateAuthKey(alice.code, alice.accounts[2]));
+// //     // alice = await apis.importWallet(alice.code);
 
-//     // aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
-//     // await apis.rotateAuthKey(alice.code, alice.accounts[2]);
-//     // alice = await apis.importWallet(alice.code);
+// //     // aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
+// //     // await apis.rotateAuthKey(alice.code, alice.accounts[2]);
+// //     // alice = await apis.importWallet(alice.code);
 
-//     // aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
-//     // await apis.transfer(aliceAccount, alice.accounts[3].address, 100);
-//     // console.log(await apis.getBalance(aliceAccount.address().toString()));
+// //     // aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
+// //     // await apis.transfer(aliceAccount, alice.accounts[3].address, 100);
+// //     // console.log(await apis.getBalance(aliceAccount.address().toString()));
 
-//     // console.log(await apis.getBalance(alice.accounts[3].address));
-// },300000);
+// //     // console.log(await apis.getBalance(alice.accounts[3].address));
+// // },300000);

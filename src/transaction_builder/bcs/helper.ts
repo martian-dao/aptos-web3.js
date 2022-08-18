@@ -1,3 +1,6 @@
+// Copyright (c) Aptos
+// SPDX-License-Identifier: Apache-2.0
+
 import { Deserializer } from "./deserializer";
 import { Serializer } from "./serializer";
 import { AnyNumber, Bytes, Seq, Uint16, Uint32, Uint8 } from "./types";
@@ -14,6 +17,20 @@ export function serializeVector<T extends Serializable>(value: Seq<T>, serialize
   value.forEach((item: T) => {
     item.serialize(serializer);
   });
+}
+
+/**
+ * Serializes a vector with specified item serializaiton function.
+ * Very dynamic function and bypasses static typechecking.
+ */
+export function serializeVectorWithFunc(value: any[], func: string): Bytes {
+  const serializer = new Serializer();
+  serializer.serializeU32AsUleb128(value.length);
+  const f = (serializer as any)[func];
+  value.forEach((item) => {
+    f.call(serializer, item);
+  });
+  return serializer.getBytes();
 }
 
 /**

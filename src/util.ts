@@ -1,4 +1,5 @@
-import * as Gen from "./generated/index";
+// Copyright (c) Aptos
+// SPDX-License-Identifier: Apache-2.0
 
 export type Nullable<T> = { [P in keyof T]: T[P] | null };
 
@@ -10,10 +11,15 @@ export async function sleep(timeMs: number): Promise<null> {
   });
 }
 
-export function moveStructTagToParam(moveStructTag: Gen.MoveStructTag): Gen.MoveStructTagParam {
-  let genericTypeParamsString = "";
-  if (moveStructTag.generic_type_params.length > 0) {
-    genericTypeParamsString = `<${moveStructTag.generic_type_params.join(",")}>`;
+export const DEFAULT_VERSION_PATH_BASE = "/v1";
+
+export function fixNodeUrl(nodeUrl: string): string {
+  let out = `${nodeUrl}`;
+  if (out.endsWith("/")) {
+    out = out.substring(0, out.length - 1);
   }
-  return `${moveStructTag.address}::${moveStructTag.module}::${moveStructTag.name}${genericTypeParamsString}`;
+  if (!out.endsWith(DEFAULT_VERSION_PATH_BASE)) {
+    out = `${out}${DEFAULT_VERSION_PATH_BASE}`;
+  }
+  return out;
 }
