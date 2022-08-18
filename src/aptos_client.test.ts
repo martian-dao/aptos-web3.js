@@ -374,7 +374,6 @@ test(
         "Alice's simple token",
         1,
         "https://aptos.dev/img/nyan.jpeg",
-        1000,
         alice.address(),
         0,
         0,
@@ -397,7 +396,7 @@ test(
     // Transfer Token from Alice's Account to Bob's Account
     await tokenClient.getCollectionData(alice.address().hex(), collectionName);
     let aliceBalance = await tokenClient.getTokenBalanceForAccount(alice.address().hex(), tokenId);
-    expect(aliceBalance.amount).toBe("1");
+    expect(aliceBalance.value).toBe("1");
 
     const entryFunctionPayload = new TxnBuilderTypes.TransactionPayloadEntryFunction(
       TxnBuilderTypes.EntryFunction.natural(
@@ -453,10 +452,10 @@ test(
     expect((transaction as any)?.success).toBe(true);
 
     aliceBalance = await tokenClient.getTokenBalanceForAccount(alice.address().hex(), tokenId);
-    expect(aliceBalance.amount).toBe("0");
+    expect(aliceBalance.value).toBe("0");
 
     const bobBalance = await tokenClient.getTokenBalanceForAccount(bob.address().hex(), tokenId);
-    expect(bobBalance.amount).toBe("1");
+    expect(bobBalance.value).toBe("1");
   },
   30 * 1000,
 );
