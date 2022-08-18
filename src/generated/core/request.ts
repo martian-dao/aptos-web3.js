@@ -220,7 +220,6 @@ const sendRequest = async <T>(
     } catch (error) {
         const axiosError = error as AxiosError<T>;
         if (axiosError.response) {
-            console.log(axiosError.response)
             return axiosError.response;
         }
         throw error;
