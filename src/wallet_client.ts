@@ -13,8 +13,6 @@ import { RawTransaction } from "./transaction_builder/aptos_types/transaction";
 import * as Gen from "./generated/index";
 import cache from "./utils/cache";
 import { WriteResource } from "./api/data-contracts";
-import { AnyNumber } from "./transaction_builder/bcs";
-import { MAX_U64_BIG_INT } from "./transaction_builder/bcs/consts";
 
 const { HDKey } = require("@scure/bip32");
 
@@ -393,7 +391,6 @@ export class WalletClient {
     description: string,
     supply: number,
     uri: string,
-    max: AnyNumber = MAX_U64_BIG_INT,
     royalty_payee_address: MaybeHexString = account.address(),
     royalty_points_denominator: number = 0,
     royalty_points_numerator: number = 0,
@@ -409,7 +406,6 @@ export class WalletClient {
         description,
         supply,
         uri,
-        max,
         royalty_payee_address,
         royalty_points_denominator,
         royalty_points_numerator,
@@ -599,17 +595,19 @@ export class WalletClient {
       account,
       transaction
     );
-    return simulateResponse.gas_used;
+    return simulateResponse[0].gas_used;
   }
 
   async estimateCost(
     account: AptosAccount,
     transaction: Gen.SubmitTransactionRequest
   ): Promise<string> {
-    const txnData: any = await this.aptosClient.simulateTransaction(
+    const simulateResponse: any = await this.aptosClient.simulateTransaction(
       account,
       transaction
     );
+
+    const txnData = simulateResponse[0]
     const currentBalance = await this.getBalance(account.address());
     const change = txnData.changes.filter((ch) => {
       if (ch.type !== "write_resource") {
@@ -754,14 +752,14 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of token IDs
    */
-  async getTokenIds(address: string, limit?: number, start?: number) {
+   async getTokenIds(address: string, limit?: number, start?: number) {
     const countDeposit = {};
     const countWithdraw = {};
     const tokenIds = [];
 
     const depositEvents = await this.getEventStream(
       address,
-      "0x1::token::TokenStore",
+      "0x3::token::TokenStore",
       "deposit_events",
       limit,
       start
@@ -769,7 +767,7 @@ export class WalletClient {
 
     const withdrawEvents = await this.getEventStream(
       address,
-      "0x1::token::TokenStore",
+      "0x3::token::TokenStore",
       "withdraw_events",
       limit,
       start
@@ -799,6 +797,7 @@ export class WalletClient {
         tokenIds.push({
           data: element.data.id,
           sequence_number: element.sequence_number,
+          difference: count1 - count2,
         });
       }
     });
@@ -811,27 +810,33 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of tokens and their collection data
    */
-  async getTokens(address: string, limit?: number, start?: number) {
+   async getTokens(address: string, limit?: number, start?: number) {
     const tokenIds = await this.getTokenIds(address, limit, start);
     const tokens = [];
     await Promise.all(
       tokenIds.map(async (tokenId) => {
-        let resources: any;
-        if (cache.has(`resources--${tokenId.data.creator}`)) {
-          resources = cache.get(`resources--${tokenId.data.creator}`);
+        let resources: Types.AccountResource[];
+        if (cache.has(`resources--${tokenId.data.token_data_id.creator}`)) {
+          resources = cache.get(
+            `resources--${tokenId.data.token_data_id.creator}`
+          );
         } else {
           resources = await this.aptosClient.getAccountResources(
-            tokenId.data.creator
+            tokenId.data.token_data_id.creator
           );
-          cache.set(`resources--${tokenId.data.creator}`, resources);
+          cache.set(
+            `resources--${tokenId.data.token_data_id.creator}`,
+            resources
+          );
         }
+
         const accountResource: { type: string; data: any } = resources.find(
-          (r) => r.type === "0x1::token::Collections"
+          (r) => r.type === "0x3::token::Collections"
         );
         const tableItemRequest: Types.TableItemRequest = {
-          key_type: "0x1::token::TokenId",
-          value_type: "0x1::token::TokenData",
-          key: tokenId.data,
+          key_type: "0x3::token::TokenDataId",
+          value_type: "0x3::token::TokenData",
+          key: tokenId.data.token_data_id,
         };
 
         const cacheKey = JSON.stringify(tableItemRequest);
@@ -845,9 +850,10 @@ export class WalletClient {
               accountResource.data.token_data.handle,
               tableItemRequest
             )
-          ).data;
+          );
           cache.set(cacheKey, token);
         }
+        token.collection = tokenId.data.token_data_id.collection;
         tokens.push({ token, sequence_number: tokenId.sequence_number });
       })
     );
@@ -884,28 +890,28 @@ export class WalletClient {
         resourceHandle || accountResource.data.token_data.handle,
         tableItemRequest
       )
-    ).data;
+    );
     token.collection = tokenId.token_data_id.collection;
     return token;
   }
 
-   /**
+  /**
    * returns the resource handle for type 0x3::token::Collections
    * about a said creator
    *
    * @param tokenId token ID of the desired token
    * @returns resource information
    */
-    async getTokenResourceHandle(tokenId: TokenId) {
-      const resources: Types.AccountResource[] =
-        await this.aptosClient.getAccountResources(tokenId.token_data_id.creator);
-      const accountResource: { type: string; data: any } = resources.find(
-        (r) => r.type === "0x3::token::Collections"
-      );
-  
-      return accountResource.data.token_data.handle;
-    }
-  
+   async getTokenResourceHandle(tokenId: TokenId) {
+    const resources: Types.AccountResource[] =
+      await this.aptosClient.getAccountResources(tokenId.token_data_id.creator);
+    const accountResource: { type: string; data: any } = resources.find(
+      (r) => r.type === "0x3::token::Collections"
+    );
+
+    return accountResource.data.token_data.handle;
+  }
+
 
   /**
    * returns the information about a collection of an account
@@ -914,15 +920,16 @@ export class WalletClient {
    * @param collectionName collection name
    * @returns collection information
    */
-  async getCollection(address: string, collectionName: string) {
-    const resources: any = await this.aptosClient.getAccountResources(address);
+   async getCollection(address: string, collectionName: string) {
+    const resources: Types.AccountResource[] =
+      await this.aptosClient.getAccountResources(address);
     const accountResource: { type: string; data: any } = resources.find(
-      (r) => r.type === "0x1::token::Collections"
+      (r) => r.type === "0x3::token::Collections"
     );
 
     const tableItemRequest: Types.TableItemRequest = {
       key_type: "0x1::string::String",
-      value_type: "0x1::token::Collection",
+      value_type: "0x3::token::Collection",
       key: collectionName,
     };
     const collection = (
@@ -930,7 +937,7 @@ export class WalletClient {
         accountResource.data.collections.handle,
         tableItemRequest
       )
-    ).data;
+    );
     return collection;
   }
 
@@ -957,7 +964,7 @@ export class WalletClient {
         accountResource.data[fieldName].handle,
         tableItemRequest
       )
-    ).data;
+    );
     return resource;
   }
 

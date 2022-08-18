@@ -212,6 +212,7 @@ export class AptosClient {
   ): Promise<Gen.SubmitTransactionRequest> {
     const senderAddress = HexString.ensure(sender);
     const account = await this.getAccount(senderAddress);
+    const getLedgerInfo = await this.getLedgerInfo()
     const fakeSignature: Gen.TransactionSignature = {
       type: "ed25519_signature",
       public_key: sender.toString(),
@@ -222,10 +223,12 @@ export class AptosClient {
       signature: fakeSignature,
       sender: senderAddress.hex(),
       sequence_number: account.sequence_number,
-      max_gas_amount: "2000",
+      max_gas_amount: "4000",
       gas_unit_price: "1",
-      // Unix timestamp, in seconds + 10 seconds
-      expiration_timestamp_secs: (Math.floor(Date.now() / 1000) + 10).toString(),
+      // Unix timestamp, in seconds + 60 seconds
+      expiration_timestamp_secs: (
+        Math.floor(parseInt(getLedgerInfo.ledger_timestamp, 10)/1000) + 60
+      ).toString(),
       payload,
       ...(options || {}),
     };
