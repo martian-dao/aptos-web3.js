@@ -194,7 +194,7 @@ test("verify signAndSubmitTransactions", async () => {
         collectionName,
         "description",
         "https://www.aptos.dev",
-        "1234",
+        "12345",
         [false, false, false],
       ],
     }
@@ -211,7 +211,7 @@ test("verify signAndSubmitTransactions", async () => {
         tokenName,
         "token description",
         "1",
-        "1234",
+        "12345",
         "https://aptos.dev/img/nyan.jpeg",
         aliceAccount.address().toString(),
         "0",
