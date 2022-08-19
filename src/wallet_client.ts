@@ -1062,17 +1062,35 @@ export class WalletClient {
    * @returns transaction hash
    */
   async registerCoin(account: AptosAccount, coin_type_path: string) {
-    // coin_type_path: something like 0x${coinTypeAddress}::moon_coin::MoonCoin
-    const payload: Gen.TransactionPayload = {
-      type: "entry_function_payload",
-      function: "0x1::coins::register",
-      type_arguments: [coin_type_path],
-      arguments: [],
-    };
+    const token = new TxnBuilderTypes.TypeTagStruct(
+      TxnBuilderTypes.StructTag.fromString(coin_type_path)
+    );
 
-    const txnHash = await this.submitTransactionHelper(account, payload);
-    const resp: any = await this.aptosClient.getTransactionByHash(txnHash);
+    const entryFunctionPayload =
+      new TxnBuilderTypes.TransactionPayloadEntryFunction(
+        TxnBuilderTypes.EntryFunction.natural(
+          "0x1::coins",
+          "register",
+          [token],
+          []
+        )
+      );
+
+    const rawTxn = await this.aptosClient.generateRawTransaction(
+      account.address(),
+      entryFunctionPayload
+    );
+
+    const bcsTxn = AptosClient.generateBCSTransaction(account, rawTxn);
+    const transactionRes = await this.aptosClient.submitSignedBCSTransaction(
+      bcsTxn
+    );
+    await this.aptosClient.waitForTransaction(transactionRes.hash);
+    const resp: any = await this.aptosClient.getTransactionByHash(
+      transactionRes.hash
+    );
     const status = { success: resp.success, vm_status: resp.vm_status };
+    const txnHash = transactionRes.hash;
     return { txnHash, ...status };
   }
 
@@ -1095,17 +1113,42 @@ export class WalletClient {
     dst_address: string,
     amount: number
   ) {
-    const payload: Gen.TransactionPayload = {
-      type: "entry_function_payload",
-      function: "0x1::managed_coin::mint",
-      type_arguments: [coin_type_path],
-      arguments: [dst_address.toString(), amount.toString()],
-    };
+    const token = new TxnBuilderTypes.TypeTagStruct(
+      TxnBuilderTypes.StructTag.fromString(coin_type_path)
+    );
 
-    const txnHash = await this.submitTransactionHelper(account, payload);
-    const resp: any = await this.aptosClient.getTransactionByHash(txnHash);
+    const entryFunctionPayload =
+      new TxnBuilderTypes.TransactionPayloadEntryFunction(
+        TxnBuilderTypes.EntryFunction.natural(
+          "0x1::managed_coin",
+          "mint",
+          [token],
+          [
+            BCS.bcsToBytes(
+              TxnBuilderTypes.AccountAddress.fromHex(
+                HexString.ensure(dst_address).toString()
+              )
+            ),
+            BCS.bcsSerializeUint64(amount),
+          ]
+        )
+      );
+
+    const rawTxn = await this.aptosClient.generateRawTransaction(
+      account.address(),
+      entryFunctionPayload
+    );
+
+    const bcsTxn = AptosClient.generateBCSTransaction(account, rawTxn);
+    const transactionRes = await this.aptosClient.submitSignedBCSTransaction(
+      bcsTxn
+    );
+    await this.aptosClient.waitForTransaction(transactionRes.hash);
+    const resp: any = await this.aptosClient.getTransactionByHash(
+      transactionRes.hash
+    );
     const status = { success: resp.success, vm_status: resp.vm_status };
-
+    const txnHash = transactionRes.hash;
     return { txnHash, ...status };
   }
 
@@ -1124,17 +1167,42 @@ export class WalletClient {
     to_address: string,
     amount: number
   ) {
-    const payload: Gen.TransactionPayload = {
-      type: "entry_function_payload",
-      function: "0x1::coin::transfer",
-      type_arguments: [coin_type_path],
-      arguments: [to_address.toString(), amount.toString()],
-    };
+    const token = new TxnBuilderTypes.TypeTagStruct(
+      TxnBuilderTypes.StructTag.fromString(coin_type_path)
+    );
 
-    const txnHash = await this.submitTransactionHelper(account, payload);
-    const resp: any = await this.aptosClient.getTransactionByHash(txnHash);
+    const entryFunctionPayload =
+      new TxnBuilderTypes.TransactionPayloadEntryFunction(
+        TxnBuilderTypes.EntryFunction.natural(
+          "0x1::coin",
+          "transfer",
+          [token],
+          [
+            BCS.bcsToBytes(
+              TxnBuilderTypes.AccountAddress.fromHex(
+                HexString.ensure(to_address).toString()
+              )
+            ),
+            BCS.bcsSerializeUint64(amount),
+          ]
+        )
+      );
+
+    const rawTxn = await this.aptosClient.generateRawTransaction(
+      account.address(),
+      entryFunctionPayload
+    );
+
+    const bcsTxn = AptosClient.generateBCSTransaction(account, rawTxn);
+    const transactionRes = await this.aptosClient.submitSignedBCSTransaction(
+      bcsTxn
+    );
+    await this.aptosClient.waitForTransaction(transactionRes.hash);
+    const resp: any = await this.aptosClient.getTransactionByHash(
+      transactionRes.hash
+    );
     const status = { success: resp.success, vm_status: resp.vm_status };
-
+    const txnHash = transactionRes.hash;
     return { txnHash, ...status };
   }
 
