@@ -21,7 +21,8 @@
     "url": "https://github.com/martian-dao/aptos-web3.js"
   },
   "pre-commit": [
-    "lint", "fmt:check"
+    "lint",
+    "fmt:check"
   ],
   "keywords": [
     "MartianDAO",
@@ -69,5 +70,5 @@
     "tweetnacl": "^1.0.3",
     "typescript-memoize": "^1.1.0"
   },
-  "version": "1.1.15"
+  "version": "1.1.16"
 }
