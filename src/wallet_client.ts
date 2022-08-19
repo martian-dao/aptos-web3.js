@@ -74,7 +74,6 @@ export class WalletClient {
       await this.aptosClient.waitForTransaction(res.hash);
       return await Promise.resolve(res.hash);
     } catch (err) {
-      console.log(err);
       return await Promise.reject(err);
     }
   }
