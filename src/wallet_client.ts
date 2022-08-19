@@ -306,18 +306,39 @@ export class WalletClient {
         return new Error("cannot transfer coins to self");
       }
 
-      const payload: Gen.TransactionPayload = {
-        type: "entry_function_payload",
-        function: "0x1::coin::transfer",
-        type_arguments: ["0x1::aptos_coin::AptosCoin"],
+      const token = new TxnBuilderTypes.TypeTagStruct(
+        TxnBuilderTypes.StructTag.fromString("0x1::aptos_coin::AptosCoin")
+      );
 
-        arguments: [
-          `${HexString.ensure(recipient_address)}`,
-          amount.toString(),
-        ],
-      };
+      const entryFunctionPayload =
+        new TxnBuilderTypes.TransactionPayloadEntryFunction(
+          TxnBuilderTypes.EntryFunction.natural(
+            "0x1::coin",
+            "transfer",
+            [token],
+            [
+              BCS.bcsToBytes(
+                TxnBuilderTypes.AccountAddress.fromHex(
+                  HexString.ensure(recipient_address).toString()
+                )
+              ),
+              BCS.bcsSerializeUint64(amount),
+            ]
+          )
+        );
 
-      return await this.submitTransactionHelper(account, payload);
+      const rawTxn = await this.aptosClient.generateRawTransaction(
+        account.address(),
+        entryFunctionPayload
+      );
+
+      const bcsTxn = AptosClient.generateBCSTransaction(account, rawTxn);
+      const transactionRes = await this.aptosClient.submitSignedBCSTransaction(
+        bcsTxn
+      );
+
+      await this.aptosClient.waitForTransaction(transactionRes.hash);
+      return await Promise.resolve(transactionRes.hash);
     } catch (err) {
       return Promise.reject(err);
     }
@@ -1052,7 +1073,6 @@ export class WalletClient {
     const txnHash = await this.submitTransactionHelper(account, payload);
     const resp: any = await this.aptosClient.getTransactionByHash(txnHash);
     const status = { success: resp.success, vm_status: resp.vm_status };
-
     return { txnHash, ...status };
   }
 
