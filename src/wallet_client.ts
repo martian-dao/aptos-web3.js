@@ -3,7 +3,7 @@ import * as bip39 from "@scure/bip39";
 import * as english from "@scure/bip39/wordlists/english";
 import fetch from "cross-fetch";
 import assert from "assert";
-import { BCS } from "./transaction_builder";
+import { BCS, TxnBuilderTypes } from "./transaction_builder";
 import { AptosAccount } from "./aptos_account";
 import { TokenClient } from "./token_client";
 import { AptosClient } from "./aptos_client";
@@ -1153,13 +1153,33 @@ export class WalletClient {
   }
 
   async publishModule(account: AptosAccount, moduleHex: string) {
-    const payload = {
-      type: "module_bundle_payload",
-      modules: [{ bytecode: `0x${moduleHex}` }],
-    };
-    const txnHash = await this.submitTransactionHelper(account, payload);
-    const resp: any = await this.aptosClient.getTransactionByHash(txnHash);
-    const status = { success: resp.success, vm_status: resp.vm_status };
-    return { txnHash, ...status };
+    const moduleBundlePayload =
+      new TxnBuilderTypes.TransactionPayloadModuleBundle(
+        new TxnBuilderTypes.ModuleBundle([
+          new TxnBuilderTypes.Module(new HexString(moduleHex).toUint8Array()),
+        ])
+      );
+
+    const [{ sequence_number: sequenceNumber }, chainId] = await Promise.all([
+      this.aptosClient.getAccount(account.address()),
+      this.aptosClient.getChainId(),
+    ]);
+
+    const rawTxn = new TxnBuilderTypes.RawTransaction(
+      TxnBuilderTypes.AccountAddress.fromHex(account.address()),
+      BigInt(sequenceNumber),
+      moduleBundlePayload,
+      4000n,
+      1n,
+      BigInt(Math.floor(Date.now() / 1000) + 10),
+      new TxnBuilderTypes.ChainId(chainId)
+    );
+
+    const bcsTxn = AptosClient.generateBCSTransaction(account, rawTxn);
+    const transactionRes = await this.aptosClient.submitSignedBCSTransaction(
+      bcsTxn
+    );
+
+    return transactionRes.hash;
   }
 }
