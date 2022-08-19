@@ -52,7 +52,7 @@ export class FaucetClient extends AptosClient {
       method: "POST",
       url: "/mint",
       query: {
-        address: HexString.ensure(address).noPrefix(),
+        address: HexString.ensure(address).toShortString(),
         amount,
       },
     });
