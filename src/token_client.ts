@@ -51,7 +51,7 @@ export class TokenClient {
 
     const bcsTxn = AptosClient.generateBCSTransaction(account, rawTxn);
     const transactionRes = await this.aptosClient.submitSignedBCSTransaction(bcsTxn);
-
+    await this.aptosClient.waitForTransaction(transactionRes.hash)
     return transactionRes.hash;
   }
 
