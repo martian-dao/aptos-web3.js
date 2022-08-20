@@ -738,7 +738,12 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of token IDs
    */
-  async getTokenIds(address: string, limit?: number, start?: number) {
+  async getTokenIds(
+    address: string,
+    limit?: number,
+    depositStart?: number,
+    withdrawStart?: number
+  ) {
     const countDeposit = {};
     const countWithdraw = {};
     const tokenIds = [];
@@ -748,7 +753,7 @@ export class WalletClient {
       "0x3::token::TokenStore",
       "deposit_events",
       limit,
-      start
+      depositStart
     );
 
     const withdrawEvents = await this.getEventStream(
@@ -756,33 +761,41 @@ export class WalletClient {
       "0x3::token::TokenStore",
       "withdraw_events",
       limit,
-      start
+      withdrawStart
     );
 
     depositEvents.forEach((element) => {
       const elementString = JSON.stringify(element.data.id);
       countDeposit[elementString] = countDeposit[elementString]
-        ? countDeposit[elementString] + 1
-        : 1;
+        ? {
+            count: countDeposit[elementString].count + 1,
+            sequence_number: element.sequence_number,
+          }
+        : { count: 1, sequence_number: element.sequence_number };
     });
 
     withdrawEvents.forEach((element) => {
       const elementString = JSON.stringify(element.data.id);
       countWithdraw[elementString] = countWithdraw[elementString]
-        ? countWithdraw[elementString] + 1
-        : 1;
+        ? {
+            count: countWithdraw[elementString].count + 1,
+            sequence_number: element.sequence_number,
+          }
+        : { count: 1, sequence_number: element.sequence_number };
     });
 
     depositEvents.forEach((element) => {
       const elementString = JSON.stringify(element.data.id);
-      const count1 = countDeposit[elementString];
+      const count1 = countDeposit[elementString].count;
       const count2 = countWithdraw[elementString]
-        ? countWithdraw[elementString]
+        ? countWithdraw[elementString].count
         : 0;
       if (count1 - count2 === 1) {
         tokenIds.push({
           data: element.data.id,
-          sequence_number: element.sequence_number,
+          deposit_sequence_number: countDeposit[elementString].sequence_number,
+          withdraw_sequence_number:
+            countWithdraw[elementString].sequence_number,
           difference: count1 - count2,
         });
       }
