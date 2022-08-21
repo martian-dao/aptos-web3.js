@@ -790,6 +790,7 @@ export class WalletClient {
   ) {
     const countDeposit = {};
     const countWithdraw = {};
+    const elementsFetched = new Set();
     const tokenIds = [];
 
     const depositEvents = await this.getEventStream(
@@ -810,39 +811,55 @@ export class WalletClient {
 
     depositEvents.forEach((element) => {
       const elementString = JSON.stringify(element.data.id);
+      elementsFetched.add(elementString);
       countDeposit[elementString] = countDeposit[elementString]
         ? {
             count: countDeposit[elementString].count + 1,
             sequence_number: element.sequence_number,
+            data: element.data.id,
           }
-        : { count: 1, sequence_number: element.sequence_number };
+        : {
+            count: 1,
+            sequence_number: element.sequence_number,
+            data: element.data.id,
+          };
     });
 
     withdrawEvents.forEach((element) => {
       const elementString = JSON.stringify(element.data.id);
+      elementsFetched.add(elementString);
       countWithdraw[elementString] = countWithdraw[elementString]
         ? {
             count: countWithdraw[elementString].count + 1,
             sequence_number: element.sequence_number,
+            data: element.data.id,
           }
-        : { count: 1, sequence_number: element.sequence_number };
+        : {
+            count: 1,
+            sequence_number: element.sequence_number,
+            data: element.data.id,
+          };
     });
 
-    depositEvents.forEach((element) => {
-      const elementString = JSON.stringify(element.data.id);
-      const count1 = countDeposit[elementString].count;
+    Array.from(elementsFetched).forEach((elementString: string) => {
+      const count1 = countDeposit[elementString]
+        ? countDeposit[elementString].count
+        : 0;
       const count2 = countWithdraw[elementString]
         ? countWithdraw[elementString].count
         : 0;
-      if (count1 - count2 === 1) {
-        tokenIds.push({
-          data: element.data.id,
-          deposit_sequence_number: countDeposit[elementString].sequence_number,
-          withdraw_sequence_number:
-            countWithdraw[elementString].sequence_number,
-          difference: count1 - count2,
-        });
-      }
+      tokenIds.push({
+        data: countDeposit[elementString]
+          ? countDeposit[elementString].data
+          : countWithdraw[elementString].data,
+        deposit_sequence_number: countDeposit[elementString]
+          ? countDeposit[elementString].sequence_number
+          : undefined,
+        withdraw_sequence_number: countWithdraw[elementString]
+          ? countWithdraw[elementString].sequence_number
+          : undefined,
+        difference: count1 - count2,
+      });
     });
     return tokenIds;
   }
