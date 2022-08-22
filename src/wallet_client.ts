@@ -842,10 +842,10 @@ export class WalletClient {
     });
 
     Array.from(elementsFetched).forEach((elementString: string) => {
-      const count1 = countDeposit[elementString]
+      const depositEventCount = countDeposit[elementString]
         ? countDeposit[elementString].count
         : 0;
-      const count2 = countWithdraw[elementString]
+      const withdrawEventCount = countWithdraw[elementString]
         ? countWithdraw[elementString].count
         : 0;
       tokenIds.push({
@@ -858,7 +858,7 @@ export class WalletClient {
         withdraw_sequence_number: countWithdraw[elementString]
           ? countWithdraw[elementString].sequence_number
           : undefined,
-        difference: count1 - count2,
+        difference: depositEventCount - withdrawEventCount,
       });
     });
     return tokenIds;
