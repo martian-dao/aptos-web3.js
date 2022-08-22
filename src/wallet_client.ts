@@ -782,9 +782,15 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of token IDs
    */
-  async getTokenIds(address: string, limit?: number, start?: number) {
+  async getTokenIds(
+    address: string,
+    limit?: number,
+    depositStart?: number,
+    withdrawStart?: number
+  ) {
     const countDeposit = {};
     const countWithdraw = {};
+    const elementsFetched = new Set();
     const tokenIds = [];
 
     const depositEvents = await this.getEventStream(
@@ -792,7 +798,7 @@ export class WalletClient {
       "0x3::token::TokenStore",
       "deposit_events",
       limit,
-      start
+      depositStart
     );
 
     const withdrawEvents = await this.getEventStream(
@@ -800,36 +806,60 @@ export class WalletClient {
       "0x3::token::TokenStore",
       "withdraw_events",
       limit,
-      start
+      withdrawStart
     );
 
     depositEvents.forEach((element) => {
       const elementString = JSON.stringify(element.data.id);
+      elementsFetched.add(elementString);
       countDeposit[elementString] = countDeposit[elementString]
-        ? countDeposit[elementString] + 1
-        : 1;
+        ? {
+            count: countDeposit[elementString].count + 1,
+            sequence_number: element.sequence_number,
+            data: element.data.id,
+          }
+        : {
+            count: 1,
+            sequence_number: element.sequence_number,
+            data: element.data.id,
+          };
     });
 
     withdrawEvents.forEach((element) => {
       const elementString = JSON.stringify(element.data.id);
+      elementsFetched.add(elementString);
       countWithdraw[elementString] = countWithdraw[elementString]
-        ? countWithdraw[elementString] + 1
-        : 1;
+        ? {
+            count: countWithdraw[elementString].count + 1,
+            sequence_number: element.sequence_number,
+            data: element.data.id,
+          }
+        : {
+            count: 1,
+            sequence_number: element.sequence_number,
+            data: element.data.id,
+          };
     });
 
-    depositEvents.forEach((element) => {
-      const elementString = JSON.stringify(element.data.id);
-      const count1 = countDeposit[elementString];
-      const count2 = countWithdraw[elementString]
-        ? countWithdraw[elementString]
+    Array.from(elementsFetched).forEach((elementString: string) => {
+      const depositEventCount = countDeposit[elementString]
+        ? countDeposit[elementString].count
         : 0;
-      if (count1 - count2 === 1) {
-        tokenIds.push({
-          data: element.data.id,
-          sequence_number: element.sequence_number,
-          difference: count1 - count2,
-        });
-      }
+      const withdrawEventCount = countWithdraw[elementString]
+        ? countWithdraw[elementString].count
+        : 0;
+      tokenIds.push({
+        data: countDeposit[elementString]
+          ? countDeposit[elementString].data
+          : countWithdraw[elementString].data,
+        deposit_sequence_number: countDeposit[elementString]
+          ? countDeposit[elementString].sequence_number
+          : undefined,
+        withdraw_sequence_number: countWithdraw[elementString]
+          ? countWithdraw[elementString].sequence_number
+          : undefined,
+        difference: depositEventCount - withdrawEventCount,
+      });
     });
     return tokenIds;
   }
@@ -840,8 +870,18 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of tokens and their collection data
    */
-  async getTokens(address: string, limit?: number, start?: number) {
-    const tokenIds = await this.getTokenIds(address, limit, start);
+  async getTokens(
+    address: string,
+    limit?: number,
+    depositStart?: number,
+    withdrawStart?: number
+  ) {
+    const tokenIds = await this.getTokenIds(
+      address,
+      limit,
+      depositStart,
+      withdrawStart
+    );
     const tokens = [];
     await Promise.all(
       tokenIds.map(async (tokenId) => {

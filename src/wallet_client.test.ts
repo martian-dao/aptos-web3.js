@@ -173,10 +173,16 @@ test(
       0
     );
 
-    const aliceTokens = await apis.getTokens(aliceAccount.address().toString());
-    expect(aliceTokens.length).toBe(0);
-    const bobTokens = await apis.getTokens(bobAccount.address().toString());
-    expect(bobTokens[0].token.name).toBe(tokenName);
+    const aliceTokens = await apis.getTokenIds(
+      aliceAccount.address().toString()
+    );
+
+    expect(aliceTokens.length).toBe(1);
+    expect(aliceTokens[0].difference).toBe(0);
+
+    const bobTokens = await apis.getTokenIds(bobAccount.address().toString());
+    expect(bobTokens.length).toBe(1);
+    expect(bobTokens[0].difference).toBe(1);
   },
   60 * 1000
 );
