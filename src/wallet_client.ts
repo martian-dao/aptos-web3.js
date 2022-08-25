@@ -841,26 +841,28 @@ export class WalletClient {
           };
     });
 
-    Array.from(elementsFetched).forEach((elementString: string) => {
-      const depositEventCount = countDeposit[elementString]
-        ? countDeposit[elementString].count
-        : 0;
-      const withdrawEventCount = countWithdraw[elementString]
-        ? countWithdraw[elementString].count
-        : 0;
-      tokenIds.push({
-        data: countDeposit[elementString]
-          ? countDeposit[elementString].data
-          : countWithdraw[elementString].data,
-        deposit_sequence_number: countDeposit[elementString]
-          ? countDeposit[elementString].sequence_number
-          : undefined,
-        withdraw_sequence_number: countWithdraw[elementString]
-          ? countWithdraw[elementString].sequence_number
-          : undefined,
-        difference: depositEventCount - withdrawEventCount,
+    if (elementsFetched) {
+      Array.from(elementsFetched).forEach((elementString: string) => {
+        const depositEventCount = countDeposit[elementString]
+          ? countDeposit[elementString].count
+          : 0;
+        const withdrawEventCount = countWithdraw[elementString]
+          ? countWithdraw[elementString].count
+          : 0;
+        tokenIds.push({
+          data: countDeposit[elementString]
+            ? countDeposit[elementString].data
+            : countWithdraw[elementString].data,
+          deposit_sequence_number: countDeposit[elementString]
+            ? countDeposit[elementString].sequence_number
+            : 0,
+          withdraw_sequence_number: countWithdraw[elementString]
+            ? countWithdraw[elementString].sequence_number
+            : 0,
+          difference: depositEventCount - withdrawEventCount,
+        });
       });
-    });
+    }
     return tokenIds;
   }
 
