@@ -57,7 +57,7 @@ export class WalletClient {
 
   async submitTransactionHelper(
     account: AptosAccount,
-    payload: Gen.TransactionPayload,
+    payload: Gen.EntryFunctionPayload,
     options = { max_gas_amount: "4000" }
   ) {
     try {
@@ -569,7 +569,7 @@ export class WalletClient {
 
   async signAndSubmitTransaction(
     account: AptosAccount,
-    txnRequest: Gen.SubmitTransactionRequest
+    txnRequest: TxnBuilderTypes.RawTransaction
   ) {
     const signedTxn = await this.aptosClient.signTransaction(
       account,
@@ -583,16 +583,16 @@ export class WalletClient {
   // sign and submit multiple transactions
   async signAndSubmitTransactions(
     account: AptosAccount,
-    txnRequests: Gen.SubmitTransactionRequest[]
+    txnRequests: TxnBuilderTypes.RawTransaction[]
   ) {
     const hashs = [];
     // eslint-disable-next-line no-restricted-syntax
     for (const txnRequest of txnRequests) {
       /* eslint-disable no-await-in-loop */
       try {
-        txnRequest.sequence_number = (
-          await this.aptosClient.getAccount(account.address().toString())
-        ).sequence_number;
+        // txnRequest.sequence_number = (
+        //   await this.aptosClient.getAccount(account.address().toString())
+        // ).sequence_number;
         const signedTxn = await this.aptosClient.signTransaction(
           account,
           txnRequest
@@ -610,8 +610,8 @@ export class WalletClient {
 
   async signTransaction(
     account: AptosAccount,
-    txnRequest: Gen.SubmitTransactionRequest
-  ): Promise<Gen.SubmitTransactionRequest> {
+    txnRequest: TxnBuilderTypes.RawTransaction
+  ): Promise<Uint8Array> {
     return Promise.resolve(
       await this.aptosClient.signTransaction(account, txnRequest)
     );
@@ -619,7 +619,7 @@ export class WalletClient {
 
   async estimateGasFees(
     account: AptosAccount,
-    transaction: Gen.SubmitTransactionRequest
+    transaction: TxnBuilderTypes.RawTransaction
   ): Promise<string> {
     const simulateResponse: any = await this.aptosClient.simulateTransaction(
       account,
@@ -630,7 +630,7 @@ export class WalletClient {
 
   async estimateCost(
     account: AptosAccount,
-    transaction: Gen.SubmitTransactionRequest
+    transaction: TxnBuilderTypes.RawTransaction
   ): Promise<string> {
     const simulateResponse: any = await this.aptosClient.simulateTransaction(
       account,
@@ -666,7 +666,7 @@ export class WalletClient {
     return "0";
   }
 
-  async submitTransaction(signedTxn: Gen.SubmitTransactionRequest) {
+  async submitTransaction(signedTxn: Uint8Array) {
     return Promise.resolve(await this.aptosClient.submitTransaction(signedTxn));
   }
 

@@ -1,0 +1,1 @@
+{"version":3,"file":"AptosError.d.ts","sourceRoot":"","sources":["../../../src/generated/models/AptosError.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,kBAAkB,CAAC;AACvD,OAAO,KAAK,EAAE,GAAG,EAAE,MAAM,OAAO,CAAC;AAEjC;;;GAGG;AACH,oBAAY,UAAU,GAAG;IACrB,OAAO,EAAE,MAAM,CAAC;IAChB,UAAU,CAAC,EAAE,cAAc,CAAC;IAC5B,oBAAoB,CAAC,EAAE,GAAG,CAAC;CAC9B,CAAC"}

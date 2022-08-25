@@ -203,14 +203,13 @@ test(
     const txn1 = await apis.aptosClient.generateTransaction(
       aliceAccount.address().toString(),
       {
-        type: "entry_function_payload",
         function: "0x3::token::create_collection_script",
         type_arguments: [],
         arguments: [
           collectionName,
           "description",
           "https://www.aptos.dev",
-          "12345",
+          12345,
           [false, false, false],
         ],
       }
@@ -219,19 +218,18 @@ test(
     const txn2 = await apis.aptosClient.generateTransaction(
       aliceAccount.address().toString(),
       {
-        type: "entry_function_payload",
         function: "0x3::token::create_token_script",
         type_arguments: [],
         arguments: [
           collectionName,
           tokenName,
           "token description",
-          "1",
-          "12345",
+          1,
+          12345,
           "https://aptos.dev/img/nyan.jpeg",
           aliceAccount.address().toString(),
-          "0",
-          "0",
+          0,
+          0,
           [false, false, false, false, false],
           [],
           [],
@@ -265,7 +263,6 @@ test(
     const txn = await apis.aptosClient.generateTransaction(
       aliceAccount.address().toString(),
       {
-        type: "entry_function_payload",
         function: "0x1::coin::transfer",
         type_arguments: ["0x1::aptos_coin::AptosCoin"],
         arguments: [bobAccount.address().toString(), "500"],
@@ -294,14 +291,13 @@ test(
     const txn1 = await apis.aptosClient.generateTransaction(
       aliceAccount.address().toString(),
       {
-        type: "entry_function_payload",
         function: "0x3::token::create_collection_script",
         type_arguments: [],
         arguments: [
           collectionName,
           "description",
           "https://www.aptos.dev",
-          "1234",
+          1234,
           [false, false, false],
         ],
       }
@@ -312,19 +308,18 @@ test(
     const txn2 = await apis.aptosClient.generateTransaction(
       aliceAccount.address().toString(),
       {
-        type: "entry_function_payload",
         function: "0x3::token::create_token_script",
         type_arguments: [],
         arguments: [
           collectionName,
           tokenName,
           "token description",
-          "1",
-          "1234",
+          1,
+          1234,
           "https://aptos.dev/img/nyan.jpeg",
           aliceAccount.address().toString(),
-          "0",
-          "0",
+          0,
+          0,
           [false, false, false, false, false],
           [],
           [],

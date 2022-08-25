@@ -3,11 +3,13 @@
 /* eslint-disable */
 import type { Address } from '../models/Address';
 import type { EncodeSubmissionRequest } from '../models/EncodeSubmissionRequest';
+import type { GasEstimation } from '../models/GasEstimation';
 import type { HashValue } from '../models/HashValue';
 import type { HexEncodedBytes } from '../models/HexEncodedBytes';
 import type { PendingTransaction } from '../models/PendingTransaction';
 import type { SubmitTransactionRequest } from '../models/SubmitTransactionRequest';
 import type { Transaction } from '../models/Transaction';
+import type { TransactionsBatchSubmissionResult } from '../models/TransactionsBatchSubmissionResult';
 import type { U64 } from '../models/U64';
 import type { UserTransaction } from '../models/UserTransaction';
 
@@ -149,6 +151,22 @@ export class TransactionsService {
     }
 
     /**
+     * @param requestBody
+     * @returns TransactionsBatchSubmissionResult
+     * @throws ApiError
+     */
+    public submitBatchTransactions(
+        requestBody: Array<SubmitTransactionRequest>,
+    ): CancelablePromise<TransactionsBatchSubmissionResult> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/transactions/batch',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+
+    /**
      * Simulate transaction
      * Simulate submitting a transaction. To use this, you must:
      * - Create a SignedTransaction with a zero-padded signature.
@@ -201,6 +219,18 @@ export class TransactionsService {
             url: '/transactions/encode_submission',
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+
+    /**
+     * Estimate gas price
+     * @returns GasEstimation
+     * @throws ApiError
+     */
+    public estimateGasPrice(): CancelablePromise<GasEstimation> {
+        return this.httpRequest.request({
+            method: 'GET',
+            url: '/estimate_gas_price',
         });
     }
 
