@@ -265,6 +265,7 @@ export class TokenClient {
     const bcsTxn = BCS.bcsToBytes(new TxnBuilderTypes.SignedTransaction(rawTxn, multiAgentAuthenticator));
 
     const transactionRes = await this.aptosClient.submitSignedBCSTransaction(bcsTxn);
+    await this.aptosClient.waitForTransaction(transactionRes.hash);
 
     return transactionRes.hash;
   }

@@ -601,6 +601,7 @@ export class WalletClient {
           rawTxn.payload,
           rawTxn.options
         );
+
         const signedTxn = await this.aptosClient.signTransaction(
           account,
           txnRequest
