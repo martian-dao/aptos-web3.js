@@ -200,9 +200,9 @@ test(
     const collectionName = "AptosCollection";
     const tokenName = "AptosToken";
 
-    const txn1 = await apis.aptosClient.generateTransaction(
-      aliceAccount.address().toString(),
-      {
+    const txn1 = {
+      sender: aliceAccount.address().toString(),
+      payload: {
         function: "0x3::token::create_collection_script",
         type_arguments: [],
         arguments: [
@@ -212,12 +212,12 @@ test(
           12345,
           [false, false, false],
         ],
-      }
-    );
+      },
+    };
 
-    const txn2 = await apis.aptosClient.generateTransaction(
-      aliceAccount.address().toString(),
-      {
+    const txn2 = {
+      sender: aliceAccount.address().toString(),
+      payload: {
         function: "0x3::token::create_token_script",
         type_arguments: [],
         arguments: [
@@ -235,8 +235,8 @@ test(
           [],
           [],
         ],
-      }
-    );
+      },
+    };
 
     await apis.signAndSubmitTransactions(aliceAccount, [txn1, txn2]);
 
@@ -265,7 +265,7 @@ test(
       {
         function: "0x1::coin::transfer",
         type_arguments: ["0x1::aptos_coin::AptosCoin"],
-        arguments: [bobAccount.address().toString(), "500"],
+        arguments: [bobAccount.address().toString(), 500],
       }
     );
     const estimatedGas = await apis.estimateGasFees(aliceAccount, txn);
@@ -303,7 +303,7 @@ test(
       }
     );
 
-    await apis.signAndSubmitTransactions(aliceAccount, [txn1]);
+    await apis.signAndSubmitTransaction(aliceAccount, txn1);
 
     const txn2 = await apis.aptosClient.generateTransaction(
       aliceAccount.address().toString(),

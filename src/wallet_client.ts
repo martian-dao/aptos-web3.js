@@ -22,6 +22,12 @@ const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 5;
 const ADDRESS_GAP = 10;
 
+export interface TxnRequestRaw {
+  sender: MaybeHexString;
+  payload: Gen.EntryFunctionPayload;
+  options?: Partial<Gen.SubmitTransactionRequest>;
+}
+
 export interface TokenId {
   property_version: string;
   token_data_id: {
@@ -583,16 +589,18 @@ export class WalletClient {
   // sign and submit multiple transactions
   async signAndSubmitTransactions(
     account: AptosAccount,
-    txnRequests: TxnBuilderTypes.RawTransaction[]
+    txnRequests: TxnRequestRaw[]
   ) {
     const hashs = [];
     // eslint-disable-next-line no-restricted-syntax
-    for (const txnRequest of txnRequests) {
+    for (const rawTxn of txnRequests) {
       /* eslint-disable no-await-in-loop */
       try {
-        // txnRequest.sequence_number = (
-        //   await this.aptosClient.getAccount(account.address().toString())
-        // ).sequence_number;
+        const txnRequest = await this.aptosClient.generateTransaction(
+          rawTxn.sender,
+          rawTxn.payload,
+          rawTxn.options
+        );
         const signedTxn = await this.aptosClient.signTransaction(
           account,
           txnRequest
