@@ -434,7 +434,6 @@ export class AptosClient {
   ): Promise<Gen.Transaction> {
     const timeoutSecs = extraArgs?.timeoutSecs ?? 10;
     const checkSuccess = extraArgs?.checkSuccess ?? false;
-
     let isPending = true;
     let count = 0;
     let lastTxn: Gen.Transaction | undefined;
@@ -453,9 +452,8 @@ export class AptosClient {
         if (e instanceof Gen.ApiError) {
           if (e.status === 404) {
             isPending = true;
-            break;
           }
-          if (e.status >= 400) {
+          else if (e.status >= 400) {
             throw e;
           }
         } else {
