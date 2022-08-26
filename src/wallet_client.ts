@@ -126,9 +126,12 @@ export class WalletClient {
           const respBody = await response.json();
           authKey = respBody.authentication_key;
         }
-        if (account.authKey().toString() === authKey) {
+        if (
+          account.authKey().toShortString() === authKey ||
+          account.authKey().toString() === authKey
+        ) {
           flag = true;
-          publicKey = account.pubKey().toString();
+          publicKey = account.pubKey().toShortString();
           break;
         }
         /* eslint-enable no-await-in-loop */
@@ -180,7 +183,7 @@ export class WalletClient {
         return {
           derivationPath,
           address,
-          publicKey: account.pubKey().toString(),
+          publicKey: account.pubKey().toShortString(),
         };
       }
       /* eslint-enable no-await-in-loop */
