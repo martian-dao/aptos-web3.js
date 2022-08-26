@@ -15,12 +15,19 @@ import * as Gen from "./generated/index";
 import cache from "./utils/cache";
 import { WriteResource } from "./api/data-contracts";
 import { MAX_U64_BIG_INT } from "./transaction_builder/bcs/consts";
+import { Deserializer, Serializer } from "./transaction_builder/bcs";
 
 const { HDKey } = require("@scure/bip32");
 
 const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 5;
 const ADDRESS_GAP = 10;
+
+export interface TxnRequestRaw {
+  sender: MaybeHexString;
+  payload: Gen.EntryFunctionPayload;
+  options?: Partial<Gen.SubmitTransactionRequest>;
+}
 
 export interface TokenId {
   property_version: string;
@@ -57,7 +64,7 @@ export class WalletClient {
 
   async submitTransactionHelper(
     account: AptosAccount,
-    payload: Gen.TransactionPayload,
+    payload: Gen.EntryFunctionPayload,
     options = { max_gas_amount: "4000" }
   ) {
     try {
@@ -191,6 +198,52 @@ export class WalletClient {
       /* eslint-enable no-await-in-loop */
     }
     throw new Error("Max no. of accounts reached");
+  }
+
+  /** Generates a transaction request that can be submitted to produce a raw transaction that
+   * can be signed, which upon being signed can be submitted to the blockchain
+   * @param sender Hex-encoded 32 byte Aptos account address of transaction sender
+   * @param payload Transaction payload. It depends on transaction type you want to send
+   * @param options Options allow to overwrite default transaction options.
+   * Defaults are:
+   * ```bash
+   *   {
+   *     sender: senderAddress.hex(),
+   *     sequence_number: account.sequence_number,
+   *     max_gas_amount: "1000",
+   *     gas_unit_price: "1",
+   *     // Unix timestamp, in seconds + 10 seconds
+   *     expiration_timestamp_secs: (Math.floor(Date.now() / 1000) + 10).toString(),
+   *   }
+   * ```
+   * @returns Serialized form of RawTransaction: Uint8Array
+   */
+  async generateTransactionSerialized(
+    sender: MaybeHexString,
+    payload: Gen.EntryFunctionPayload,
+    options?: Partial<Gen.SubmitTransactionRequest>
+  ): Promise<Uint8Array> {
+    const txnReq = await this.aptosClient.generateTransaction(
+      sender,
+      payload,
+      options
+    );
+    const serializer = new Serializer();
+    txnReq.serialize(serializer);
+    return serializer.getBytes();
+  }
+
+  /**
+   * returns an RawTransaction object from serialized bytes
+   *
+   * @param bytes Buffer
+   * @returns RawTransaction Object
+   */
+  static getTransactionDeserialized(
+    bytes: Uint8Array
+  ): TxnBuilderTypes.RawTransaction {
+    const deserializer = new Deserializer(bytes);
+    return RawTransaction.deserialize(deserializer);
   }
 
   /**
@@ -569,7 +622,7 @@ export class WalletClient {
 
   async signAndSubmitTransaction(
     account: AptosAccount,
-    txnRequest: Gen.SubmitTransactionRequest
+    txnRequest: TxnBuilderTypes.RawTransaction
   ) {
     const signedTxn = await this.aptosClient.signTransaction(
       account,
@@ -583,16 +636,19 @@ export class WalletClient {
   // sign and submit multiple transactions
   async signAndSubmitTransactions(
     account: AptosAccount,
-    txnRequests: Gen.SubmitTransactionRequest[]
+    txnRequests: TxnRequestRaw[]
   ) {
     const hashs = [];
     // eslint-disable-next-line no-restricted-syntax
-    for (const txnRequest of txnRequests) {
+    for (const rawTxn of txnRequests) {
       /* eslint-disable no-await-in-loop */
       try {
-        txnRequest.sequence_number = (
-          await this.aptosClient.getAccount(account.address().toString())
-        ).sequence_number;
+        const txnRequest = await this.aptosClient.generateTransaction(
+          rawTxn.sender,
+          rawTxn.payload,
+          rawTxn.options
+        );
+
         const signedTxn = await this.aptosClient.signTransaction(
           account,
           txnRequest
@@ -610,8 +666,8 @@ export class WalletClient {
 
   async signTransaction(
     account: AptosAccount,
-    txnRequest: Gen.SubmitTransactionRequest
-  ): Promise<Gen.SubmitTransactionRequest> {
+    txnRequest: TxnBuilderTypes.RawTransaction
+  ): Promise<Uint8Array> {
     return Promise.resolve(
       await this.aptosClient.signTransaction(account, txnRequest)
     );
@@ -619,7 +675,7 @@ export class WalletClient {
 
   async estimateGasFees(
     account: AptosAccount,
-    transaction: Gen.SubmitTransactionRequest
+    transaction: TxnBuilderTypes.RawTransaction
   ): Promise<string> {
     const simulateResponse: any = await this.aptosClient.simulateTransaction(
       account,
@@ -630,7 +686,7 @@ export class WalletClient {
 
   async estimateCost(
     account: AptosAccount,
-    transaction: Gen.SubmitTransactionRequest
+    transaction: TxnBuilderTypes.RawTransaction
   ): Promise<string> {
     const simulateResponse: any = await this.aptosClient.simulateTransaction(
       account,
@@ -666,7 +722,7 @@ export class WalletClient {
     return "0";
   }
 
-  async submitTransaction(signedTxn: Gen.SubmitTransactionRequest) {
+  async submitTransaction(signedTxn: Uint8Array) {
     return Promise.resolve(await this.aptosClient.submitTransaction(signedTxn));
   }
 
