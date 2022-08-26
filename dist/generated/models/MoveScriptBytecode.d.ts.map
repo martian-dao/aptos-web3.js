@@ -1,1 +1,0 @@
-{"version":3,"file":"MoveScriptBytecode.d.ts","sourceRoot":"","sources":["../../../src/generated/models/MoveScriptBytecode.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,mBAAmB,CAAC;AACzD,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,gBAAgB,CAAC;AAEnD,oBAAY,kBAAkB,GAAG;IAC7B,QAAQ,EAAE,eAAe,CAAC;IAC1B,GAAG,CAAC,EAAE,YAAY,CAAC;CACtB,CAAC"}

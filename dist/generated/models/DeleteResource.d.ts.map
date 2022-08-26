@@ -1,1 +1,0 @@
-{"version":3,"file":"DeleteResource.d.ts","sourceRoot":"","sources":["../../../src/generated/models/DeleteResource.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,OAAO,EAAE,MAAM,WAAW,CAAC;AACzC,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,iBAAiB,CAAC;AAErD,oBAAY,cAAc,GAAG;IACzB,OAAO,EAAE,OAAO,CAAC;IACjB,cAAc,EAAE,MAAM,CAAC;IACvB,QAAQ,EAAE,aAAa,CAAC;CAC3B,CAAC"}

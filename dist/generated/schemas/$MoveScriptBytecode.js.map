@@ -1,1 +1,0 @@
-{"version":3,"file":"$MoveScriptBytecode.js","sourceRoot":"","sources":["../../../src/generated/schemas/$MoveScriptBytecode.ts"],"names":[],"mappings":";;;AAAA,0BAA0B;AAC1B,oBAAoB;AACpB,oBAAoB;AACP,QAAA,mBAAmB,GAAG;IAC/B,UAAU,EAAE;QACR,QAAQ,EAAE;YACN,IAAI,EAAE,iBAAiB;YACvB,UAAU,EAAE,IAAI;SACnB;QACD,GAAG,EAAE;YACD,IAAI,EAAE,cAAc;SACvB;KACJ;CACK,CAAC"}
