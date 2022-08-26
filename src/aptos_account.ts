@@ -69,7 +69,7 @@ export class AptosAccount {
      * @param mnemonics.
      * @returns AptosAccount
      */
-    static fromDerivePath(path: string, mnemonics: string): AptosAccount {
+    static fromDerivePath(path: string, mnemonics: string, address?: MaybeHexString): AptosAccount {
       if (!AptosAccount.isValidPath(path)) {
         throw new Error("Invalid derivation path");
       }
@@ -82,7 +82,7 @@ export class AptosAccount {
   
       const { key } = derivePath(path, Buffer.from(bip39.mnemonicToSeedSync(normalizeMnemonics)).toString("hex"));
   
-      return new AptosAccount(new Uint8Array(key));
+      return new AptosAccount(new Uint8Array(key), address);
     }
   
 

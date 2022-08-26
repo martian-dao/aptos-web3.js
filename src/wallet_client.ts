@@ -17,8 +17,6 @@ import { WriteResource } from "./api/data-contracts";
 import { MAX_U64_BIG_INT } from "./transaction_builder/bcs/consts";
 import { Deserializer, Serializer } from "./transaction_builder/bcs";
 
-const { HDKey } = require("@scure/bip32");
-
 const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 5;
 const ADDRESS_GAP = 10;
@@ -103,11 +101,6 @@ export class WalletClient {
     let derivationPath = "";
     let authKey = "";
 
-    if (!bip39.validateMnemonic(code, english.wordlist)) {
-      return Promise.reject(new Error("Incorrect mnemonic passed"));
-    }
-    const seed: Uint8Array = bip39.mnemonicToSeedSync(code.toString());
-    const node = HDKey.fromMasterSeed(Buffer.from(seed));
     const accountMetaData: AccountMetaData[] = [];
     for (let i = 0; i < MAX_ACCOUNTS; i += 1) {
       flag = false;
@@ -117,11 +110,10 @@ export class WalletClient {
       authKey = "";
       for (let j = 0; j < ADDRESS_GAP; j += 1) {
         /* eslint-disable no-await-in-loop */
-        const exKey = node.derive(`m/44'/${COIN_TYPE}'/${i}'/0/${j}`);
-        let acc: AptosAccount = new AptosAccount(exKey.privateKey);
+        derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0'/${j}'`;
+        const account = AptosAccount.fromDerivePath(derivationPath, code);
         if (j === 0) {
-          address = acc.authKey().toString();
-          publicKey = acc.pubKey().toString();
+          address = HexString.ensure(account.address()).toShortString();
           const response = await fetch(
             `${this.aptosClient.nodeUrl}/accounts/${address}`,
             {
@@ -134,10 +126,12 @@ export class WalletClient {
           const respBody = await response.json();
           authKey = respBody.authentication_key;
         }
-        acc = new AptosAccount(exKey.privateKey, address);
-        if (acc.authKey().toString() === authKey) {
+        if (
+          account.authKey().toShortString() === authKey ||
+          account.authKey().toString() === authKey
+        ) {
           flag = true;
-          derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0/${j}`;
+          publicKey = account.pubKey().toShortString();
           break;
         }
         /* eslint-enable no-await-in-loop */
@@ -147,7 +141,7 @@ export class WalletClient {
       }
       accountMetaData.push({
         derivationPath,
-        address: HexString.ensure(address).toShortString(),
+        address,
         publicKey,
       });
     }
@@ -173,14 +167,11 @@ export class WalletClient {
    * @returns
    */
   async createNewAccount(code: string): Promise<AccountMetaData> {
-    const seed: Uint8Array = bip39.mnemonicToSeedSync(code.toString());
-    const node = HDKey.fromMasterSeed(Buffer.from(seed));
     for (let i = 0; i < MAX_ACCOUNTS; i += 1) {
       /* eslint-disable no-await-in-loop */
-      const derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0/0`;
-      const exKey = node.derive(derivationPath);
-      const acc: AptosAccount = new AptosAccount(exKey.privateKey);
-      const address = acc.authKey().toString();
+      const derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0'/0'`;
+      const account = AptosAccount.fromDerivePath(derivationPath, code);
+      const address = HexString.ensure(account.address()).toShortString();
       const response = await fetch(
         `${this.aptosClient.nodeUrl}/accounts/${address}`,
         {
@@ -188,11 +179,11 @@ export class WalletClient {
         }
       );
       if (response.status === 404) {
-        await this.faucetClient.fundAccount(acc.authKey(), 0);
+        await this.faucetClient.fundAccount(address, 0);
         return {
           derivationPath,
-          address: HexString.ensure(address).toShortString(),
-          publicKey: acc.pubKey().toString(),
+          address,
+          publicKey: account.pubKey().toShortString(),
         };
       }
       /* eslint-enable no-await-in-loop */
@@ -265,10 +256,7 @@ export class WalletClient {
    * @returns AptosAccount object
    */
   static getAccountFromMnemonic(code: string) {
-    const seed: Uint8Array = bip39.mnemonicToSeedSync(code.toString());
-    const node = HDKey.fromMasterSeed(Buffer.from(seed));
-    const exKey = node.derive(`m/44'/${COIN_TYPE}'/0'/0/0`);
-    return new AptosAccount(exKey.privateKey);
+    return AptosAccount.fromDerivePath(`m/44'/${COIN_TYPE}/0'/0'/0'`, code);
   }
 
   /**
@@ -280,10 +268,11 @@ export class WalletClient {
    * @returns
    */
   static getAccountFromMetaData(code: string, metaData: AccountMetaData) {
-    const seed: Uint8Array = bip39.mnemonicToSeedSync(code.toString());
-    const node = HDKey.fromMasterSeed(Buffer.from(seed));
-    const exKey = node.derive(metaData.derivationPath);
-    return new AptosAccount(exKey.privateKey, metaData.address);
+    return AptosAccount.fromDerivePath(
+      metaData.derivationPath,
+      code,
+      metaData.address
+    );
   }
 
   /**
@@ -760,50 +749,54 @@ export class WalletClient {
 
   /**
    * Rotates the auth key
+   * Disabled
    *
    * @param code mnemonic phrase for the desired wallet
    * @param metaData metadata for the desired account
    * @returns status object
    */
+  /* eslint-disable */
   async rotateAuthKey(code: string, metaData: AccountMetaData) {
-    const account: AptosAccount = await WalletClient.getAccountFromMetaData(
-      code,
-      metaData
-    );
-    const pathSplit = metaData.derivationPath.split("/");
-    const addressIndex = Number(pathSplit[pathSplit.length - 1]);
-    if (addressIndex >= ADDRESS_GAP - 1) {
-      throw new Error("Maximum key rotation reached");
-    }
-    const newDerivationPath = `${pathSplit
-      .slice(0, pathSplit.length - 1)
-      .join("/")}/${addressIndex + 1}`;
-    const newAccount = await WalletClient.getAccountFromMetaData(code, {
-      address: metaData.address,
-      derivationPath: newDerivationPath,
-    });
-    const newAuthKey = newAccount.authKey().toString().split("0x")[1];
-    const transactionStatus = await this.signGenericTransaction(
-      account,
-      "0x1::account::rotate_authentication_key",
-      [newAuthKey],
-      []
-    );
+    // const account: AptosAccount = await WalletClient.getAccountFromMetaData(
+    //   code,
+    //   metaData
+    // );
+    // const pathSplit = metaData.derivationPath.split("/");
+    // const addressIndex = Number(pathSplit[pathSplit.length - 1].slice(0, -1));
+    // if (addressIndex >= ADDRESS_GAP - 1) {
+    //   throw new Error("Maximum key rotation reached");
+    // }
+    // const newDerivationPath = `${pathSplit
+    //   .slice(0, pathSplit.length - 1)
+    //   .join("/")}/${addressIndex + 1}'`;
+    // const newAccount = await WalletClient.getAccountFromMetaData(code, {
+    //   address: metaData.address,
+    //   derivationPath: newDerivationPath,
+    // });
+    // const newAuthKey = newAccount.authKey().noPrefix();
+    // const transactionStatus = await this.signGenericTransaction(
+    //   account,
+    //   "0x1::account::rotate_authentication_key_25519",
+    //   [account.pubKey().toString(), account.],
+    //   []
+    // );
 
-    if (!transactionStatus.success) {
-      return {
-        authkey: "",
-        success: false,
-        vm_status: transactionStatus.vm_status,
-      };
-    }
+    // if (!transactionStatus.success) {
+    //   return {
+    //     authkey: "",
+    //     success: false,
+    //     vm_status: transactionStatus.vm_status,
+    //   };
+    // }
 
     return {
-      authkey: `0x${newAuthKey}`,
-      success: true,
-      vm_status: transactionStatus.vm_status,
+      authkey: "0x",
+      success: false,
+      vm_status: "disabled",
     };
   }
+
+  /* eslint-enable */
 
   async getEventStream(
     address: string,
