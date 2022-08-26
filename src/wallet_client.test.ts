@@ -366,68 +366,51 @@ test("verify get transaction serialized", async () => {
   expect(deserialized).toStrictEqual(originalTxn);
 });
 
-// test("console.log", async () => {
-//   const alice = await apis.getReceivedEvents(
-//     "0xfb0f1312478305a29533fc59c5db6e5742ee99adc19f81d7bc9c250ccc552bcc"
-//   );
+// // test("verify fungible tokens", async () => {
+// //     const alice = await apis.createWallet();
+// //     var aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
+// //     await apis.airdrop(aliceAccount.address().toString(), 20000);
 
-//   expect(true).toBe(true);
-// });
+// //     const bob = await apis.createWallet();
+// //     var bobAccount = await apis.getAccountFromMetaData(bob.code, bob.accounts[0]);
+// //     await apis.airdrop(bobAccount.address().toString(), 20000);
+// //     // the address will change with time
+// //     const coin_type_path = `${aliceAccount.address().toString()}::MartianCoin::MartianCoin`;
 
-// test("verify fungible tokens", async () => {
-//     const alice = await apis.createWallet();
-//     var aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
-//     await apis.airdrop(aliceAccount.address().toString(), 20000);
+// //     await apis.initializeCoin(aliceAccount, coin_type_path, "Martian Coin", "MAR", 6);
+// //     await apis.registerCoin(aliceAccount, coin_type_path);
+// //     await apis.mintCoin(aliceAccount, coin_type_path, aliceAccount.address().toString(), 3000);
+// //     await apis.getCoinBalance(aliceAccount.address().toString(), coin_type_path);
 
-//     const bob = await apis.createWallet();
-//     var bobAccount = await apis.getAccountFromMetaData(bob.code, bob.accounts[0]);
-//     await apis.airdrop(bobAccount.address().toString(), 20000);
-//     // the address will change with time
-//     const coin_type_path = `${aliceAccount.address().toString()}::MartianCoin::MartianCoin`;
+// //     await apis.registerCoin(bobAccount, coin_type_path);
+// //     await apis.transferCoin(aliceAccount, coin_type_path, bobAccount.address().toString(), 1000);
 
-//     await apis.initializeCoin(aliceAccount, coin_type_path, "Martian Coin", "MAR", 6);
-//     await apis.registerCoin(aliceAccount, coin_type_path);
-//     await apis.mintCoin(aliceAccount, coin_type_path, aliceAccount.address().toString(), 3000);
-//     await apis.getCoinBalance(aliceAccount.address().toString(), coin_type_path);
+// //     expect(await apis.getCoinBalance(bobAccount.address().toString(), coin_type_path)).toBe(1000);
+// // })
 
-//     await apis.registerCoin(bobAccount, coin_type_path);
-//     await apis.transferCoin(aliceAccount, coin_type_path, bobAccount.address().toString(), 1000);
+test("should be able to create multiple accounts in a wallet", async () => {
+  let alice = await apis.createWallet();
+  let aliceAccount = await WalletClient.getAccountFromMetaData(
+    alice.code,
+    alice.accounts[0]
+  );
 
-//     expect(await apis.getCoinBalance(bobAccount.address().toString(), coin_type_path)).toBe(1000);
-// })
+  await apis.createNewAccount(alice.code);
+  alice = await apis.importWallet(alice.code);
 
-// test("should be able to create a new wallet and rotate auth keys", async () => {
-//     // var alice = await apis.createWallet();
-//     // console.log(alice);
+  await apis.createNewAccount(alice.code);
+  alice = await apis.importWallet(alice.code);
 
-//     // var aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[0]);
+  await apis.createNewAccount(alice.code);
+  alice = await apis.importWallet(alice.code);
 
-//     // await apis.rotateAuthKey(alice.code, alice.accounts[0]);
-//     const tmp = "fresh left easily alpha round wood someone unfair draft fly vital observe"
-//     const alice = await apis.importWallet(tmp);
-//     await apis.airdrop(alice[0].address().toString(), 20000);
-//     // await apis.createNewAccount(alice.code);
-//     // alice = await apis.importWallet(alice.code);
+  aliceAccount = await WalletClient.getAccountFromMetaData(
+    alice.code,
+    alice.accounts[2]
+  );
+  await apis.airdrop(aliceAccount.address().toString(), 20000);
 
-//     // await apis.createNewAccount(alice.code);
-//     // alice = await apis.importWallet(alice.code);
+  await apis.transfer(aliceAccount, alice.accounts[3].address, 100);
 
-//     // await apis.createNewAccount(alice.code);
-//     // alice = await apis.importWallet(alice.code);
-
-//     // aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
-//     // await apis.airdrop(aliceAccount.address().toString(), 20000);
-
-//     // console.log(await apis.rotateAuthKey(alice.code, alice.accounts[2]));
-//     // alice = await apis.importWallet(alice.code);
-
-//     // aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
-//     // await apis.rotateAuthKey(alice.code, alice.accounts[2]);
-//     // alice = await apis.importWallet(alice.code);
-
-//     // aliceAccount = await apis.getAccountFromMetaData(alice.code, alice.accounts[2]);
-//     // await apis.transfer(aliceAccount, alice.accounts[3].address, 100);
-//     // console.log(await apis.getBalance(aliceAccount.address().toString()));
-
-//     // console.log(await apis.getBalance(alice.accounts[3].address));
-// },300000);
+  expect(await apis.getBalance(alice.accounts[3].address)).toBe(100);
+}, 300000);
