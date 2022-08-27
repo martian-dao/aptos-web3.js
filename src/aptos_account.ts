@@ -4,10 +4,10 @@
 import * as Nacl from "tweetnacl";
 import * as SHA3 from "js-sha3";
 import { Buffer } from "buffer/"; // the trailing slash is important!
-import { HexString, MaybeHexString } from "./hex_string";
-import * as Gen from "./generated/index";
 import { derivePath } from "ed25519-hd-key";
 import * as bip39 from "@scure/bip39";
+import { HexString, MaybeHexString } from "./hex_string";
+import * as Gen from "./generated/index";
 
 export interface AptosAccountObject {
   address?: Gen.HexEncodedBytes;
@@ -73,7 +73,7 @@ export class AptosAccount {
       if (!AptosAccount.isValidPath(path)) {
         throw new Error("Invalid derivation path");
       }
-  
+
       const normalizeMnemonics = mnemonics
         .trim()
         .split(/\s+/)
@@ -81,7 +81,7 @@ export class AptosAccount {
         .join(" ");
   
       const { key } = derivePath(path, Buffer.from(bip39.mnemonicToSeedSync(normalizeMnemonics)).toString("hex"));
-  
+      
       return new AptosAccount(new Uint8Array(key), address);
     }
   
