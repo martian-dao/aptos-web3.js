@@ -1160,7 +1160,7 @@ export class WalletClient {
     const entryFunctionPayload =
       new TxnBuilderTypes.TransactionPayloadEntryFunction(
         TxnBuilderTypes.EntryFunction.natural(
-          "0x1::managed_coin",
+          "0x1::coins",
           "register",
           [token],
           []
