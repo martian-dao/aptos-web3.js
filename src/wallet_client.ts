@@ -131,7 +131,7 @@ export class WalletClient {
           account.authKey().toString() === authKey
         ) {
           flag = true;
-          publicKey = account.pubKey().toShortString();
+          publicKey = account.pubKey().toString();
           break;
         }
         /* eslint-enable no-await-in-loop */
@@ -183,7 +183,7 @@ export class WalletClient {
         return {
           derivationPath,
           address,
-          publicKey: account.pubKey().toShortString(),
+          publicKey: account.pubKey().toString(),
         };
       }
       /* eslint-enable no-await-in-loop */
