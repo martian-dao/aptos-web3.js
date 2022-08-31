@@ -343,10 +343,9 @@ export class TransactionBuilderABI {
       sender instanceof AccountAddress
         ? sender
         : AccountAddress.fromHex(sender);
+    
     if (!expTimestampSec) {
-      expTimestampSec = BigInt(
-        Math.floor(Date.now() / 1000)
-      );
+      expTimestampSec = BigInt(Math.floor(Date.now() / 1000));
     }
 
     expTimestampSec += BigInt(expSecFromNow);
