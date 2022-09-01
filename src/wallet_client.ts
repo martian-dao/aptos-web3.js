@@ -1330,6 +1330,12 @@ export class WalletClient {
     return Number(coinInfo.data.coin.value);
   }
 
+  /**
+   * returns the list of all the custom coins for an account
+   *
+   * @param address address of the desired account
+   * @returns array of coins with their data
+   */
   async getCustomCoins(address: string) {
     const coins = [];
     const resources: any = await this.aptosClient.getAccountResources(address);
