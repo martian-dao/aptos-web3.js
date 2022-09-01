@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as SHA3 from "js-sha3";
-import { Buffer } from "buffer/";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { MemoizeExpiring } from "typescript-memoize";
 import {
   Ed25519PublicKey,
@@ -90,16 +90,22 @@ export class TransactionBuilder<F extends SigningFn> {
   static getSigningMessage(rawTxn: AnyRawTransaction): SigningMessage {
     const hash = SHA3.sha3_256.create();
     if (rawTxn instanceof RawTransaction) {
-      hash.update(Buffer.from(RAW_TRANSACTION_SALT));
+      hash.update(RAW_TRANSACTION_SALT);
     } else if (rawTxn instanceof MultiAgentRawTransaction) {
-      hash.update(Buffer.from(RAW_TRANSACTION_WITH_DATA_SALT));
+      hash.update(RAW_TRANSACTION_WITH_DATA_SALT);
     } else {
       throw new Error("Unknown transaction type.");
     }
 
     const prefix = new Uint8Array(hash.arrayBuffer());
 
-    return Buffer.from([...prefix, ...bcsToBytes(rawTxn)]);
+    const body = bcsToBytes(rawTxn);
+
+    const mergedArray = new Uint8Array(prefix.length + body.length);
+    mergedArray.set(prefix);
+    mergedArray.set(body, prefix.length);
+
+    return mergedArray;
   }
 }
 
@@ -343,10 +349,9 @@ export class TransactionBuilderABI {
       sender instanceof AccountAddress
         ? sender
         : AccountAddress.fromHex(sender);
+
     if (!expTimestampSec) {
-      expTimestampSec = BigInt(
-        Math.floor(Date.now() / 1000)
-      );
+      expTimestampSec = BigInt(Math.floor(Date.now() / 1000));
     }
 
     expTimestampSec += BigInt(expSecFromNow);
@@ -434,6 +439,9 @@ export class TransactionBuilderRemoteABI {
     ty_tags: Gen.MoveType[],
     args: any[]
   ): Promise<RawTransaction> {
+    /* eslint no-param-reassign: ["off"] */
+    const normlize = (s: string) => s.replace(/^0[xX]0*/g, "0x");
+    func = normlize(func);
     const funcNameParts = func.split("::");
     if (funcNameParts.length !== 3) {
       throw new Error(

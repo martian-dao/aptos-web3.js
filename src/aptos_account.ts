@@ -3,11 +3,11 @@
 
 import * as Nacl from "tweetnacl";
 import * as SHA3 from "js-sha3";
-import { Buffer } from "buffer/"; // the trailing slash is important!
-import { HexString, MaybeHexString } from "./hex_string";
-import * as Gen from "./generated/index";
 import { derivePath } from "ed25519-hd-key";
 import * as bip39 from "@scure/bip39";
+import { bytesToHex } from "./bytes_to_hex.js";
+import { HexString, MaybeHexString } from "./hex_string";
+import * as Gen from "./generated/index";
 
 export interface AptosAccountObject {
   address?: Gen.HexEncodedBytes;
@@ -36,6 +36,39 @@ export class AptosAccount {
   }
 
   /**
+   * Test derive path
+   */
+  static isValidPath = (path: string): boolean => {
+    if (!/^m\/44'\/637'\/[0-9]+'\/[0-9]+'\/[0-9]+'+$/.test(path)) {
+      return false;
+    }
+    return true;
+  };
+
+  /**
+   * Creates new account with bip44 path and mnemonics,
+   * @param path. (e.g. m/44'/637'/0'/0'/0')
+   * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
+   * @param mnemonics.
+   * @returns AptosAccount
+   */
+    static fromDerivePath(path: string, mnemonics: string, address?: MaybeHexString): AptosAccount {
+    if (!AptosAccount.isValidPath(path)) {
+      throw new Error("Invalid derivation path");
+    }
+
+    const normalizeMnemonics = mnemonics
+      .trim()
+      .split(/\s+/)
+      .map((part) => part.toLowerCase())
+      .join(" ");
+
+    const { key } = derivePath(path, Buffer.from(bip39.mnemonicToSeedSync(normalizeMnemonics)).toString("hex"));
+
+    return new AptosAccount(new Uint8Array(key), address);
+  }
+
+  /**
    * Creates new account instance. Constructor allows passing in an address,
    * to handle account key rotation, where auth_key != public_key
    * @param privateKeyBytes  Private key from which account key pair will be generated.
@@ -51,40 +84,6 @@ export class AptosAccount {
     }
     this.accountAddress = HexString.ensure(address || this.authKey().hex());
   }
-
-    /**
-   * Test derive path
-   */
-     static isValidPath = (path: string): boolean => {
-      if (!/^m\/44'\/637'\/[0-9]+'\/[0-9]+'\/[0-9]+'+$/.test(path)) {
-        return false;
-      }
-      return true;
-    };
-  
-    /**
-     * Creates new account with bip44 path and mnemonics,
-     * @param path. (e.g. m/44'/637'/0'/0'/0')
-     * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
-     * @param mnemonics.
-     * @returns AptosAccount
-     */
-    static fromDerivePath(path: string, mnemonics: string, address?: MaybeHexString): AptosAccount {
-      if (!AptosAccount.isValidPath(path)) {
-        throw new Error("Invalid derivation path");
-      }
-  
-      const normalizeMnemonics = mnemonics
-        .trim()
-        .split(/\s+/)
-        .map((part) => part.toLowerCase())
-        .join(" ");
-  
-      const { key } = derivePath(path, Buffer.from(bip39.mnemonicToSeedSync(normalizeMnemonics)).toString("hex"));
-  
-      return new AptosAccount(new Uint8Array(key), address);
-    }
-  
 
   /**
    * This is the key by which Aptos account is referenced.
@@ -105,7 +104,7 @@ export class AptosAccount {
   authKey(): HexString {
     if (!this.authKeyCached) {
       const hash = SHA3.sha3_256.create();
-      hash.update(Buffer.from(this.signingKey.publicKey));
+      hash.update(this.signingKey.publicKey);
       hash.update("\x00");
       this.authKeyCached = new HexString(hash.hex());
     }
@@ -118,7 +117,7 @@ export class AptosAccount {
    * @returns The public key for the associated account
    */
   pubKey(): HexString {
-    return HexString.ensure(Buffer.from(this.signingKey.publicKey).toString("hex"));
+    return HexString.fromUint8Array(this.signingKey.publicKey);
   }
 
   /**
@@ -126,9 +125,9 @@ export class AptosAccount {
    * @param buffer A buffer to sign
    * @returns A signature HexString
    */
-  signBuffer(buffer: Buffer): HexString {
+  signBuffer(buffer: Uint8Array): HexString {
     const signature = Nacl.sign(buffer, this.signingKey.secretKey);
-    return HexString.ensure(Buffer.from(signature).toString("hex").slice(0, 128));
+    return HexString.fromUint8Array(signature.slice(0, 64));
   }
 
   /**
@@ -137,7 +136,7 @@ export class AptosAccount {
    * @returns A signature HexString
    */
   signHexString(hexString: MaybeHexString): HexString {
-    const toSign = HexString.ensure(hexString).toBuffer();
+    const toSign = HexString.ensure(hexString).toUint8Array();
     return this.signBuffer(toSign);
   }
 
