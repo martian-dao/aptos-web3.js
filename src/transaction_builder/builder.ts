@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as SHA3 from "js-sha3";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { MemoizeExpiring } from "typescript-memoize";
 import {
   Ed25519PublicKey,
@@ -25,10 +26,27 @@ import {
   TransactionPayloadScript,
   ModuleId,
 } from "./aptos_types";
-import { bcsToBytes, Bytes, Deserializer, Serializer, Uint64, Uint8 } from "./bcs";
-import { ArgumentABI, EntryFunctionABI, ScriptABI, TransactionScriptABI, TypeArgumentABI } from "./aptos_types/abi";
+import {
+  bcsToBytes,
+  Bytes,
+  Deserializer,
+  Serializer,
+  Uint64,
+  Uint8,
+} from "./bcs";
+import {
+  ArgumentABI,
+  EntryFunctionABI,
+  ScriptABI,
+  TransactionScriptABI,
+  TypeArgumentABI,
+} from "./aptos_types/abi";
 import { HexString, MaybeHexString } from "../hex_string";
-import { argToTransactionArgument, TypeTagParser, serializeArg } from "./builder_utils";
+import {
+  argToTransactionArgument,
+  TypeTagParser,
+  serializeArg,
+} from "./builder_utils";
 import * as Gen from "../generated/index";
 
 const RAW_TRANSACTION_SALT = "APTOS::RawTransaction";
@@ -40,12 +58,17 @@ type AnyRawTransaction = RawTransaction | MultiAgentRawTransaction;
  * Function that takes in a Signing Message (serialized raw transaction)
  *  and returns a signature
  */
-export type SigningFn = (txn: SigningMessage) => Ed25519Signature | MultiEd25519Signature;
+export type SigningFn = (
+  txn: SigningMessage
+) => Ed25519Signature | MultiEd25519Signature;
 
 export class TransactionBuilder<F extends SigningFn> {
   protected readonly signingFunction: F;
 
-  constructor(signingFunction: F, public readonly rawTxnBuilder?: TransactionBuilderABI) {
+  constructor(
+    signingFunction: F,
+    public readonly rawTxnBuilder?: TransactionBuilderABI
+  ) {
     this.signingFunction = signingFunction;
   }
 
@@ -92,7 +115,11 @@ export class TransactionBuilder<F extends SigningFn> {
 export class TransactionBuilderEd25519 extends TransactionBuilder<SigningFn> {
   private readonly publicKey: Uint8Array;
 
-  constructor(signingFunction: SigningFn, publicKey: Uint8Array, rawTxnBuilder?: TransactionBuilderABI) {
+  constructor(
+    signingFunction: SigningFn,
+    publicKey: Uint8Array,
+    rawTxnBuilder?: TransactionBuilderABI
+  ) {
     super(signingFunction, rawTxnBuilder);
     this.publicKey = publicKey;
   }
@@ -103,7 +130,7 @@ export class TransactionBuilderEd25519 extends TransactionBuilder<SigningFn> {
 
     const authenticator = new TransactionAuthenticatorEd25519(
       new Ed25519PublicKey(this.publicKey),
-      signature as Ed25519Signature,
+      signature as Ed25519Signature
     );
 
     return new SignedTransaction(rawTxn, authenticator);
@@ -130,7 +157,10 @@ export class TransactionBuilderMultiEd25519 extends TransactionBuilder<SigningFn
     const signingMessage = TransactionBuilder.getSigningMessage(rawTxn);
     const signature = this.signingFunction(signingMessage);
 
-    const authenticator = new TransactionAuthenticatorMultiEd25519(this.publicKey, signature as MultiEd25519Signature);
+    const authenticator = new TransactionAuthenticatorMultiEd25519(
+      this.publicKey,
+      signature as MultiEd25519Signature
+    );
 
     return new SignedTransaction(rawTxn, authenticator);
   }
@@ -150,6 +180,7 @@ interface ABIBuilderConfig {
   gasUnitPrice?: Uint64 | string;
   maxGasAmount?: Uint64 | string;
   expSecFromNow?: number | string;
+  expTimestampSec?: bigint;
   chainId: Uint8 | string;
 }
 
@@ -176,7 +207,9 @@ export class TransactionBuilderABI {
       if (scriptABI instanceof EntryFunctionABI) {
         const funcABI = scriptABI as EntryFunctionABI;
         const { address: addr, name: moduleName } = funcABI.module_name;
-        k = `${HexString.fromUint8Array(addr.address).toShortString()}::${moduleName.value}::${funcABI.name}`;
+        k = `${HexString.fromUint8Array(addr.address).toShortString()}::${
+          moduleName.value
+        }::${funcABI.name}`;
       } else {
         const funcABI = scriptABI as TransactionScriptABI;
         k = funcABI.name;
@@ -192,7 +225,7 @@ export class TransactionBuilderABI {
     this.builderConfig = {
       gasUnitPrice: 1n,
       maxGasAmount: 2000n,
-      expSecFromNow: 20,
+      expSecFromNow: 60,
       ...builderConfig,
     };
   }
@@ -209,12 +242,17 @@ export class TransactionBuilderABI {
     });
   }
 
-  private static toTransactionArguments(abiArgs: any[], args: any[]): TransactionArgument[] {
+  private static toTransactionArguments(
+    abiArgs: any[],
+    args: any[]
+  ): TransactionArgument[] {
     if (abiArgs.length !== args.length) {
       throw new Error("Wrong number of args provided.");
     }
 
-    return args.map((arg, i) => argToTransactionArgument(arg, abiArgs[i].type_tag));
+    return args.map((arg, i) =>
+      argToTransactionArgument(arg, abiArgs[i].type_tag)
+    );
   }
 
   setSequenceNumber(seqNumber: Uint64 | string) {
@@ -230,8 +268,14 @@ export class TransactionBuilderABI {
    * @param args Function arguments
    * @returns TransactionPayload
    */
-  buildTransactionPayload(func: string, ty_tags: string[], args: any[]): TransactionPayload {
-    const typeTags = ty_tags.map((ty_arg) => new TypeTagParser(ty_arg).parseTypeTag());
+  buildTransactionPayload(
+    func: string,
+    ty_tags: string[],
+    args: any[]
+  ): TransactionPayload {
+    const typeTags = ty_tags.map((ty_arg) =>
+      new TypeTagParser(ty_arg).parseTypeTag()
+    );
 
     let payload: TransactionPayload;
 
@@ -245,15 +289,25 @@ export class TransactionBuilderABI {
       const funcABI = scriptABI as EntryFunctionABI;
       const bcsArgs = TransactionBuilderABI.toBCSArgs(funcABI.args, args);
       payload = new TransactionPayloadEntryFunction(
-        new EntryFunction(funcABI.module_name, new Identifier(funcABI.name), typeTags, bcsArgs),
+        new EntryFunction(
+          funcABI.module_name,
+          new Identifier(funcABI.name),
+          typeTags,
+          bcsArgs
+        )
       );
     }
 
     if (scriptABI instanceof TransactionScriptABI) {
       const funcABI = scriptABI as TransactionScriptABI;
-      const scriptArgs = TransactionBuilderABI.toTransactionArguments(funcABI.args, args);
+      const scriptArgs = TransactionBuilderABI.toTransactionArguments(
+        funcABI.args,
+        args
+      );
 
-      payload = new TransactionPayloadScript(new Script(funcABI.code, typeTags, scriptArgs));
+      payload = new TransactionPayloadScript(
+        new Script(funcABI.code, typeTags, scriptArgs)
+      );
     }
 
     return payload;
@@ -279,10 +333,29 @@ export class TransactionBuilderABI {
    * @returns RawTransaction
    */
   build(func: string, ty_tags: string[], args: any[]): RawTransaction {
-    const { sender, sequenceNumber, gasUnitPrice, maxGasAmount, expSecFromNow, chainId } = this.builderConfig;
+    const {
+      sender,
+      sequenceNumber,
+      gasUnitPrice,
+      maxGasAmount,
+      expSecFromNow,
+      chainId,
+      expTimestampSec: expirationTimestampSec,
+    } = this.builderConfig;
 
-    const senderAccount = sender instanceof AccountAddress ? sender : AccountAddress.fromHex(sender);
-    const expTimestampSec = BigInt(Math.floor(Date.now() / 1000) + Number(expSecFromNow));
+    let expTimestampSec = expirationTimestampSec;
+
+    const senderAccount =
+      sender instanceof AccountAddress
+        ? sender
+        : AccountAddress.fromHex(sender);
+
+    if (!expTimestampSec) {
+      expTimestampSec = BigInt(Math.floor(Date.now() / 1000));
+    }
+
+    expTimestampSec += BigInt(expSecFromNow);
+
     const payload = this.buildTransactionPayload(func, ty_tags, args);
 
     if (payload) {
@@ -293,7 +366,7 @@ export class TransactionBuilderABI {
         BigInt(maxGasAmount),
         BigInt(gasUnitPrice),
         expTimestampSec,
-        new ChainId(Number(chainId)),
+        new ChainId(Number(chainId))
       );
     }
 
@@ -301,14 +374,19 @@ export class TransactionBuilderABI {
   }
 }
 
-export type RemoteABIBuilderConfig = Partial<Omit<ABIBuilderConfig, "sender">> & {
+export type RemoteABIBuilderConfig = Partial<
+  Omit<ABIBuilderConfig, "sender">
+> & {
   sender: MaybeHexString | AccountAddress;
 };
 
 interface AptosClientInterface {
-  getAccountModules: (accountAddress: MaybeHexString) => Promise<Gen.MoveModuleBytecode[]>;
+  getAccountModules: (
+    accountAddress: MaybeHexString
+  ) => Promise<Gen.MoveModuleBytecode[]>;
   getAccount: (accountAddress: MaybeHexString) => Promise<Gen.AccountData>;
   getChainId: () => Promise<number>;
+  getLedgerInfo: () => Promise<Gen.IndexResponse>;
 }
 
 /**
@@ -319,7 +397,7 @@ export class TransactionBuilderRemoteABI {
   // We don't want the builder to depend on the actual AptosClient. There might be circular dependencies.
   constructor(
     private readonly aptosClient: AptosClientInterface,
-    private readonly builderConfig: RemoteABIBuilderConfig,
+    private readonly builderConfig: RemoteABIBuilderConfig
   ) {}
 
   // Cache for 10 minutes
@@ -336,8 +414,8 @@ export class TransactionBuilderRemoteABI {
               ({
                 fullName: `${abi.address}::${abi.name}::${ef.name}`,
                 ...ef,
-              } as Gen.MoveFunction & { fullName: string }),
-          ),
+              } as Gen.MoveFunction & { fullName: string })
+          )
       );
 
     const abiMap = new Map<string, Gen.MoveFunction & { fullName: string }>();
@@ -356,7 +434,11 @@ export class TransactionBuilderRemoteABI {
    * @param args
    * @returns RawTransaction
    */
-  async build(func: Gen.EntryFunctionId, ty_tags: Gen.MoveType[], args: any[]): Promise<RawTransaction> {
+  async build(
+    func: Gen.EntryFunctionId,
+    ty_tags: Gen.MoveType[],
+    args: any[]
+  ): Promise<RawTransaction> {
     /* eslint no-param-reassign: ["off"] */
     const normlize = (s: string) => s.replace(/^0[xX]0*/g, "0x");
     func = normlize(func);
@@ -364,7 +446,7 @@ export class TransactionBuilderRemoteABI {
     if (funcNameParts.length !== 3) {
       throw new Error(
         // eslint-disable-next-line max-len
-        "'func' needs to be a fully qualified function name in format <address>::<module>::<function>, e.g. 0x1::coins::transfer",
+        "'func' needs to be a fully qualified function name in format <address>::<module>::<function>, e.g. 0x1::coins::transfer"
       );
     }
 
@@ -381,36 +463,55 @@ export class TransactionBuilderRemoteABI {
     // Remove all `signer` and `&signer` from argument list because the Move VM injects those arguments. Clients do not
     // need to care about those args. `signer` and `&signer` are required be in the front of the argument list. But we
     // just loop through all arguments and filter out `signer` and `&signer`.
-    const originalArgs = funcAbi.params.filter((param) => param !== "signer" && param !== "&signer");
+    const originalArgs = funcAbi.params.filter(
+      (param) => param !== "signer" && param !== "&signer"
+    );
 
     // Convert string arguments to TypeArgumentABI
-    const typeArgABIs = originalArgs.map((arg, i) => new ArgumentABI(`var${i}`, new TypeTagParser(arg).parseTypeTag()));
+    const typeArgABIs = originalArgs.map(
+      (arg, i) =>
+        new ArgumentABI(`var${i}`, new TypeTagParser(arg).parseTypeTag())
+    );
 
     const entryFunctionABI = new EntryFunctionABI(
       funcAbi.name,
       ModuleId.fromStr(`${addr}::${module}`),
       "", // Doc string
       funcAbi.generic_type_params.map((_, i) => new TypeArgumentABI(`${i}`)),
-      typeArgABIs,
+      typeArgABIs
     );
 
     const { sender, ...rest } = this.builderConfig;
 
-    const senderAddress = sender instanceof AccountAddress ? HexString.fromUint8Array(sender.address) : sender;
+    const senderAddress =
+      sender instanceof AccountAddress
+        ? HexString.fromUint8Array(sender.address)
+        : sender;
 
     const [{ sequence_number: sequenceNumber }, chainId] = await Promise.all([
       rest?.sequenceNumber
         ? Promise.resolve({ sequence_number: rest?.sequenceNumber })
         : this.aptosClient.getAccount(senderAddress),
-      rest?.chainId ? Promise.resolve(rest?.chainId) : this.aptosClient.getChainId(),
+      rest?.chainId
+        ? Promise.resolve(rest?.chainId)
+        : this.aptosClient.getChainId(),
     ]);
 
-    const builderABI = new TransactionBuilderABI([bcsToBytes(entryFunctionABI)], {
-      sender,
-      sequenceNumber,
-      chainId,
-      ...rest,
-    });
+    const getLedgerInfo = await this.aptosClient.getLedgerInfo();
+    const expTimestampSec = BigInt(
+      Math.floor(parseInt(getLedgerInfo.ledger_timestamp, 10) / 1000)
+    );
+
+    const builderABI = new TransactionBuilderABI(
+      [bcsToBytes(entryFunctionABI)],
+      {
+        sender,
+        sequenceNumber,
+        chainId,
+        expTimestampSec,
+        ...rest,
+      }
+    );
 
     return builderABI.build(func, ty_tags, args);
   }
