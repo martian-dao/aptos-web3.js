@@ -54,9 +54,7 @@ test("verify import random wallet", async () => {
     alice.accounts[0]
   );
   const getAccount = await apis.aptosClient.getAccount(aliceAccount.address());
-  expect(getAccount.authentication_key).toBe(
-    aliceAccount.address().toShortString()
-  );
+  expect(getAccount.authentication_key).toBe(aliceAccount.address());
 });
 
 test("verify airdrop", async () => {
