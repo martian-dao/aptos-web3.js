@@ -1134,12 +1134,7 @@ export class WalletClient {
       type: "entry_function_payload",
       function: "0x1::managed_coin::initialize",
       type_arguments: [coin_type_path],
-      arguments: [
-        Buffer.from(name).toString("hex"),
-        Buffer.from(symbol).toString("hex"),
-        scaling_factor.toString(),
-        false,
-      ],
+      arguments: [name, symbol, scaling_factor, false],
     };
 
     const txnHash = await this.submitTransactionHelper(account, payload);
