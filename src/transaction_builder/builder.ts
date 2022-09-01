@@ -224,7 +224,7 @@ export class TransactionBuilderABI {
 
     this.builderConfig = {
       gasUnitPrice: 1n,
-      maxGasAmount: 2000n,
+      maxGasAmount: 4000n,
       expSecFromNow: 60,
       ...builderConfig,
     };
