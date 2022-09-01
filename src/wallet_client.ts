@@ -114,6 +114,8 @@ export class WalletClient {
         const account = AptosAccount.fromDerivePath(derivationPath, code);
         if (j === 0) {
           address = HexString.ensure(account.address()).toShortString();
+          publicKey = account.pubKey().toString();
+
           const response = await fetch(
             `${this.aptosClient.nodeUrl}/accounts/${address}`,
             {
@@ -121,6 +123,12 @@ export class WalletClient {
             }
           );
           if (response.status === 404) {
+            // if the very first account is not present in the aptos, it will add this to metadata
+            if (i === 0) {
+              flag = true;
+              // create new account if it is not present
+              await this.createNewAccount(code);
+            }
             break;
           }
           const respBody = await response.json();
@@ -131,7 +139,6 @@ export class WalletClient {
           account.authKey().toString() === authKey
         ) {
           flag = true;
-          publicKey = account.pubKey().toString();
           break;
         }
         /* eslint-enable no-await-in-loop */

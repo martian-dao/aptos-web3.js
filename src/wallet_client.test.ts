@@ -1,4 +1,6 @@
 import * as Nacl from "tweetnacl";
+import * as bip39 from "@scure/bip39";
+import * as english from "@scure/bip39/wordlists/english";
 import { WalletClient } from "./wallet_client";
 import { NODE_URL, FAUCET_URL } from "./util.test";
 import { Serializer } from "./transaction_builder/bcs";
@@ -25,6 +27,37 @@ function verifySignature(message, signature, publicKey) {
     publicKeyBuffer
   );
 }
+
+test("verify create wallet", async () => {
+  const alice = await apis.createWallet();
+  const aliceAccount = await WalletClient.getAccountFromMetaData(
+    alice.code,
+    alice.accounts[0]
+  );
+  const getAccount = await apis.aptosClient.getAccount(aliceAccount.address());
+  expect(getAccount.authentication_key).toBe(
+    aliceAccount.address().toShortString()
+  );
+});
+
+test("verify import wallet", async () => {
+  const alice = await apis.createWallet();
+  const importedAlice = await apis.importWallet(alice.code);
+  expect(importedAlice.accounts[0].address).toBe(alice.accounts[0].address);
+});
+
+test("verify import random wallet", async () => {
+  const code = bip39.generateMnemonic(english.wordlist); // mnemonic
+  const alice = await apis.importWallet(code);
+  const aliceAccount = await WalletClient.getAccountFromMetaData(
+    alice.code,
+    alice.accounts[0]
+  );
+  const getAccount = await apis.aptosClient.getAccount(aliceAccount.address());
+  expect(getAccount.authentication_key).toBe(
+    aliceAccount.address().toShortString()
+  );
+});
 
 test("verify airdrop", async () => {
   const alice = await apis.createWallet();
