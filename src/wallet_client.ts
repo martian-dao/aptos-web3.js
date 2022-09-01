@@ -1337,6 +1337,40 @@ export class WalletClient {
     return Number(coinInfo.data.coin.value);
   }
 
+  /**
+   * returns the list of all the custom coins for an account
+   *
+   * @param address address of the desired account
+   * @returns array of coins with their data
+   */
+  async getCustomCoins(address: string) {
+    const coins = [];
+    const resources: any = await this.aptosClient.getAccountResources(address);
+    await Promise.all(
+      Object.values(resources).map(async (value: any) => {
+        if (
+          value.type.startsWith("0x1::coin::CoinStore") &&
+          value.type !== "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>"
+        ) {
+          const coinTypePath: string = value.type.substring(
+            value.type.indexOf("<") + 1,
+            value.type.lastIndexOf(">")
+          );
+          const coinData = await this.getCoinData(coinTypePath);
+          coins.push({
+            balance: Number(value.data.coin.value),
+            name: coinData.data.symbol,
+            decimals: coinData.data.decimals,
+            coinName: coinData.data.name,
+            coinAddress: coinTypePath,
+          });
+        }
+      })
+    );
+
+    return coins;
+  }
+
   async publishModule(account: AptosAccount, moduleHex: string) {
     const moduleBundlePayload =
       new TxnBuilderTypes.TransactionPayloadModuleBundle(
