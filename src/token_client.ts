@@ -81,7 +81,7 @@ export class TokenClient {
     collectionName: string,
     name: string,
     description: string,
-    supply: string,
+    supply: number,
     uri: string,
     max: BCS.AnyNumber = MAX_U64_BIG_INT,
     royalty_payee_address: MaybeHexString = account.address(),

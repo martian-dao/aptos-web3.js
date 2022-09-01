@@ -4,6 +4,7 @@ import * as english from "@scure/bip39/wordlists/english";
 import { WalletClient } from "./wallet_client";
 import { NODE_URL, FAUCET_URL } from "./util.test";
 import { Serializer } from "./transaction_builder/bcs";
+import { HexString } from "./hex_string";
 
 const apis = new WalletClient(NODE_URL, FAUCET_URL);
 
@@ -35,7 +36,7 @@ test("verify create wallet", async () => {
     alice.accounts[0]
   );
   const getAccount = await apis.aptosClient.getAccount(aliceAccount.address());
-  expect(getAccount.authentication_key).toBe(
+  expect(HexString.ensure(getAccount.authentication_key).toShortString()).toBe(
     aliceAccount.address().toShortString()
   );
 });
@@ -54,7 +55,9 @@ test("verify import random wallet", async () => {
     alice.accounts[0]
   );
   const getAccount = await apis.aptosClient.getAccount(aliceAccount.address());
-  expect(getAccount.authentication_key).toBe(aliceAccount.address().toString());
+  expect(HexString.ensure(getAccount.authentication_key).toShortString()).toBe(
+    aliceAccount.address().toShortString()
+  );
 });
 
 test("verify airdrop", async () => {
@@ -125,7 +128,7 @@ test(
       collectionName,
       tokenName,
       "Alice's simple token",
-      "1",
+      1,
       "https://aptos.dev/img/nyan.jpeg"
     );
 
@@ -165,7 +168,7 @@ test(
       collectionName,
       tokenName,
       "Alice's simple token",
-      "1",
+      1,
       "https://aptos.dev/img/nyan.jpeg"
     );
 
@@ -209,7 +212,7 @@ test(
       collectionName,
       tokenName,
       "Alice's simple token",
-      "1",
+      1,
       "https://aptos.dev/img/nyan.jpeg"
     );
 
