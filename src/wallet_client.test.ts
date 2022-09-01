@@ -1,8 +1,30 @@
+import * as Nacl from "tweetnacl";
 import { WalletClient } from "./wallet_client";
 import { NODE_URL, FAUCET_URL } from "./util.test";
 import { Serializer } from "./transaction_builder/bcs";
 
 const apis = new WalletClient(NODE_URL, FAUCET_URL);
+
+/**
+ *
+ * @param metadata: string which is signed by private key
+ * @param signature: signature of signed string/metadata
+ * @param publicKey: public key of the private key using which metadata is signed
+ * @returns boolean: true if signature is valid else false
+ */
+function verifySignature(message, signature, publicKey) {
+  const signatureBuffer = Buffer.from(signature.slice(2), "hex");
+  let pubKey = publicKey.slice(2);
+  if (pubKey.length < 64) {
+    pubKey = "0".repeat(64 - pubKey.length) + pubKey;
+  }
+  const publicKeyBuffer = Buffer.from(pubKey, "hex");
+  return Nacl.sign.detached.verify(
+    new TextEncoder().encode(message),
+    signatureBuffer,
+    publicKeyBuffer
+  );
+}
 
 test("verify airdrop", async () => {
   const alice = await apis.createWallet();
@@ -38,7 +60,11 @@ test("verify signMessage", async () => {
     alice.code,
     alice.accounts[0]
   );
-  await WalletClient.signMessage(aliceAccount, "This is a test message");
+  const message = "This is a test message";
+  const signature = await WalletClient.signMessage(aliceAccount, message);
+  expect(
+    verifySignature(message, signature, aliceAccount.pubKey().toString())
+  ).toBe(true);
 });
 
 test(
@@ -68,7 +94,7 @@ test(
       collectionName,
       tokenName,
       "Alice's simple token",
-      1,
+      "1",
       "https://aptos.dev/img/nyan.jpeg"
     );
 
@@ -108,7 +134,7 @@ test(
       collectionName,
       tokenName,
       "Alice's simple token",
-      1,
+      "1",
       "https://aptos.dev/img/nyan.jpeg"
     );
 
@@ -152,7 +178,7 @@ test(
       collectionName,
       tokenName,
       "Alice's simple token",
-      1,
+      "1",
       "https://aptos.dev/img/nyan.jpeg"
     );
 
@@ -298,7 +324,7 @@ test(
           collectionName,
           "description",
           "https://www.aptos.dev",
-          1234,
+          "1234",
           [false, false, false],
         ],
       }
@@ -315,12 +341,12 @@ test(
           collectionName,
           tokenName,
           "token description",
-          1,
-          1234,
+          "1",
+          "1234",
           "https://aptos.dev/img/nyan.jpeg",
           aliceAccount.address().toString(),
-          0,
-          0,
+          "0",
+          "0",
           [false, false, false, false, false],
           [],
           [],
