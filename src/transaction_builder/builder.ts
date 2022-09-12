@@ -498,8 +498,9 @@ export class TransactionBuilderRemoteABI {
     ]);
 
     const getLedgerInfo = await this.aptosClient.getLedgerInfo();
+    // ledger_timestamp is in microseconds ("1662987117698998")
     const expTimestampSec = BigInt(
-      Math.floor(parseInt(getLedgerInfo.ledger_timestamp, 10) / 1000)
+      Math.floor(parseInt(getLedgerInfo.ledger_timestamp, 10) / 1000000)
     );
 
     const builderABI = new TransactionBuilderABI(
