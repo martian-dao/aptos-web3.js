@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as SHA3 from "js-sha3";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { MemoizeExpiring } from "typescript-memoize";
 import {
   Ed25519PublicKey,
@@ -223,8 +222,8 @@ export class TransactionBuilderABI {
     });
 
     this.builderConfig = {
-      gasUnitPrice: 1n,
-      maxGasAmount: 4000n,
+      gasUnitPrice: BigInt(1),
+      maxGasAmount: BigInt(4000),
       expSecFromNow: 60,
       ...builderConfig,
     };
