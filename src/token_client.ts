@@ -53,8 +53,7 @@ export class TokenClient {
       [name, description, uri, maxAmount, [false, false, false]],
     );
 
-    const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(account, payload);
-    return txn.hash;
+    return this.aptosClient.generateSignSubmitTransaction(account, payload);
   }
 
   /**
@@ -112,8 +111,7 @@ export class TokenClient {
       ],
     );
 
-    const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(account, payload);
-    return txn.hash;
+    return this.aptosClient.generateSignSubmitTransaction(account, payload);
   }
 
   /**
@@ -143,8 +141,7 @@ export class TokenClient {
       [receiver, creator, collectionName, name, property_version, amount],
     );
 
-    const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(account, payload);
-    return txn.hash;
+    return this.aptosClient.generateSignSubmitTransaction(account, payload);
   }
 
   /**
@@ -172,8 +169,7 @@ export class TokenClient {
       [sender, creator, collectionName, name, property_version],
     );
 
-    const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(account, payload);
-    return txn.hash;
+    return this.aptosClient.generateSignSubmitTransaction(account, payload);
   }
 
   /**
@@ -201,8 +197,7 @@ export class TokenClient {
       [receiver, creator, collectionName, name, property_version],
     );
 
-    const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(account, payload);
-    return txn.hash;
+    return this.aptosClient.generateSignSubmitTransaction(account, payload);
   }
 
   /**
@@ -265,7 +260,6 @@ export class TokenClient {
     const bcsTxn = BCS.bcsToBytes(new TxnBuilderTypes.SignedTransaction(rawTxn, multiAgentAuthenticator));
 
     const transactionRes = await this.aptosClient.submitSignedBCSTransaction(bcsTxn);
-    await this.aptosClient.waitForTransaction(transactionRes.hash);
 
     return transactionRes.hash;
   }
