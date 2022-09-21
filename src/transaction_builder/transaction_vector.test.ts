@@ -9,8 +9,9 @@
  */
 
 import path from "path";
-import * as Nacl from "tweetnacl";
+import nacl from "tweetnacl";
 import fs from "fs";
+import { bytesToHex } from "@noble/hashes/utils";
 import {
   AccountAddress,
   ChainId,
@@ -38,10 +39,7 @@ import {
   TransactionArgumentAddress,
   TransactionArgumentU8Vector,
   TransactionArgumentU128,
-  TransactionPayloadModuleBundle,
-  ModuleBundle,
-  Module,
-} from "./aptos_types";
+} from "../aptos_types";
 import { HexString } from "../hex_string";
 import { TransactionBuilderEd25519 } from "./builder";
 
@@ -57,11 +55,6 @@ const ENTRY_FUNCTION_VECTOR = path.join(
 const SCRIPT_VECTOR = path.join(
   VECTOR_FILES_ROOT_DIR,
   "aptos_api__tests__transaction_vector_test__test_script_payload.json",
-);
-
-const MODULE_VECTOR = path.join(
-  VECTOR_FILES_ROOT_DIR,
-  "aptos_api__tests__transaction_vector_test__test_module_payload.json",
 );
 
 function parseTypeTag(typeTag: any): TypeTag {
@@ -148,15 +141,15 @@ function parseTransactionArgument(arg: any): TransactionArgument {
 
 function sign(rawTxn: RawTransaction, privateKey: string): string {
   const privateKeyBytes = new HexString(privateKey).toUint8Array();
-  const signingKey = Nacl.sign.keyPair.fromSeed(privateKeyBytes.slice(0, 32));
+  const signingKey = nacl.sign.keyPair.fromSeed(privateKeyBytes.slice(0, 32));
   const { publicKey } = signingKey;
 
   const txnBuilder = new TransactionBuilderEd25519(
-    (signingMessage) => new Ed25519Signature(Nacl.sign(signingMessage, signingKey.secretKey).slice(0, 64)),
+    (signingMessage) => new Ed25519Signature(nacl.sign(signingMessage, signingKey.secretKey).slice(0, 64)),
     publicKey,
   );
 
-  return Buffer.from(txnBuilder.sign(rawTxn)).toString("hex");
+  return bytesToHex(txnBuilder.sign(rawTxn));
 }
 
 type IRawTxn = {
@@ -176,7 +169,7 @@ type IRawTxn = {
 
 function verify(
   raw_txn: IRawTxn,
-  payload: TransactionPayloadEntryFunction | TransactionPayloadScript | TransactionPayloadModuleBundle,
+  payload: TransactionPayloadEntryFunction | TransactionPayloadScript,
   private_key: string,
   expected_output: string,
 ) {
@@ -228,19 +221,6 @@ describe("Transaction builder vector test", () => {
       );
 
       verify(raw_txn, scriptPayload, private_key, signed_txn_bcs);
-    });
-  });
-
-  it("should pass on module payload", () => {
-    const vector: any[] = JSON.parse(fs.readFileSync(MODULE_VECTOR, "utf8"));
-    vector.forEach(({ raw_txn, signed_txn_bcs, private_key }) => {
-      const payload = raw_txn.payload.ModuleBundle.codes;
-      // payload.code is hex string
-      const modulePayload = new TransactionPayloadModuleBundle(
-        new ModuleBundle(payload.map(({ code }: { code: string }) => new Module(new HexString(code).toUint8Array()))),
-      );
-
-      verify(raw_txn, modulePayload, private_key, signed_txn_bcs);
     });
   });
 });

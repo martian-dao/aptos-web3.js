@@ -1,13 +1,15 @@
 // Copyright (c) Aptos
 // SPDX-License-Identifier: Apache-2.0
 
-import { HexString, MaybeHexString } from "../../hex_string";
+import { HexString, MaybeHexString } from "../hex_string";
 import { Serializer, Deserializer, Bytes } from "../bcs";
 
 export class AccountAddress {
   static readonly LENGTH: number = 32;
 
   readonly address: Bytes;
+
+  static CORE_CODE_ADDRESS: AccountAddress = AccountAddress.fromHex("0x1");
 
   constructor(address: Bytes) {
     if (address.length !== AccountAddress.LENGTH) {

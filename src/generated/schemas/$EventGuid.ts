@@ -1,15 +1,14 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export const $MoveStructField = {
-    description: `Move struct field`,
+export const $EventGuid = {
     properties: {
-        name: {
-            type: 'IdentifierWrapper',
+        creation_number: {
+            type: 'U64',
             isRequired: true,
         },
-        type: {
-            type: 'MoveType',
+        account_address: {
+            type: 'Address',
             isRequired: true,
         },
     },

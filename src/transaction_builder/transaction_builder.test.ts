@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /* eslint-disable max-len */
-import * as Nacl from "tweetnacl";
-import { bcsSerializeUint64, bcsToBytes, Bytes } from "./bcs";
+import nacl from "tweetnacl";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { bcsSerializeUint64, bcsToBytes, Bytes } from "../bcs";
 import { HexString } from "../hex_string";
 
 import { TransactionBuilderEd25519, TransactionBuilder } from "./index";
@@ -11,8 +12,6 @@ import {
   AccountAddress,
   ChainId,
   Ed25519Signature,
-  Module,
-  ModuleBundle,
   RawTransaction,
   Script,
   EntryFunction,
@@ -20,11 +19,10 @@ import {
   TransactionArgumentAddress,
   TransactionArgumentU8,
   TransactionArgumentU8Vector,
-  TransactionPayloadModuleBundle,
   TransactionPayloadScript,
   TransactionPayloadEntryFunction,
   TypeTagStruct,
-} from "./aptos_types";
+} from "../aptos_types";
 
 const ADDRESS_1 = "0x1222";
 const ADDRESS_2 = "0xdd";
@@ -33,21 +31,17 @@ const ADDRESS_4 = "0x01";
 const PRIVATE_KEY = "9bf49a6a0755f953811fce125f2683d50429c3bb49e074147e0089a52eae155f";
 const TXN_EXPIRE = "18446744073709551615";
 
-function hexToBytes(hex: string) {
-  return new HexString(hex).toUint8Array();
-}
-
 function hexSignedTxn(signedTxn: Uint8Array): string {
-  return Buffer.from(signedTxn).toString("hex");
+  return bytesToHex(signedTxn);
 }
 
 function sign(rawTxn: RawTransaction): Bytes {
   const privateKeyBytes = new HexString(PRIVATE_KEY).toUint8Array();
-  const signingKey = Nacl.sign.keyPair.fromSeed(privateKeyBytes.slice(0, 32));
+  const signingKey = nacl.sign.keyPair.fromSeed(privateKeyBytes.slice(0, 32));
   const { publicKey } = signingKey;
 
   const txnBuilder = new TransactionBuilderEd25519(
-    (signingMessage) => new Ed25519Signature(Nacl.sign(signingMessage, signingKey.secretKey).slice(0, 64)),
+    (signingMessage) => new Ed25519Signature(nacl.sign(signingMessage, signingKey.secretKey).slice(0, 64)),
     publicKey,
   );
 
@@ -73,10 +67,10 @@ test("serialize entry function payload with no type args", () => {
 
   const rawTxn = new RawTransaction(
     AccountAddress.fromHex(new HexString(ADDRESS_3)),
-    0n,
+    BigInt(0),
     entryFunctionPayload,
-    2000n,
-    0n,
+    BigInt(2000),
+    BigInt(0),
     BigInt(TXN_EXPIRE),
     new ChainId(4),
   );
@@ -102,10 +96,10 @@ test("serialize entry function payload with type args", () => {
 
   const rawTxn = new RawTransaction(
     AccountAddress.fromHex(ADDRESS_3),
-    0n,
+    BigInt(0),
     entryFunctionPayload,
-    2000n,
-    0n,
+    BigInt(2000),
+    BigInt(0),
     BigInt(TXN_EXPIRE),
     new ChainId(4),
   );
@@ -126,10 +120,10 @@ test("serialize entry function payload with type args but no function args", () 
 
   const rawTxn = new RawTransaction(
     AccountAddress.fromHex(ADDRESS_3),
-    0n,
+    BigInt(0),
     entryFunctionPayload,
-    2000n,
-    0n,
+    BigInt(2000),
+    BigInt(0),
     BigInt(TXN_EXPIRE),
     new ChainId(4),
   );
@@ -148,10 +142,10 @@ test("serialize script payload with no type args and no function args", () => {
 
   const rawTxn = new RawTransaction(
     AccountAddress.fromHex(ADDRESS_3),
-    0n,
+    BigInt(0),
     scriptPayload,
-    2000n,
-    0n,
+    BigInt(2000),
+    BigInt(0),
     BigInt(TXN_EXPIRE),
     new ChainId(4),
   );
@@ -172,10 +166,10 @@ test("serialize script payload with type args but no function args", () => {
 
   const rawTxn = new RawTransaction(
     AccountAddress.fromHex(ADDRESS_3),
-    0n,
+    BigInt(0),
     scriptPayload,
-    2000n,
-    0n,
+    BigInt(2000),
+    BigInt(0),
     BigInt(TXN_EXPIRE),
     new ChainId(4),
   );
@@ -197,10 +191,10 @@ test("serialize script payload with type arg and function arg", () => {
   const scriptPayload = new TransactionPayloadScript(new Script(script, [token], [argU8]));
   const rawTxn = new RawTransaction(
     AccountAddress.fromHex(ADDRESS_3),
-    0n,
+    BigInt(0),
     scriptPayload,
-    2000n,
-    0n,
+    BigInt(2000),
+    BigInt(0),
     BigInt(TXN_EXPIRE),
     new ChainId(4),
   );
@@ -224,10 +218,10 @@ test("serialize script payload with one type arg and two function args", () => {
 
   const rawTxn = new RawTransaction(
     AccountAddress.fromHex(ADDRESS_3),
-    0n,
+    BigInt(0),
     scriptPayload,
-    2000n,
-    0n,
+    BigInt(2000),
+    BigInt(0),
     BigInt(TXN_EXPIRE),
     new ChainId(4),
   );
@@ -236,29 +230,5 @@ test("serialize script payload with one type arg and two function args", () => {
 
   expect(hexSignedTxn(signedTxn)).toBe(
     "000000000000000000000000000000000000000000000000000000000a550c1800000000000000000026a11ceb0b030000000105000100000000050601000000000000000600000000000000001a0102010700000000000000000000000000000000000000000000000000000000000000010a6170746f735f636f696e094170746f73436f696e000204080100000000000000030000000000000000000000000000000000000000000000000000000000000001d0070000000000000000000000000000ffffffffffffffff040020b9c6ee1630ef3e711144a648db06bbb2284f7274cfbee53ffcee503cc1a492004055c7499795ea68d7acfa64a58f19efa2ba3b977fa58ae93ae8c0732c0f6d6dd084d92bbe4edc2a0d687031cae90da117abfac16ebd902e764bdc38a2154a2102",
-  );
-});
-
-test("serialize module payload", () => {
-  const module = hexToBytes(
-    "a11ceb0b0300000006010002030205050703070a0c0816100c260900000001000100000102084d794d6f64756c650269640000000000000000000000000b1e55ed00010000000231010200",
-  );
-
-  const modulePayload = new TransactionPayloadModuleBundle(new ModuleBundle([new Module(module)]));
-
-  const rawTxn = new RawTransaction(
-    AccountAddress.fromHex(ADDRESS_3),
-    0n,
-    modulePayload,
-    2000n,
-    0n,
-    BigInt(TXN_EXPIRE),
-    new ChainId(4),
-  );
-
-  const signedTxn = sign(rawTxn);
-
-  expect(hexSignedTxn(signedTxn)).toBe(
-    "000000000000000000000000000000000000000000000000000000000a550c18000000000000000001014ba11ceb0b0300000006010002030205050703070a0c0816100c260900000001000100000102084d794d6f64756c650269640000000000000000000000000b1e55ed00010000000231010200d0070000000000000000000000000000ffffffffffffffff040020b9c6ee1630ef3e711144a648db06bbb2284f7274cfbee53ffcee503cc1a492004051c7e7703f97b8a8ee47d3dac8bec42da23f9b1120e21e9f675af0a5f35294e1c1b2ceac3ca39f67f9e441a449981956e72bf597db3a773b8494ea78e1b4a806",
   );
 });
