@@ -1,0 +1,1 @@
+{"version":3,"file":"MoveStructField.d.ts","sourceRoot":"","sources":["../../../src/generated/models/MoveStructField.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,iBAAiB,EAAE,MAAM,qBAAqB,CAAC;AAC7D,OAAO,KAAK,EAAE,QAAQ,EAAE,MAAM,YAAY,CAAC;AAE3C,oBAAY,eAAe,GAAG;IAC1B,IAAI,EAAE,iBAAiB,CAAC;IACxB,IAAI,EAAE,QAAQ,CAAC;CAClB,CAAC"}

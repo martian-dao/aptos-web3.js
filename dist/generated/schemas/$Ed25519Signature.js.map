@@ -1,0 +1,1 @@
+{"version":3,"file":"$Ed25519Signature.js","sourceRoot":"","sources":["../../../src/generated/schemas/$Ed25519Signature.ts"],"names":[],"mappings":";;;AAAA,0BAA0B;AAC1B,oBAAoB;AACpB,oBAAoB;AACP,QAAA,iBAAiB,GAAG;IAC7B,UAAU,EAAE;QACR,UAAU,EAAE;YACR,IAAI,EAAE,iBAAiB;YACvB,UAAU,EAAE,IAAI;SACnB;QACD,SAAS,EAAE;YACP,IAAI,EAAE,iBAAiB;YACvB,UAAU,EAAE,IAAI;SACnB;KACJ;CACK,CAAC"}

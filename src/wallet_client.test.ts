@@ -72,7 +72,8 @@ test(
       "https://aptos.dev/img/nyan.jpeg"
     );
 
-    const tokens = await apis.getTokenIds(aliceAccount.address().toString());
+    const tokens = (await apis.getTokenIds(aliceAccount.address().toString()))
+      .tokenIds;
     const token = tokens[0].data;
 
     const resourceHandle = await apis.getTokenResourceHandle(token);
@@ -174,14 +175,15 @@ test(
       0
     );
 
-    const aliceTokens = await apis.getTokenIds(
-      aliceAccount.address().toString()
-    );
+    const aliceTokens = (
+      await apis.getTokenIds(aliceAccount.address().toString())
+    ).tokenIds;
 
     expect(aliceTokens.length).toBe(1);
     expect(aliceTokens[0].difference).toBe(0);
 
-    const bobTokens = await apis.getTokenIds(bobAccount.address().toString());
+    const bobTokens = (await apis.getTokenIds(bobAccount.address().toString()))
+      .tokenIds;
     expect(bobTokens.length).toBe(1);
     expect(bobTokens[0].difference).toBe(1);
   },

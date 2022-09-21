@@ -1,0 +1,1 @@
+{"version":3,"file":"$MoveStructField.js","sourceRoot":"","sources":["../../../src/generated/schemas/$MoveStructField.ts"],"names":[],"mappings":";;;AAAA,0BAA0B;AAC1B,oBAAoB;AACpB,oBAAoB;AACP,QAAA,gBAAgB,GAAG;IAC5B,UAAU,EAAE;QACR,IAAI,EAAE;YACF,IAAI,EAAE,mBAAmB;YACzB,UAAU,EAAE,IAAI;SACnB;QACD,IAAI,EAAE;YACF,IAAI,EAAE,UAAU;YAChB,UAAU,EAAE,IAAI;SACnB;KACJ;CACK,CAAC"}

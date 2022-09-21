@@ -1,0 +1,1 @@
+{"version":3,"file":"TransactionsBatchSingleSubmissionFailure.d.ts","sourceRoot":"","sources":["../../../src/generated/models/TransactionsBatchSingleSubmissionFailure.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,UAAU,EAAE,MAAM,cAAc,CAAC;AAE/C,oBAAY,wCAAwC,GAAG;IACnD,KAAK,EAAE,UAAU,CAAC;IAClB,iBAAiB,EAAE,MAAM,CAAC;CAC7B,CAAC"}

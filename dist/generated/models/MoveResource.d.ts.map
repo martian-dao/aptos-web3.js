@@ -1,0 +1,1 @@
+{"version":3,"file":"MoveResource.d.ts","sourceRoot":"","sources":["../../../src/generated/models/MoveResource.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,iBAAiB,CAAC;AACrD,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,mBAAmB,CAAC;AAEzD,oBAAY,YAAY,GAAG;IACvB,IAAI,EAAE,aAAa,CAAC;IACpB,IAAI,EAAE,eAAe,CAAC;CACzB,CAAC"}
