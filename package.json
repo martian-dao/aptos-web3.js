@@ -54,7 +54,10 @@
     "ts-node": "^10.8.0",
     "typedoc": "^0.23.9",
     "typedoc-plugin-markdown": "^3.13.4",
-    "typescript": "^4.6.4"
+    "typescript": "^4.6.4",
+    "dotenv": "16.0.2",
+    "openapi-typescript-codegen": "https://github.com/aptos-labs/openapi-typescript-codegen/releases/download/v0.23.0-p4/openapi-typescript-codegen-v0.23.0-p4.tgz",
+    "tsup": "6.2.3"
   },
   "dependencies": {
     "@microsoft/eslint-formatter-sarif": "^2.1.7",
@@ -69,7 +72,9 @@
     "node-cache": "^5.1.2",
     "pre-commit": "^1.2.2",
     "tweetnacl": "^1.0.3",
-    "typescript-memoize": "^1.1.0"
+    "typescript-memoize": "^1.1.0",
+    "@noble/hashes": "1.1.2",
+    "form-data": "4.0.0"
   },
   "version": "1.2.2"
 }
