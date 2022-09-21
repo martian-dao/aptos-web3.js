@@ -1,7 +1,0 @@
-export declare type DecodedTableData = {
-    key: any;
-    key_type: string;
-    value: any;
-    value_type: string;
-};
-//# sourceMappingURL=DecodedTableData.d.ts.map

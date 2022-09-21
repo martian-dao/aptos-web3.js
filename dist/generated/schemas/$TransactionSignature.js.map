@@ -1,1 +1,0 @@
-{"version":3,"file":"$TransactionSignature.js","sourceRoot":"","sources":["../../../src/generated/schemas/$TransactionSignature.ts"],"names":[],"mappings":";;;AAAA,0BAA0B;AAC1B,oBAAoB;AACpB,oBAAoB;AACP,QAAA,qBAAqB,GAAG;IACjC,IAAI,EAAE,QAAQ;IACd,QAAQ,EAAE,CAAC;YACP,IAAI,EAAE,uCAAuC;SAChD,EAAE;YACC,IAAI,EAAE,4CAA4C;SACrD,EAAE;YACC,IAAI,EAAE,0CAA0C;SACnD,CAAC;CACI,CAAC"}

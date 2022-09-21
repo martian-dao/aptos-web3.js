@@ -1,1 +1,0 @@
-{"version":3,"file":"Ed25519Signature.d.ts","sourceRoot":"","sources":["../../../src/generated/models/Ed25519Signature.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,mBAAmB,CAAC;AAEzD,oBAAY,gBAAgB,GAAG;IAC3B,UAAU,EAAE,eAAe,CAAC;IAC5B,SAAS,EAAE,eAAe,CAAC;CAC9B,CAAC"}

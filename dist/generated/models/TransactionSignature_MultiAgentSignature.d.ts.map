@@ -1,1 +1,0 @@
-{"version":3,"file":"TransactionSignature_MultiAgentSignature.d.ts","sourceRoot":"","sources":["../../../src/generated/models/TransactionSignature_MultiAgentSignature.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,mBAAmB,EAAE,MAAM,uBAAuB,CAAC;AAEjE,oBAAY,wCAAwC,GAAG,CAAC;IACpD,IAAI,EAAE,MAAM,CAAC;CAChB,GAAG,mBAAmB,CAAC,CAAC"}

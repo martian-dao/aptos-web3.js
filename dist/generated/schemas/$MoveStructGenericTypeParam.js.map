@@ -1,1 +1,0 @@
-{"version":3,"file":"$MoveStructGenericTypeParam.js","sourceRoot":"","sources":["../../../src/generated/schemas/$MoveStructGenericTypeParam.ts"],"names":[],"mappings":";;;AAAA,0BAA0B;AAC1B,oBAAoB;AACpB,oBAAoB;AACP,QAAA,2BAA2B,GAAG;IACvC,UAAU,EAAE;QACR,WAAW,EAAE;YACT,IAAI,EAAE,OAAO;YACb,QAAQ,EAAE;gBACN,IAAI,EAAE,aAAa;aACtB;YACD,UAAU,EAAE,IAAI;SACnB;KACJ;CACK,CAAC"}

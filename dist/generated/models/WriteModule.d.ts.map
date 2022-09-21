@@ -1,1 +1,0 @@
-{"version":3,"file":"WriteModule.d.ts","sourceRoot":"","sources":["../../../src/generated/models/WriteModule.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,OAAO,EAAE,MAAM,WAAW,CAAC;AACzC,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,sBAAsB,CAAC;AAE/D,oBAAY,WAAW,GAAG;IACtB,OAAO,EAAE,OAAO,CAAC;IACjB,cAAc,EAAE,MAAM,CAAC;IACvB,IAAI,EAAE,kBAAkB,CAAC;CAC5B,CAAC"}
