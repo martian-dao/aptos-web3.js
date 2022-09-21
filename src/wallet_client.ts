@@ -3,23 +3,23 @@ import * as bip39 from "@scure/bip39";
 import * as english from "@scure/bip39/wordlists/english";
 import fetch from "cross-fetch";
 import assert from "assert";
-import { BCS, TxnBuilderTypes } from "./transaction_builder";
+import { TxnBuilderTypes } from "./transaction_builder";
 import { AptosAccount } from "./aptos_account";
 import { TokenClient } from "./token_client";
 import { AptosClient } from "./aptos_client";
 import { FaucetClient } from "./faucet_client";
 import { HexString, MaybeHexString } from "./hex_string";
-import { Types } from "./types";
-import { RawTransaction } from "./transaction_builder/aptos_types/transaction";
-import * as Gen from "./generated/index";
+import { RawTransaction } from "./aptos_types";
 import cache from "./utils/cache";
-import { WriteResource } from "./api/data-contracts";
-import { MAX_U64_BIG_INT } from "./transaction_builder/bcs/consts";
-import { Deserializer, Serializer } from "./transaction_builder/bcs";
+import { WriteResource } from "./generated/index";
+import { MAX_U64_BIG_INT } from "./bcs/consts";
+import * as BCS from "./bcs";
+import * as Gen from "./generated/index";
 
 const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 5;
 const ADDRESS_GAP = 10;
+const coinTransferFunction = "0x1::coin::transfer";
 
 export interface TxnRequestRaw {
   sender: MaybeHexString;
@@ -226,7 +226,7 @@ export class WalletClient {
       payload,
       options
     );
-    const serializer = new Serializer();
+    const serializer = new BCS.Serializer();
     txnReq.serialize(serializer);
     return serializer.getBytes();
   }
@@ -240,7 +240,7 @@ export class WalletClient {
   static getTransactionDeserialized(
     bytes: Uint8Array
   ): TxnBuilderTypes.RawTransaction {
-    const deserializer = new Deserializer(bytes);
+    const deserializer = new BCS.Deserializer(bytes);
     return RawTransaction.deserialize(deserializer);
   }
 
@@ -355,39 +355,23 @@ export class WalletClient {
         return new Error("cannot transfer coins to self");
       }
 
-      const token = new TxnBuilderTypes.TypeTagStruct(
-        TxnBuilderTypes.StructTag.fromString("0x1::aptos_coin::AptosCoin")
+      const payload: Gen.EntryFunctionPayload = {
+        function: coinTransferFunction,
+        type_arguments: ["0x1::aptos_coin::AptosCoin"],
+        arguments: [recipient_address, amount],
+      };
+
+      const rawTxn: TxnBuilderTypes.RawTransaction =
+        await this.aptosClient.generateTransaction(account.address(), payload);
+
+      const signedTxn: Uint8Array = await this.aptosClient.signTransaction(
+        account,
+        rawTxn
       );
-
-      const entryFunctionPayload =
-        new TxnBuilderTypes.TransactionPayloadEntryFunction(
-          TxnBuilderTypes.EntryFunction.natural(
-            "0x1::coin",
-            "transfer",
-            [token],
-            [
-              BCS.bcsToBytes(
-                TxnBuilderTypes.AccountAddress.fromHex(
-                  HexString.ensure(recipient_address).toString()
-                )
-              ),
-              BCS.bcsSerializeUint64(amount),
-            ]
-          )
-        );
-
-      const rawTxn = await this.aptosClient.generateRawTransaction(
-        account.address(),
-        entryFunctionPayload
-      );
-
-      const bcsTxn = AptosClient.generateBCSTransaction(account, rawTxn);
-      const transactionRes = await this.aptosClient.submitSignedBCSTransaction(
-        bcsTxn
-      );
-
-      await this.aptosClient.waitForTransaction(transactionRes.hash);
-      return await Promise.resolve(transactionRes.hash);
+      const transaction: Gen.PendingTransaction =
+        await this.aptosClient.submitTransaction(signedTxn);
+      await this.aptosClient.waitForTransaction(transaction.hash);
+      return await Promise.resolve(transaction.hash);
     } catch (err) {
       return Promise.reject(err);
     }
@@ -943,7 +927,7 @@ export class WalletClient {
     const tokens = [];
     await Promise.all(
       tokenIds.map(async (tokenId) => {
-        let resources: Types.AccountResource[];
+        let resources: Gen.MoveResource[];
         if (cache.has(`resources--${tokenId.data.token_data_id.creator}`)) {
           resources = cache.get(
             `resources--${tokenId.data.token_data_id.creator}`
@@ -961,7 +945,7 @@ export class WalletClient {
         const accountResource: { type: string; data: any } = resources.find(
           (r) => r.type === "0x3::token::Collections"
         );
-        const tableItemRequest: Types.TableItemRequest = {
+        const tableItemRequest: Gen.TableItemRequest = {
           key_type: "0x3::token::TokenDataId",
           value_type: "0x3::token::TokenData",
           key: tokenId.data.token_data_id,
@@ -997,7 +981,7 @@ export class WalletClient {
   async getToken(tokenId: TokenId, resourceHandle?: string) {
     let accountResource: { type: string; data: any };
     if (!resourceHandle) {
-      const resources: Types.AccountResource[] =
+      const resources: Gen.MoveResource[] =
         await this.aptosClient.getAccountResources(
           tokenId.token_data_id.creator
         );
@@ -1006,7 +990,7 @@ export class WalletClient {
       );
     }
 
-    const tableItemRequest: Types.TableItemRequest = {
+    const tableItemRequest: Gen.TableItemRequest = {
       key_type: "0x3::token::TokenDataId",
       value_type: "0x3::token::TokenData",
       key: tokenId.token_data_id,
@@ -1027,7 +1011,7 @@ export class WalletClient {
    * @returns resource information
    */
   async getTokenResourceHandle(tokenId: TokenId) {
-    const resources: Types.AccountResource[] =
+    const resources: Gen.MoveResource[] =
       await this.aptosClient.getAccountResources(tokenId.token_data_id.creator);
     const accountResource: { type: string; data: any } = resources.find(
       (r) => r.type === "0x3::token::Collections"
@@ -1044,13 +1028,13 @@ export class WalletClient {
    * @returns collection information
    */
   async getCollection(address: string, collectionName: string) {
-    const resources: Types.AccountResource[] =
+    const resources: Gen.MoveResource[] =
       await this.aptosClient.getAccountResources(address);
     const accountResource: { type: string; data: any } = resources.find(
       (r) => r.type === "0x3::token::Collections"
     );
 
-    const tableItemRequest: Types.TableItemRequest = {
+    const tableItemRequest: Gen.TableItemRequest = {
       key_type: "0x1::string::String",
       value_type: "0x3::token::Collection",
       key: collectionName,
@@ -1075,7 +1059,7 @@ export class WalletClient {
       (r) => r.type === resourceType
     );
 
-    const tableItemRequest: Types.TableItemRequest = {
+    const tableItemRequest: Gen.TableItemRequest = {
       key_type: keyType,
       value_type: valueType,
       key,

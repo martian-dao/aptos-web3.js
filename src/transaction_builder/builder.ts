@@ -1,8 +1,7 @@
 // Copyright (c) Aptos
 // SPDX-License-Identifier: Apache-2.0
 
-import * as SHA3 from "js-sha3";
-import { MemoizeExpiring } from "typescript-memoize";
+import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import {
   Ed25519PublicKey,
   Ed25519Signature,
@@ -24,7 +23,7 @@ import {
   TransactionPayloadEntryFunction,
   TransactionPayloadScript,
   ModuleId,
-} from "./aptos_types";
+} from "../aptos_types";
 import {
   bcsToBytes,
   Bytes,
@@ -32,14 +31,14 @@ import {
   Serializer,
   Uint64,
   Uint8,
-} from "./bcs";
+} from "../bcs";
 import {
   ArgumentABI,
   EntryFunctionABI,
   ScriptABI,
   TransactionScriptABI,
   TypeArgumentABI,
-} from "./aptos_types/abi";
+} from "../aptos_types/abi";
 import { HexString, MaybeHexString } from "../hex_string";
 import {
   argToTransactionArgument,
@@ -47,6 +46,9 @@ import {
   serializeArg,
 } from "./builder_utils";
 import * as Gen from "../generated/index";
+import { MemoizeExpiring } from "../utils";
+
+export { TypeTagParser } from "./builder_utils";
 
 const RAW_TRANSACTION_SALT = "APTOS::RawTransaction";
 const RAW_TRANSACTION_WITH_DATA_SALT = "APTOS::RawTransactionWithData";
@@ -87,7 +89,7 @@ export class TransactionBuilder<F extends SigningFn> {
 
   /** Generates a Signing Message out of a raw transaction. */
   static getSigningMessage(rawTxn: AnyRawTransaction): SigningMessage {
-    const hash = SHA3.sha3_256.create();
+    const hash = sha3Hash.create();
     if (rawTxn instanceof RawTransaction) {
       hash.update(RAW_TRANSACTION_SALT);
     } else if (rawTxn instanceof MultiAgentRawTransaction) {
@@ -96,7 +98,7 @@ export class TransactionBuilder<F extends SigningFn> {
       throw new Error("Unknown transaction type.");
     }
 
-    const prefix = new Uint8Array(hash.arrayBuffer());
+    const prefix = hash.digest();
 
     const body = bcsToBytes(rawTxn);
 
@@ -176,11 +178,11 @@ export class TransactionBuilderMultiEd25519 extends TransactionBuilder<SigningFn
 interface ABIBuilderConfig {
   sender: MaybeHexString | AccountAddress;
   sequenceNumber: Uint64 | string;
-  gasUnitPrice?: Uint64 | string;
+  gasUnitPrice: Uint64 | string;
   maxGasAmount?: Uint64 | string;
   expSecFromNow?: number | string;
-  expTimestampSec?: bigint;
   chainId: Uint8 | string;
+  expTimestampSec?: bigint;
 }
 
 /**
@@ -222,7 +224,6 @@ export class TransactionBuilderABI {
     });
 
     this.builderConfig = {
-      gasUnitPrice: BigInt(1),
       maxGasAmount: BigInt(4000),
       expSecFromNow: 60,
       ...builderConfig,
@@ -342,8 +343,10 @@ export class TransactionBuilderABI {
       expTimestampSec: expirationTimestampSec,
     } = this.builderConfig;
 
+    if (!gasUnitPrice) {
+      throw new Error("No gasUnitPrice provided.");
+    }
     let expTimestampSec = expirationTimestampSec;
-
     const senderAccount =
       sender instanceof AccountAddress
         ? sender
@@ -354,7 +357,6 @@ export class TransactionBuilderABI {
     }
 
     expTimestampSec += BigInt(expSecFromNow);
-
     const payload = this.buildTransactionPayload(func, ty_tags, args);
 
     if (payload) {
@@ -385,6 +387,7 @@ interface AptosClientInterface {
   ) => Promise<Gen.MoveModuleBytecode[]>;
   getAccount: (accountAddress: MaybeHexString) => Promise<Gen.AccountData>;
   getChainId: () => Promise<number>;
+  estimateGasPrice: () => Promise<Gen.GasEstimation>;
   getLedgerInfo: () => Promise<Gen.IndexResponse>;
 }
 
@@ -487,13 +490,20 @@ export class TransactionBuilderRemoteABI {
         ? HexString.fromUint8Array(sender.address)
         : sender;
 
-    const [{ sequence_number: sequenceNumber }, chainId] = await Promise.all([
+    const [
+      { sequence_number: sequenceNumber },
+      chainId,
+      { gas_estimate: gasUnitPrice },
+    ] = await Promise.all([
       rest?.sequenceNumber
         ? Promise.resolve({ sequence_number: rest?.sequenceNumber })
         : this.aptosClient.getAccount(senderAddress),
       rest?.chainId
         ? Promise.resolve(rest?.chainId)
         : this.aptosClient.getChainId(),
+      rest?.gasUnitPrice
+        ? Promise.resolve({ gas_estimate: rest?.gasUnitPrice })
+        : this.aptosClient.estimateGasPrice(),
     ]);
 
     const getLedgerInfo = await this.aptosClient.getLedgerInfo();
@@ -508,6 +518,7 @@ export class TransactionBuilderRemoteABI {
         sender,
         sequenceNumber,
         chainId,
+        gasUnitPrice: BigInt(gasUnitPrice),
         expTimestampSec,
         ...rest,
       }

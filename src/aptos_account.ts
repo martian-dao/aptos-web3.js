@@ -2,16 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import nacl from "tweetnacl";
-import sha3 from "js-sha3";
-import { derivePath } from "ed25519-hd-key";
+import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import * as bip39 from "@scure/bip39";
-import { Memoize } from "typescript-memoize";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { bytesToHex } from "./bytes_to_hex.js";
+import { bytesToHex } from "@noble/hashes/utils";
+import { derivePath } from "./utils/hd-key";
 import { HexString, MaybeHexString } from "./hex_string";
 import * as Gen from "./generated/index";
-
-const { sha3_256: sha3Hash } = sha3;
+import { Memoize } from "./utils";
 
 export interface AptosAccountObject {
   address?: Gen.HexEncodedBytes;
@@ -79,7 +76,7 @@ export class AptosAccount {
 
     return new AptosAccount(new Uint8Array(key), address);
   }
-  
+
   /**
    * Creates new account instance. Constructor allows passing in an address,
    * to handle account key rotation, where auth_key != public_key
@@ -123,7 +120,7 @@ export class AptosAccount {
     const hash = sha3Hash.create();
     hash.update(this.signingKey.publicKey);
     hash.update("\x00");
-    return new HexString(hash.hex());
+    return HexString.fromUint8Array(hash.digest());
   }
 
   /**
