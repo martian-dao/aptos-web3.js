@@ -364,7 +364,6 @@ const catchErrorCodes = (options: ApiRequestOptions, result: ApiResult): void =>
     //REMOVE
     const error = errors[result.status];
     if (error) {
-        console.log(result);
         throw new ApiError(options, result, error);
     }
 
