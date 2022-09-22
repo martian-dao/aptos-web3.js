@@ -849,6 +849,9 @@ export class WalletClient {
       withdrawStart
     );
 
+    let maxDepositSequenceNumber = -1;
+    let maxWithdrawSequenceNumber = -1;
+
     depositEvents.forEach((element) => {
       const elementString = JSON.stringify(element.data.id);
       elementsFetched.add(elementString);
@@ -863,6 +866,11 @@ export class WalletClient {
             sequence_number: element.sequence_number,
             data: element.data.id,
           };
+
+      maxDepositSequenceNumber = Math.max(
+        maxDepositSequenceNumber,
+        parseInt(element.sequence_number, 10)
+      );
     });
 
     withdrawEvents.forEach((element) => {
@@ -879,6 +887,11 @@ export class WalletClient {
             sequence_number: element.sequence_number,
             data: element.data.id,
           };
+
+      maxWithdrawSequenceNumber = Math.max(
+        maxWithdrawSequenceNumber,
+        parseInt(element.sequence_number, 10)
+      );
     });
 
     if (elementsFetched) {
@@ -895,15 +908,15 @@ export class WalletClient {
             : countWithdraw[elementString].data,
           deposit_sequence_number: countDeposit[elementString]
             ? countDeposit[elementString].sequence_number
-            : 0,
+            : "-1",
           withdraw_sequence_number: countWithdraw[elementString]
             ? countWithdraw[elementString].sequence_number
-            : 0,
+            : "-1",
           difference: depositEventCount - withdrawEventCount,
         });
       });
     }
-    return tokenIds;
+    return { tokenIds, maxDepositSequenceNumber, maxWithdrawSequenceNumber };
   }
 
   /**
@@ -918,7 +931,7 @@ export class WalletClient {
     depositStart?: number,
     withdrawStart?: number
   ) {
-    const tokenIds = await this.getTokenIds(
+    const { tokenIds } = await this.getTokenIds(
       address,
       limit,
       depositStart,
