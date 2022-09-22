@@ -361,7 +361,6 @@ const catchErrorCodes = (options: ApiRequestOptions, result: ApiResult): void =>
         503: 'Service Unavailable',
         ...options.errors,
     }
-    //REMOVE
     const error = errors[result.status];
     if (error) {
         throw new ApiError(options, result, error);
