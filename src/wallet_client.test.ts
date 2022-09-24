@@ -41,6 +41,16 @@ test("verify create wallet", async () => {
   );
 });
 
+test("verify getAccountFromMnemonic", async () => {
+  const alice = await apis.createWallet();
+  const aliceAccount1 = await WalletClient.getAccountFromMetaData(
+    alice.code,
+    alice.accounts[0]
+  );
+  const aliceAccount2 = await WalletClient.getAccountFromMnemonic(alice.code);
+  expect(aliceAccount1).toEqual(aliceAccount2);
+});
+
 test("verify import wallet", async () => {
   const alice = await apis.createWallet();
   const importedAlice = await apis.importWallet(alice.code);
