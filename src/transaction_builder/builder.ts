@@ -46,7 +46,7 @@ import {
   serializeArg,
 } from "./builder_utils";
 import * as Gen from "../generated/index";
-import { MemoizeExpiring } from "../utils";
+import { DEFAULT_TXN_EXP_SEC_FROM_NOW, DEFAULT_MAX_GAS_AMOUNT, MemoizeExpiring } from "../utils";
 
 export { TypeTagParser } from "./builder_utils";
 
@@ -224,8 +224,8 @@ export class TransactionBuilderABI {
     });
 
     this.builderConfig = {
-      maxGasAmount: BigInt(4000),
-      expSecFromNow: 60,
+      maxGasAmount: BigInt(DEFAULT_MAX_GAS_AMOUNT),
+      expSecFromNow: DEFAULT_TXN_EXP_SEC_FROM_NOW,
       ...builderConfig,
     };
   }

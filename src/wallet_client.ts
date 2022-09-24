@@ -15,6 +15,7 @@ import { WriteResource } from "./generated/index";
 import { MAX_U64_BIG_INT } from "./bcs/consts";
 import * as BCS from "./bcs";
 import * as Gen from "./generated/index";
+import { AnyNumber } from "./bcs";
 
 const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 5;
@@ -384,7 +385,11 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of events
    */
-  async getSentEvents(address: MaybeHexString, limit?: number, start?: BigInt) {
+  async getSentEvents(
+    address: MaybeHexString,
+    limit?: number,
+    start?: AnyNumber
+  ) {
     return Promise.resolve(
       await this.aptosClient.getAccountTransactions(address, { start, limit })
     );
@@ -397,9 +402,10 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of events
    */
-  async getReceivedEvents(address: string, limit?: number, start?: BigInt) {
+  async getReceivedEvents(address: string, limit?: number, start?: AnyNumber) {
     const eventHandleStruct =
       "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
+
     return Promise.resolve(
       await this.aptosClient.getEventsByEventHandle(
         address,
