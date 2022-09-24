@@ -263,7 +263,7 @@ export class WalletClient {
    * @returns AptosAccount object
    */
   static getAccountFromMnemonic(code: string) {
-    return AptosAccount.fromDerivePath(`m/44'/${COIN_TYPE}/0'/0'/0'`, code);
+    return AptosAccount.fromDerivePath(`m/44'/${COIN_TYPE}'/0'/0'/0'`, code);
   }
 
   /**
