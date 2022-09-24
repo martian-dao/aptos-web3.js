@@ -6,7 +6,7 @@ import assert from "assert";
 import { TxnBuilderTypes } from "./transaction_builder";
 import { AptosAccount } from "./aptos_account";
 import { TokenClient } from "./token_client";
-import { AptosClient } from "./aptos_client";
+import { AptosClient, OptionalTransactionArgs } from "./aptos_client";
 import { FaucetClient } from "./faucet_client";
 import { HexString, MaybeHexString } from "./hex_string";
 import { RawTransaction } from "./aptos_types";
@@ -15,6 +15,7 @@ import { WriteResource } from "./generated/index";
 import { MAX_U64_BIG_INT } from "./bcs/consts";
 import * as BCS from "./bcs";
 import * as Gen from "./generated/index";
+import { AnyNumber } from "./bcs";
 
 const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 5;
@@ -384,7 +385,11 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of events
    */
-  async getSentEvents(address: MaybeHexString, limit?: number, start?: BigInt) {
+  async getSentEvents(
+    address: MaybeHexString,
+    limit?: number,
+    start?: AnyNumber
+  ) {
     return Promise.resolve(
       await this.aptosClient.getAccountTransactions(address, { start, limit })
     );
@@ -397,9 +402,10 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of events
    */
-  async getReceivedEvents(address: string, limit?: number, start?: BigInt) {
+  async getReceivedEvents(address: string, limit?: number, start?: AnyNumber) {
     const eventHandleStruct =
       "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
+
     return Promise.resolve(
       await this.aptosClient.getEventsByEventHandle(
         address,
@@ -423,10 +429,19 @@ export class WalletClient {
     account: AptosAccount,
     name: string,
     description: string,
-    uri: string
+    uri: string,
+    maxAmount: AnyNumber = MAX_U64_BIG_INT,
+    extraArgs?: OptionalTransactionArgs
   ) {
     return Promise.resolve(
-      await this.tokenClient.createCollection(account, name, description, uri)
+      await this.tokenClient.createCollection(
+        account,
+        name,
+        description,
+        uri,
+        maxAmount,
+        extraArgs
+      )
     );
   }
 
@@ -456,7 +471,8 @@ export class WalletClient {
     royalty_points_numerator: number = 0,
     property_keys: Array<string> = [],
     property_values: Array<string> = [],
-    property_types: Array<string> = []
+    property_types: Array<string> = [],
+    extraArgs?: OptionalTransactionArgs
   ) {
     return Promise.resolve(
       await this.tokenClient.createToken(
@@ -472,7 +488,8 @@ export class WalletClient {
         royalty_points_numerator,
         property_keys,
         property_values,
-        property_types
+        property_types,
+        extraArgs
       )
     );
   }
@@ -495,7 +512,8 @@ export class WalletClient {
     collection_name: string,
     token_name: string,
     amount: number,
-    property_version: number = 0
+    property_version: number = 0,
+    extraArgs?: OptionalTransactionArgs
   ) {
     return Promise.resolve(
       await this.tokenClient.offerToken(
@@ -505,7 +523,8 @@ export class WalletClient {
         collection_name,
         token_name,
         amount,
-        property_version
+        property_version,
+        extraArgs
       )
     );
   }
@@ -526,7 +545,8 @@ export class WalletClient {
     creator_address: string,
     collection_name: string,
     token_name: string,
-    property_version: number = 0
+    property_version: number = 0,
+    extraArgs?: OptionalTransactionArgs
   ) {
     return Promise.resolve(
       await this.tokenClient.cancelTokenOffer(
@@ -535,7 +555,8 @@ export class WalletClient {
         creator_address,
         collection_name,
         token_name,
-        property_version
+        property_version,
+        extraArgs
       )
     );
   }
@@ -556,7 +577,8 @@ export class WalletClient {
     creator_address: string,
     collection_name: string,
     token_name: string,
-    property_version: number = 0
+    property_version: number = 0,
+    extraArgs?: OptionalTransactionArgs
   ) {
     return Promise.resolve(
       await this.tokenClient.claimToken(
@@ -565,7 +587,8 @@ export class WalletClient {
         creator_address,
         collection_name,
         token_name,
-        property_version
+        property_version,
+        extraArgs
       )
     );
   }

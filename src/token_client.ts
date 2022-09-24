@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosAccount } from "./aptos_account";
-import { AptosClient } from "./aptos_client";
+import { AptosClient, OptionalTransactionArgs } from "./aptos_client";
 import * as TokenTypes from "./token_types";
 import * as Gen from "./generated/index";
 import { HexString, MaybeHexString } from "./hex_string";
@@ -51,7 +51,8 @@ export class TokenClient {
     name: string,
     description: string,
     uri: string,
-    maxAmount: AnyNumber = MAX_U64_BIG_INT
+    maxAmount: AnyNumber = MAX_U64_BIG_INT,
+    extraArgs?: OptionalTransactionArgs
   ): Promise<string> {
     // <:!:createCollection
     const payload = this.transactionBuilder.buildTransactionPayload(
@@ -62,7 +63,8 @@ export class TokenClient {
 
     const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(
       account,
-      payload
+      payload,
+      extraArgs
     );
     return txn.hash;
   }
@@ -99,7 +101,8 @@ export class TokenClient {
     royalty_points_numerator: number = 0,
     property_keys: Array<string> = [],
     property_values: Array<string> = [],
-    property_types: Array<string> = []
+    property_types: Array<string> = [],
+    extraArgs?: OptionalTransactionArgs
   ): Promise<string> {
     // <:!:createToken
     const payload = this.transactionBuilder.buildTransactionPayload(
@@ -124,7 +127,8 @@ export class TokenClient {
 
     const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(
       account,
-      payload
+      payload,
+      extraArgs
     );
     return txn.hash;
   }
@@ -148,7 +152,8 @@ export class TokenClient {
     collectionName: string,
     name: string,
     amount: number,
-    property_version: number = 0
+    property_version: number = 0,
+    extraArgs?: OptionalTransactionArgs
   ): Promise<string> {
     const payload = this.transactionBuilder.buildTransactionPayload(
       "0x3::token_transfers::offer_script",
@@ -158,7 +163,8 @@ export class TokenClient {
 
     const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(
       account,
-      payload
+      payload,
+      extraArgs
     );
     return txn.hash;
   }
@@ -180,7 +186,8 @@ export class TokenClient {
     creator: MaybeHexString,
     collectionName: string,
     name: string,
-    property_version: number = 0
+    property_version: number = 0,
+    extraArgs?: OptionalTransactionArgs
   ): Promise<string> {
     const payload = this.transactionBuilder.buildTransactionPayload(
       "0x3::token_transfers::claim_script",
@@ -190,7 +197,8 @@ export class TokenClient {
 
     const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(
       account,
-      payload
+      payload,
+      extraArgs
     );
     return txn.hash;
   }
@@ -212,7 +220,8 @@ export class TokenClient {
     creator: MaybeHexString,
     collectionName: string,
     name: string,
-    property_version: number = 0
+    property_version: number = 0,
+    extraArgs?: OptionalTransactionArgs
   ): Promise<string> {
     const payload = this.transactionBuilder.buildTransactionPayload(
       "0x3::token_transfers::cancel_offer_script",
@@ -222,7 +231,8 @@ export class TokenClient {
 
     const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(
       account,
-      payload
+      payload,
+      extraArgs
     );
     return txn.hash;
   }
@@ -247,7 +257,8 @@ export class TokenClient {
     collectionName: string,
     name: string,
     amount: number,
-    propertyVersion: number = 0
+    propertyVersion: number = 0,
+    extraArgs?: OptionalTransactionArgs
   ): Promise<string> {
     const payload = this.transactionBuilder.buildTransactionPayload(
       "0x3::token::direct_transfer_script",
@@ -257,7 +268,8 @@ export class TokenClient {
 
     const rawTxn = await this.aptosClient.generateRawTransaction(
       sender.address(),
-      payload
+      payload,
+      extraArgs
     );
     const multiAgentTxn = new TxnBuilderTypes.MultiAgentRawTransaction(rawTxn, [
       TxnBuilderTypes.AccountAddress.fromHex(receiver.address()),
