@@ -882,8 +882,8 @@ export class WalletClient {
       burnStart
     );
 
-    const maxDepositSequenceNumber = -1;
-    const maxWithdrawSequenceNumber = -1;
+    let maxDepositSequenceNumber = -1;
+    let maxWithdrawSequenceNumber = -1;
     let maxBurnSequenceNumber = -1;
 
     depositEvents.forEach((element) => {
@@ -900,6 +900,11 @@ export class WalletClient {
             sequence_number: element.sequence_number,
             data: element.data.id,
           };
+
+      maxDepositSequenceNumber = Math.max(
+        maxDepositSequenceNumber,
+        parseInt(element.sequence_number, 10)
+      );
     });
 
     withdrawEvents.forEach((element) => {
@@ -916,6 +921,11 @@ export class WalletClient {
             sequence_number: element.sequence_number,
             data: element.data.id,
           };
+
+      maxWithdrawSequenceNumber = Math.max(
+        maxWithdrawSequenceNumber,
+        parseInt(element.sequence_number, 10)
+      );
     });
 
     burnEvents.forEach((element) => {
