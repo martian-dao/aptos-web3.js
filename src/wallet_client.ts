@@ -1386,35 +1386,18 @@ export class WalletClient {
     return coins;
   }
 
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
-  async publishModule(account: AptosAccount, moduleHex: string) {
-    // const moduleBundlePayload =
-    //   new TxnBuilderTypes.TransactionPayloadModuleBundle(
-    //     new TxnBuilderTypes.ModuleBundle([
-    //       new TxnBuilderTypes.Module(new HexString(moduleHex).toUint8Array()),
-    //     ])
-    //   );
-
-    // const [{ sequence_number: sequenceNumber }, chainId] = await Promise.all([
-    //   this.aptosClient.getAccount(account.address()),
-    //   this.aptosClient.getChainId(),
-    // ]);
-
-    // const rawTxn = new TxnBuilderTypes.RawTransaction(
-    //   TxnBuilderTypes.AccountAddress.fromHex(account.address()),
-    //   BigInt(sequenceNumber),
-    //   moduleBundlePayload,
-    //   4000n,
-    //   1n,
-    //   BigInt(Math.floor(Date.now() / 1000) + 10),
-    //   new TxnBuilderTypes.ChainId(chainId)
-    // );
-
-    // const bcsTxn = AptosClient.generateBCSTransaction(account, rawTxn);
-    // const transactionRes = await this.aptosClient.submitSignedBCSTransaction(
-    //   bcsTxn
-    // );
-    // return transactionRes.hash;
-    return "";
+  async publishModule(
+    sender: AptosAccount,
+    packageMetadataHex: string,
+    moduleHex: string,
+    extraArgs?: OptionalTransactionArgs
+  ) {
+    const txnHash = await this.aptosClient.publishPackage(
+      sender,
+      new HexString(packageMetadataHex).toUint8Array(),
+      [new TxnBuilderTypes.Module(new HexString(moduleHex).toUint8Array())],
+      extraArgs
+    );
+    return txnHash;
   }
 }
