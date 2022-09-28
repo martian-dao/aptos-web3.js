@@ -1392,11 +1392,12 @@ export class WalletClient {
     moduleHex: string,
     extraArgs?: OptionalTransactionArgs
   ) {
-    return this.aptosClient.publishPackage(
+    const txnHash = await this.aptosClient.publishPackage(
       sender,
       new HexString(packageMetadataHex).toUint8Array(),
       [new TxnBuilderTypes.Module(new HexString(moduleHex).toUint8Array())],
       extraArgs
     );
+    return txnHash;
   }
 }
