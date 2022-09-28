@@ -967,7 +967,7 @@ export class WalletClient {
             : countWithdraw[elementString].data,
           deposit_sequence_number: countDeposit[elementString]
             ? countDeposit[elementString].sequence_number
-            : 0,
+            : "-1",
           withdraw_sequence_number: countWithdraw[elementString]
             ? countWithdraw[elementString].sequence_number
             : "-1",
