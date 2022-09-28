@@ -39,7 +39,7 @@ export interface OptionalTransactionArgs {
 }
 
 interface PaginationArgs {
-  start?: AnyNumber;
+  start?: BigInt;
   limit?: number;
 }
 

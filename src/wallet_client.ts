@@ -6,7 +6,7 @@ import assert from "assert";
 import { TxnBuilderTypes } from "./transaction_builder";
 import { AptosAccount } from "./aptos_account";
 import { TokenClient } from "./token_client";
-import { AptosClient, OptionalTransactionArgs } from "./aptos_client";
+import { AptosClient } from "./aptos_client";
 import { FaucetClient } from "./faucet_client";
 import { HexString, MaybeHexString } from "./hex_string";
 import { RawTransaction } from "./aptos_types";
@@ -15,7 +15,6 @@ import { WriteResource } from "./generated/index";
 import { MAX_U64_BIG_INT } from "./bcs/consts";
 import * as BCS from "./bcs";
 import * as Gen from "./generated/index";
-import { AnyNumber } from "./bcs";
 
 const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 5;
@@ -264,7 +263,7 @@ export class WalletClient {
    * @returns AptosAccount object
    */
   static getAccountFromMnemonic(code: string) {
-    return AptosAccount.fromDerivePath(`m/44'/${COIN_TYPE}'/0'/0'/0'`, code);
+    return AptosAccount.fromDerivePath(`m/44'/${COIN_TYPE}/0'/0'/0'`, code);
   }
 
   /**
@@ -385,11 +384,7 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of events
    */
-  async getSentEvents(
-    address: MaybeHexString,
-    limit?: number,
-    start?: AnyNumber
-  ) {
+  async getSentEvents(address: MaybeHexString, limit?: number, start?: BigInt) {
     return Promise.resolve(
       await this.aptosClient.getAccountTransactions(address, { start, limit })
     );
@@ -402,10 +397,9 @@ export class WalletClient {
    * @param address address of the desired account
    * @returns list of events
    */
-  async getReceivedEvents(address: string, limit?: number, start?: AnyNumber) {
+  async getReceivedEvents(address: string, limit?: number, start?: BigInt) {
     const eventHandleStruct =
       "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
-
     return Promise.resolve(
       await this.aptosClient.getEventsByEventHandle(
         address,
@@ -429,19 +423,10 @@ export class WalletClient {
     account: AptosAccount,
     name: string,
     description: string,
-    uri: string,
-    maxAmount: AnyNumber = MAX_U64_BIG_INT,
-    extraArgs?: OptionalTransactionArgs
+    uri: string
   ) {
     return Promise.resolve(
-      await this.tokenClient.createCollection(
-        account,
-        name,
-        description,
-        uri,
-        maxAmount,
-        extraArgs
-      )
+      await this.tokenClient.createCollection(account, name, description, uri)
     );
   }
 
@@ -471,8 +456,7 @@ export class WalletClient {
     royalty_points_numerator: number = 0,
     property_keys: Array<string> = [],
     property_values: Array<string> = [],
-    property_types: Array<string> = [],
-    extraArgs?: OptionalTransactionArgs
+    property_types: Array<string> = []
   ) {
     return Promise.resolve(
       await this.tokenClient.createToken(
@@ -488,8 +472,7 @@ export class WalletClient {
         royalty_points_numerator,
         property_keys,
         property_values,
-        property_types,
-        extraArgs
+        property_types
       )
     );
   }
@@ -512,8 +495,7 @@ export class WalletClient {
     collection_name: string,
     token_name: string,
     amount: number,
-    property_version: number = 0,
-    extraArgs?: OptionalTransactionArgs
+    property_version: number = 0
   ) {
     return Promise.resolve(
       await this.tokenClient.offerToken(
@@ -523,8 +505,7 @@ export class WalletClient {
         collection_name,
         token_name,
         amount,
-        property_version,
-        extraArgs
+        property_version
       )
     );
   }
@@ -545,8 +526,7 @@ export class WalletClient {
     creator_address: string,
     collection_name: string,
     token_name: string,
-    property_version: number = 0,
-    extraArgs?: OptionalTransactionArgs
+    property_version: number = 0
   ) {
     return Promise.resolve(
       await this.tokenClient.cancelTokenOffer(
@@ -555,8 +535,7 @@ export class WalletClient {
         creator_address,
         collection_name,
         token_name,
-        property_version,
-        extraArgs
+        property_version
       )
     );
   }
@@ -577,8 +556,7 @@ export class WalletClient {
     creator_address: string,
     collection_name: string,
     token_name: string,
-    property_version: number = 0,
-    extraArgs?: OptionalTransactionArgs
+    property_version: number = 0
   ) {
     return Promise.resolve(
       await this.tokenClient.claimToken(
@@ -587,8 +565,7 @@ export class WalletClient {
         creator_address,
         collection_name,
         token_name,
-        property_version,
-        extraArgs
+        property_version
       )
     );
   }
@@ -849,10 +826,12 @@ export class WalletClient {
     address: string,
     limit?: number,
     depositStart?: number,
-    withdrawStart?: number
+    withdrawStart?: number,
+    burnStart?: number
   ) {
     const countDeposit = {};
     const countWithdraw = {};
+    const countBurn = {};
     const elementsFetched = new Set();
     const tokenIds = [];
 
@@ -872,8 +851,17 @@ export class WalletClient {
       withdrawStart
     );
 
-    let maxDepositSequenceNumber = -1;
-    let maxWithdrawSequenceNumber = -1;
+    const burnEvents = await this.getEventStream(
+      address,
+      "0x3::token::TokenStore",
+      "burn_events",
+      limit,
+      burnStart
+    );
+
+    const maxDepositSequenceNumber = -1;
+    const maxWithdrawSequenceNumber = -1;
+    let maxBurnSequenceNumber = -1;
 
     depositEvents.forEach((element) => {
       const elementString = JSON.stringify(element.data.id);
@@ -889,11 +877,6 @@ export class WalletClient {
             sequence_number: element.sequence_number,
             data: element.data.id,
           };
-
-      maxDepositSequenceNumber = Math.max(
-        maxDepositSequenceNumber,
-        parseInt(element.sequence_number, 10)
-      );
     });
 
     withdrawEvents.forEach((element) => {
@@ -910,9 +893,25 @@ export class WalletClient {
             sequence_number: element.sequence_number,
             data: element.data.id,
           };
+    });
 
-      maxWithdrawSequenceNumber = Math.max(
-        maxWithdrawSequenceNumber,
+    burnEvents.forEach((element) => {
+      const elementString = JSON.stringify(element.data.id);
+      elementsFetched.add(elementString);
+      countBurn[elementString] = countBurn[elementString]
+        ? {
+            count: countBurn[elementString].count + 1,
+            sequence_number: element.sequence_number,
+            data: element.data.id,
+          }
+        : {
+            count: 1,
+            sequence_number: element.sequence_number,
+            data: element.data.id,
+          };
+
+      maxBurnSequenceNumber = Math.max(
+        maxBurnSequenceNumber,
         parseInt(element.sequence_number, 10)
       );
     });
@@ -925,21 +924,33 @@ export class WalletClient {
         const withdrawEventCount = countWithdraw[elementString]
           ? countWithdraw[elementString].count
           : 0;
+        const burnEventCount = countBurn[elementString]
+          ? countBurn[elementString].count
+          : 0;
+
         tokenIds.push({
           data: countDeposit[elementString]
             ? countDeposit[elementString].data
             : countWithdraw[elementString].data,
           deposit_sequence_number: countDeposit[elementString]
             ? countDeposit[elementString].sequence_number
-            : "-1",
+            : 0,
           withdraw_sequence_number: countWithdraw[elementString]
             ? countWithdraw[elementString].sequence_number
             : "-1",
-          difference: depositEventCount - withdrawEventCount,
+          burn_sequence_number: countBurn[elementString]
+            ? countBurn[elementString].sequence_number
+            : "-1",
+          difference: depositEventCount - withdrawEventCount - burnEventCount,
         });
       });
     }
-    return { tokenIds, maxDepositSequenceNumber, maxWithdrawSequenceNumber };
+    return {
+      tokenIds,
+      maxDepositSequenceNumber,
+      maxWithdrawSequenceNumber,
+      maxBurnSequenceNumber,
+    };
   }
 
   /**
