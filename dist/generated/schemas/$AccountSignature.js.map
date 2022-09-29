@@ -1,1 +1,0 @@
-{"version":3,"file":"$AccountSignature.js","sourceRoot":"","sources":["../../../src/generated/schemas/$AccountSignature.ts"],"names":[],"mappings":";;;AAAA,0BAA0B;AAC1B,oBAAoB;AACpB,oBAAoB;AACP,QAAA,iBAAiB,GAAG;IAC7B,IAAI,EAAE,QAAQ;IACd,WAAW,EAAE;;;;;4GAK2F;IACxG,QAAQ,EAAE,CAAC;YACP,IAAI,EAAE,mCAAmC;SAC5C,EAAE;YACC,IAAI,EAAE,wCAAwC;SACjD,CAAC;CACI,CAAC"}

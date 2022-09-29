@@ -1,1 +1,0 @@
-{"version":3,"file":"consts.d.ts","sourceRoot":"","sources":["../../src/bcs/consts.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,OAAO,EAAE,MAAM,EAAE,MAAM,EAAE,MAAM,EAAE,KAAK,EAAE,MAAM,SAAS,CAAC;AAGjE,eAAO,MAAM,aAAa,EAAE,KAAkB,CAAC;AAC/C,eAAO,MAAM,cAAc,EAAE,MAAoB,CAAC;AAClD,eAAO,MAAM,cAAc,EAAE,MAAoB,CAAC;AAClD,eAAO,MAAM,eAAe,EAAE,MAAoC,CAAC;AACnE,eAAO,MAAM,gBAAgB,EAAE,OAAsC,CAAC"}

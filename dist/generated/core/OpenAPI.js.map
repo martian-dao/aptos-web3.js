@@ -1,1 +1,0 @@
-{"version":3,"file":"OpenAPI.js","sourceRoot":"","sources":["../../../src/generated/core/OpenAPI.ts"],"names":[],"mappings":";;;AAoBa,QAAA,OAAO,GAAkB;IAClC,IAAI,EAAE,KAAK;IACX,OAAO,EAAE,OAAO;IAChB,gBAAgB,EAAE,KAAK;IACvB,WAAW,EAAE,SAAS;IACtB,KAAK,EAAE,SAAS;IAChB,QAAQ,EAAE,SAAS;IACnB,QAAQ,EAAE,SAAS;IACnB,OAAO,EAAE,SAAS;IAClB,WAAW,EAAE,SAAS;CACzB,CAAC"}
