@@ -3,4 +3,3 @@ node_modules
 /logs
 coverage
 package-lock.json
-dist/

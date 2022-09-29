@@ -4,7 +4,7 @@
 import axios from 'axios';
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import FormData from 'form-data';
-
+const fetchAdapter = require("./fetch-adapter")
 import { ApiError } from './ApiError';
 import type { ApiRequestOptions } from './ApiRequestOptions';
 import type { ApiResult } from './ApiResult';
@@ -309,6 +309,7 @@ const sendRequest = async <T>(
         method: options.method,
         withCredentials: config.WITH_CREDENTIALS,
         cancelToken: source.token,
+        adapter: fetchAdapter
     };
 
     const isBCS = Object.keys(config.HEADERS || {})
