@@ -1,0 +1,1 @@
+{"version":3,"file":"DeleteModule.d.ts","sourceRoot":"","sources":["../../../src/generated/models/DeleteModule.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,OAAO,EAAE,MAAM,WAAW,CAAC;AACzC,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,gBAAgB,CAAC;AAEnD;;GAEG;AACH,oBAAY,YAAY,GAAG;IACvB,OAAO,EAAE,OAAO,CAAC;IACjB;;OAEG;IACH,cAAc,EAAE,MAAM,CAAC;IACvB,MAAM,EAAE,YAAY,CAAC;CACxB,CAAC"}
