@@ -849,10 +849,12 @@ export class WalletClient {
     address: string,
     limit?: number,
     depositStart?: number,
-    withdrawStart?: number
+    withdrawStart?: number,
+    burnStart?: number
   ) {
     const countDeposit = {};
     const countWithdraw = {};
+    const countBurn = {};
     const elementsFetched = new Set();
     const tokenIds = [];
 
@@ -872,8 +874,17 @@ export class WalletClient {
       withdrawStart
     );
 
+    const burnEvents = await this.getEventStream(
+      address,
+      "0x3::token::TokenStore",
+      "burn_events",
+      limit,
+      burnStart
+    );
+
     let maxDepositSequenceNumber = -1;
     let maxWithdrawSequenceNumber = -1;
+    let maxBurnSequenceNumber = -1;
 
     depositEvents.forEach((element) => {
       const elementString = JSON.stringify(element.data.id);
@@ -917,6 +928,27 @@ export class WalletClient {
       );
     });
 
+    burnEvents.forEach((element) => {
+      const elementString = JSON.stringify(element.data.id);
+      elementsFetched.add(elementString);
+      countBurn[elementString] = countBurn[elementString]
+        ? {
+            count: countBurn[elementString].count + 1,
+            sequence_number: element.sequence_number,
+            data: element.data.id,
+          }
+        : {
+            count: 1,
+            sequence_number: element.sequence_number,
+            data: element.data.id,
+          };
+
+      maxBurnSequenceNumber = Math.max(
+        maxBurnSequenceNumber,
+        parseInt(element.sequence_number, 10)
+      );
+    });
+
     if (elementsFetched) {
       Array.from(elementsFetched).forEach((elementString: string) => {
         const depositEventCount = countDeposit[elementString]
@@ -925,6 +957,10 @@ export class WalletClient {
         const withdrawEventCount = countWithdraw[elementString]
           ? countWithdraw[elementString].count
           : 0;
+        const burnEventCount = countBurn[elementString]
+          ? countBurn[elementString].count
+          : 0;
+
         tokenIds.push({
           data: countDeposit[elementString]
             ? countDeposit[elementString].data
@@ -935,11 +971,19 @@ export class WalletClient {
           withdraw_sequence_number: countWithdraw[elementString]
             ? countWithdraw[elementString].sequence_number
             : "-1",
-          difference: depositEventCount - withdrawEventCount,
+          burn_sequence_number: countBurn[elementString]
+            ? countBurn[elementString].sequence_number
+            : "-1",
+          difference: depositEventCount - withdrawEventCount - burnEventCount,
         });
       });
     }
-    return { tokenIds, maxDepositSequenceNumber, maxWithdrawSequenceNumber };
+    return {
+      tokenIds,
+      maxDepositSequenceNumber,
+      maxWithdrawSequenceNumber,
+      maxBurnSequenceNumber,
+    };
   }
 
   /**
