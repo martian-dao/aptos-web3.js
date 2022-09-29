@@ -20,7 +20,7 @@ import { AnyNumber } from "./bcs";
 const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 5;
 const ADDRESS_GAP = 10;
-const coinTransferFunction = "0x1::coin::transfer";
+const coinTransferFunction = "0x1::aptos_account::transfer";
 
 export interface TxnRequestRaw {
   sender: MaybeHexString;
@@ -187,7 +187,6 @@ export class WalletClient {
         }
       );
       if (response.status === 404) {
-        await this.faucetClient.fundAccount(address, 0);
         return {
           derivationPath,
           address,
@@ -358,7 +357,7 @@ export class WalletClient {
 
       const payload: Gen.EntryFunctionPayload = {
         function: coinTransferFunction,
-        type_arguments: ["0x1::aptos_coin::AptosCoin"],
+        type_arguments: [],
         arguments: [recipient_address, amount],
       };
 
