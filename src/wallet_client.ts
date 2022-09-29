@@ -179,7 +179,6 @@ export class WalletClient {
     if (index > MAX_ACCOUNTS) {
       throw new Error("Max no. of accounts reached");
     }
-    /* eslint-disable no-await-in-loop */
     const derivationPath = `m/44'/${COIN_TYPE}'/${index}'/0'/0'`;
     const account = AptosAccount.fromDerivePath(derivationPath, code);
     const address = HexString.ensure(account.address()).toShortString();
