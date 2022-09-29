@@ -20,7 +20,7 @@ import { AnyNumber } from "./bcs";
 const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 5;
 const ADDRESS_GAP = 10;
-const coinTransferFunction = "0x1::coin::transfer";
+const coinTransferFunction = "0x1::aptos_account::transfer";
 
 export interface TxnRequestRaw {
   sender: MaybeHexString;
@@ -187,7 +187,6 @@ export class WalletClient {
         }
       );
       if (response.status === 404) {
-        await this.faucetClient.fundAccount(address, 0);
         return {
           derivationPath,
           address,
@@ -358,7 +357,7 @@ export class WalletClient {
 
       const payload: Gen.EntryFunctionPayload = {
         function: coinTransferFunction,
-        type_arguments: ["0x1::aptos_coin::AptosCoin"],
+        type_arguments: [],
         arguments: [recipient_address, amount],
       };
 
@@ -849,12 +848,10 @@ export class WalletClient {
     address: string,
     limit?: number,
     depositStart?: number,
-    withdrawStart?: number,
-    burnStart?: number
+    withdrawStart?: number
   ) {
     const countDeposit = {};
     const countWithdraw = {};
-    const countBurn = {};
     const elementsFetched = new Set();
     const tokenIds = [];
 
@@ -874,17 +871,8 @@ export class WalletClient {
       withdrawStart
     );
 
-    const burnEvents = await this.getEventStream(
-      address,
-      "0x3::token::TokenStore",
-      "burn_events",
-      limit,
-      burnStart
-    );
-
     let maxDepositSequenceNumber = -1;
     let maxWithdrawSequenceNumber = -1;
-    let maxBurnSequenceNumber = -1;
 
     depositEvents.forEach((element) => {
       const elementString = JSON.stringify(element.data.id);
@@ -928,27 +916,6 @@ export class WalletClient {
       );
     });
 
-    burnEvents.forEach((element) => {
-      const elementString = JSON.stringify(element.data.id);
-      elementsFetched.add(elementString);
-      countBurn[elementString] = countBurn[elementString]
-        ? {
-            count: countBurn[elementString].count + 1,
-            sequence_number: element.sequence_number,
-            data: element.data.id,
-          }
-        : {
-            count: 1,
-            sequence_number: element.sequence_number,
-            data: element.data.id,
-          };
-
-      maxBurnSequenceNumber = Math.max(
-        maxBurnSequenceNumber,
-        parseInt(element.sequence_number, 10)
-      );
-    });
-
     if (elementsFetched) {
       Array.from(elementsFetched).forEach((elementString: string) => {
         const depositEventCount = countDeposit[elementString]
@@ -957,10 +924,6 @@ export class WalletClient {
         const withdrawEventCount = countWithdraw[elementString]
           ? countWithdraw[elementString].count
           : 0;
-        const burnEventCount = countBurn[elementString]
-          ? countBurn[elementString].count
-          : 0;
-
         tokenIds.push({
           data: countDeposit[elementString]
             ? countDeposit[elementString].data
@@ -971,19 +934,11 @@ export class WalletClient {
           withdraw_sequence_number: countWithdraw[elementString]
             ? countWithdraw[elementString].sequence_number
             : "-1",
-          burn_sequence_number: countBurn[elementString]
-            ? countBurn[elementString].sequence_number
-            : "-1",
-          difference: depositEventCount - withdrawEventCount - burnEventCount,
+          difference: depositEventCount - withdrawEventCount,
         });
       });
     }
-    return {
-      tokenIds,
-      maxDepositSequenceNumber,
-      maxWithdrawSequenceNumber,
-      maxBurnSequenceNumber,
-    };
+    return { tokenIds, maxDepositSequenceNumber, maxWithdrawSequenceNumber };
   }
 
   /**
@@ -1430,18 +1385,35 @@ export class WalletClient {
     return coins;
   }
 
-  async publishModule(
-    sender: AptosAccount,
-    packageMetadataHex: string,
-    moduleHex: string,
-    extraArgs?: OptionalTransactionArgs
-  ) {
-    const txnHash = await this.aptosClient.publishPackage(
-      sender,
-      new HexString(packageMetadataHex).toUint8Array(),
-      [new TxnBuilderTypes.Module(new HexString(moduleHex).toUint8Array())],
-      extraArgs
-    );
-    return txnHash;
+  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+  async publishModule(account: AptosAccount, moduleHex: string) {
+    // const moduleBundlePayload =
+    //   new TxnBuilderTypes.TransactionPayloadModuleBundle(
+    //     new TxnBuilderTypes.ModuleBundle([
+    //       new TxnBuilderTypes.Module(new HexString(moduleHex).toUint8Array()),
+    //     ])
+    //   );
+
+    // const [{ sequence_number: sequenceNumber }, chainId] = await Promise.all([
+    //   this.aptosClient.getAccount(account.address()),
+    //   this.aptosClient.getChainId(),
+    // ]);
+
+    // const rawTxn = new TxnBuilderTypes.RawTransaction(
+    //   TxnBuilderTypes.AccountAddress.fromHex(account.address()),
+    //   BigInt(sequenceNumber),
+    //   moduleBundlePayload,
+    //   4000n,
+    //   1n,
+    //   BigInt(Math.floor(Date.now() / 1000) + 10),
+    //   new TxnBuilderTypes.ChainId(chainId)
+    // );
+
+    // const bcsTxn = AptosClient.generateBCSTransaction(account, rawTxn);
+    // const transactionRes = await this.aptosClient.submitSignedBCSTransaction(
+    //   bcsTxn
+    // );
+    // return transactionRes.hash;
+    return "";
   }
 }
