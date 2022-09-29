@@ -35,6 +35,7 @@ test("verify create wallet", async () => {
     alice.code,
     alice.accounts[0]
   );
+  await apis.airdrop(aliceAccount.address().toShortString(), 0);
   const getAccount = await apis.aptosClient.getAccount(aliceAccount.address());
   expect(HexString.ensure(getAccount.authentication_key).toShortString()).toBe(
     aliceAccount.address().toShortString()
@@ -48,7 +49,9 @@ test("verify getAccountFromMnemonic", async () => {
     alice.accounts[0]
   );
   const aliceAccount2 = await WalletClient.getAccountFromMnemonic(alice.code);
-  expect(aliceAccount1).toEqual(aliceAccount2);
+  expect(aliceAccount1.address().toShortString()).toEqual(
+    aliceAccount2.address().toShortString()
+  );
 });
 
 test("verify import wallet", async () => {
@@ -64,6 +67,7 @@ test("verify import random wallet", async () => {
     alice.code,
     alice.accounts[0]
   );
+  await apis.airdrop(aliceAccount.address().toShortString(), 0);
   const getAccount = await apis.aptosClient.getAccount(aliceAccount.address());
   expect(HexString.ensure(getAccount.authentication_key).toShortString()).toBe(
     aliceAccount.address().toShortString()
@@ -80,23 +84,27 @@ test("verify airdrop", async () => {
   expect(await apis.getBalance(aliceAccount.address())).toBe(1234);
 });
 
-test("verify transfer", async () => {
-  const alice = await apis.createWallet();
-  const aliceAccount = await WalletClient.getAccountFromMetaData(
-    alice.code,
-    alice.accounts[0]
-  );
+test(
+  "verify transfer",
+  async () => {
+    const alice = await apis.createWallet();
+    const aliceAccount = await WalletClient.getAccountFromMetaData(
+      alice.code,
+      alice.accounts[0]
+    );
 
-  await apis.airdrop(aliceAccount.address().toString(), 10000000);
-  const bob = await apis.createWallet();
+    await apis.airdrop(aliceAccount.address().toString(), 10000000);
+    const bob = await apis.createWallet();
 
-  const bobAccount = await WalletClient.getAccountFromMetaData(
-    bob.code,
-    bob.accounts[0]
-  );
-  await apis.transfer(aliceAccount, bobAccount.address(), 100000);
-  expect(await apis.getBalance(bobAccount.address())).toBe(100000);
-});
+    const bobAccount = await WalletClient.getAccountFromMetaData(
+      bob.code,
+      bob.accounts[0]
+    );
+    await apis.transfer(aliceAccount, bobAccount.address(), 100000);
+    expect(await apis.getBalance(bobAccount.address())).toBe(100000);
+  },
+  60 * 1000
+);
 
 test("verify signMessage", async () => {
   const alice = await apis.createWallet();
@@ -418,11 +426,11 @@ test("verify get transaction serialized", async () => {
     alice.code,
     alice.accounts[0]
   );
-
+  await apis.airdrop(aliceAccount.address().toShortString(), 0);
   const sender = aliceAccount.address();
   const payload = {
-    function: "0x1::coin::transfer",
-    type_arguments: ["0x1::aptos_coin::AptosCoin"],
+    function: "0x1::aptos_account::transfer",
+    type_arguments: [],
     arguments: [aliceAccount.address().toString(), 500],
   };
 
@@ -467,22 +475,25 @@ test("should be able to create multiple accounts in a wallet", async () => {
     alice.accounts[0]
   );
 
-  await apis.createNewAccount(alice.code);
+  const a1 = await apis.createNewAccount(alice.code, 0);
+  await apis.airdrop(a1.address, 0);
   alice = await apis.importWallet(alice.code);
 
-  await apis.createNewAccount(alice.code);
+  const a2 = await apis.createNewAccount(alice.code, 1);
+  await apis.airdrop(a2.address, 0);
   alice = await apis.importWallet(alice.code);
 
-  await apis.createNewAccount(alice.code);
+  const a3 = await apis.createNewAccount(alice.code, 2);
+  await apis.airdrop(a3.address, 0);
   alice = await apis.importWallet(alice.code);
 
   aliceAccount = await WalletClient.getAccountFromMetaData(
     alice.code,
-    alice.accounts[2]
+    alice.accounts[1]
   );
   await apis.airdrop(aliceAccount.address().toString(), 10000000);
 
-  await apis.transfer(aliceAccount, alice.accounts[3].address, 100);
+  await apis.transfer(aliceAccount, alice.accounts[2].address, 100);
 
-  expect(await apis.getBalance(alice.accounts[3].address)).toBe(100);
+  expect(await apis.getBalance(alice.accounts[2].address)).toBe(100);
 }, 300000);

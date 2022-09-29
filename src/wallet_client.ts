@@ -20,7 +20,7 @@ import { AnyNumber } from "./bcs";
 const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 5;
 const ADDRESS_GAP = 10;
-const coinTransferFunction = "0x1::coin::transfer";
+const coinTransferFunction = "0x1::aptos_account::transfer";
 
 export interface TxnRequestRaw {
   sender: MaybeHexString;
@@ -94,7 +94,6 @@ export class WalletClient {
    * @param code The mnemonic phrase (12 word)
    * @returns Wallet object containing all accounts of a user
    */
-
   async importWallet(code: string): Promise<Wallet> {
     let flag = false;
     let address = "";
@@ -172,31 +171,23 @@ export class WalletClient {
    * Creates a new account in the provided wallet
    *
    * @param code mnemonic phrase of the wallet
+   * @param index index for the derivation path
    * @returns
    */
-  async createNewAccount(code: string): Promise<AccountMetaData> {
-    for (let i = 0; i < MAX_ACCOUNTS; i += 1) {
-      /* eslint-disable no-await-in-loop */
-      const derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0'/0'`;
-      const account = AptosAccount.fromDerivePath(derivationPath, code);
-      const address = HexString.ensure(account.address()).toShortString();
-      const response = await fetch(
-        `${this.aptosClient.nodeUrl}/accounts/${address}`,
-        {
-          method: "GET",
-        }
-      );
-      if (response.status === 404) {
-        await this.faucetClient.fundAccount(address, 0);
-        return {
-          derivationPath,
-          address,
-          publicKey: account.pubKey().toString(),
-        };
-      }
-      /* eslint-enable no-await-in-loop */
+  // eslint-disable-next-line class-methods-use-this
+  createNewAccount(code: string, index: number = 0): AccountMetaData {
+    if (index > MAX_ACCOUNTS) {
+      throw new Error("Max no. of accounts reached");
     }
-    throw new Error("Max no. of accounts reached");
+    /* eslint-disable no-await-in-loop */
+    const derivationPath = `m/44'/${COIN_TYPE}'/${index}'/0'/0'`;
+    const account = AptosAccount.fromDerivePath(derivationPath, code);
+    const address = HexString.ensure(account.address()).toShortString();
+    return {
+      derivationPath,
+      address,
+      publicKey: account.pubKey().toString(),
+    };
   }
 
   /** Generates a transaction request that can be submitted to produce a raw transaction that
@@ -358,7 +349,7 @@ export class WalletClient {
 
       const payload: Gen.EntryFunctionPayload = {
         function: coinTransferFunction,
-        type_arguments: ["0x1::aptos_coin::AptosCoin"],
+        type_arguments: [],
         arguments: [recipient_address, amount],
       };
 
