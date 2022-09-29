@@ -18,7 +18,8 @@ import * as Gen from "./generated/index";
 import { AnyNumber } from "./bcs";
 
 const COIN_TYPE = 637;
-const MAX_ACCOUNTS = 5;
+// Increasing Max Accounts to 10
+const MAX_ACCOUNTS = 10;
 const ADDRESS_GAP = 10;
 const coinTransferFunction = "0x1::coin::transfer";
 
