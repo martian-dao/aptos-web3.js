@@ -4,7 +4,7 @@
 import axios from 'axios';
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import FormData from 'form-data';
-const fetchAdapter = require("./fetch-adapter")
+
 import { ApiError } from './ApiError';
 import type { ApiRequestOptions } from './ApiRequestOptions';
 import type { ApiResult } from './ApiResult';
@@ -102,16 +102,16 @@ const jar = new CookieJar();
 axios.interceptors.response.use((response) => {
   if (Array.isArray(response.headers["set-cookie"])) {
     response.headers["set-cookie"].forEach((c) => {
-      jar.setCookie(new URL(response.config.url), c);
+      jar.setCookie(new URL(response.config.url!), c);
     });
   }
   return response;
 });
 
 axios.interceptors.request.use(function (config) {
-  const cookies = jar.getCookies(new URL(config.url));
+  const cookies = jar.getCookies(new URL(config.url!));
 
-  if (cookies?.length > 0) {
+  if (cookies?.length > 0 && config.headers) {
     config.headers.cookie = cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join("; ");
   }
   return config;
@@ -309,7 +309,6 @@ const sendRequest = async <T>(
         method: options.method,
         withCredentials: config.WITH_CREDENTIALS,
         cancelToken: source.token,
-        adapter: fetchAdapter
     };
 
     const isBCS = Object.keys(config.HEADERS || {})
@@ -361,6 +360,7 @@ const catchErrorCodes = (options: ApiRequestOptions, result: ApiResult): void =>
         503: 'Service Unavailable',
         ...options.errors,
     }
+
     const error = errors[result.status];
     if (error) {
         throw new ApiError(options, result, error);

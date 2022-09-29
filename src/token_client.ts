@@ -6,11 +6,7 @@ import { AptosClient, OptionalTransactionArgs } from "./aptos_client";
 import * as TokenTypes from "./token_types";
 import * as Gen from "./generated/index";
 import { HexString, MaybeHexString } from "./hex_string";
-import {
-  TransactionBuilder,
-  TransactionBuilderABI,
-  TxnBuilderTypes,
-} from "./transaction_builder";
+import { TransactionBuilder, TransactionBuilderABI, TxnBuilderTypes } from "./transaction_builder";
 import { MAX_U64_BIG_INT } from "./bcs/consts";
 import { TOKEN_ABIS } from "./abis";
 import { AnyNumber, bcsToBytes } from "./bcs";
@@ -30,9 +26,7 @@ export class TokenClient {
    */
   constructor(aptosClient: AptosClient) {
     this.aptosClient = aptosClient;
-    this.transactionBuilder = new TransactionBuilderABI(
-      TOKEN_ABIS.map((abi) => new HexString(abi).toUint8Array())
-    );
+    this.transactionBuilder = new TransactionBuilderABI(TOKEN_ABIS.map((abi) => new HexString(abi).toUint8Array()));
   }
 
   /**
@@ -52,13 +46,13 @@ export class TokenClient {
     description: string,
     uri: string,
     maxAmount: AnyNumber = MAX_U64_BIG_INT,
-    extraArgs?: OptionalTransactionArgs
+    extraArgs?: OptionalTransactionArgs,
   ): Promise<string> {
     // <:!:createCollection
     const payload = this.transactionBuilder.buildTransactionPayload(
       "0x3::token::create_collection_script",
       [],
-      [name, description, uri, maxAmount, [false, false, false]]
+      [name, description, uri, maxAmount, [false, false, false]],
     );
 
     const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(
@@ -102,7 +96,7 @@ export class TokenClient {
     property_keys: Array<string> = [],
     property_values: Array<string> = [],
     property_types: Array<string> = [],
-    extraArgs?: OptionalTransactionArgs
+    extraArgs?: OptionalTransactionArgs,
   ): Promise<string> {
     // <:!:createToken
     const payload = this.transactionBuilder.buildTransactionPayload(
@@ -122,7 +116,7 @@ export class TokenClient {
         property_keys,
         property_values,
         property_types,
-      ]
+      ],
     );
 
     const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(
@@ -153,12 +147,12 @@ export class TokenClient {
     name: string,
     amount: number,
     property_version: number = 0,
-    extraArgs?: OptionalTransactionArgs
+    extraArgs?: OptionalTransactionArgs,
   ): Promise<string> {
     const payload = this.transactionBuilder.buildTransactionPayload(
       "0x3::token_transfers::offer_script",
       [],
-      [receiver, creator, collectionName, name, property_version, amount]
+      [receiver, creator, collectionName, name, property_version, amount],
     );
 
     const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(
@@ -187,12 +181,12 @@ export class TokenClient {
     collectionName: string,
     name: string,
     property_version: number = 0,
-    extraArgs?: OptionalTransactionArgs
+    extraArgs?: OptionalTransactionArgs,
   ): Promise<string> {
     const payload = this.transactionBuilder.buildTransactionPayload(
       "0x3::token_transfers::claim_script",
       [],
-      [sender, creator, collectionName, name, property_version]
+      [sender, creator, collectionName, name, property_version],
     );
 
     const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(
@@ -221,12 +215,12 @@ export class TokenClient {
     collectionName: string,
     name: string,
     property_version: number = 0,
-    extraArgs?: OptionalTransactionArgs
+    extraArgs?: OptionalTransactionArgs,
   ): Promise<string> {
     const payload = this.transactionBuilder.buildTransactionPayload(
       "0x3::token_transfers::cancel_offer_script",
       [],
-      [receiver, creator, collectionName, name, property_version]
+      [receiver, creator, collectionName, name, property_version],
     );
 
     const txn = await this.aptosClient.generateSignSubmitWaitForTransaction(
@@ -258,60 +252,46 @@ export class TokenClient {
     name: string,
     amount: number,
     propertyVersion: number = 0,
-    extraArgs?: OptionalTransactionArgs
+    extraArgs?: OptionalTransactionArgs,
   ): Promise<string> {
     const payload = this.transactionBuilder.buildTransactionPayload(
       "0x3::token::direct_transfer_script",
       [],
-      [creator, collectionName, name, propertyVersion, amount]
+      [creator, collectionName, name, propertyVersion, amount],
     );
 
-    const rawTxn = await this.aptosClient.generateRawTransaction(
-      sender.address(),
-      payload,
-      extraArgs
-    );
+    const rawTxn = await this.aptosClient.generateRawTransaction(sender.address(), payload, extraArgs);
     const multiAgentTxn = new TxnBuilderTypes.MultiAgentRawTransaction(rawTxn, [
       TxnBuilderTypes.AccountAddress.fromHex(receiver.address()),
     ]);
 
     const senderSignature = new TxnBuilderTypes.Ed25519Signature(
-      sender
-        .signBuffer(TransactionBuilder.getSigningMessage(multiAgentTxn))
-        .toUint8Array()
+      sender.signBuffer(TransactionBuilder.getSigningMessage(multiAgentTxn)).toUint8Array(),
     );
 
     const senderAuthenticator = new TxnBuilderTypes.AccountAuthenticatorEd25519(
       new TxnBuilderTypes.Ed25519PublicKey(sender.signingKey.publicKey),
-      senderSignature
+      senderSignature,
     );
 
     const receiverSignature = new TxnBuilderTypes.Ed25519Signature(
-      receiver
-        .signBuffer(TransactionBuilder.getSigningMessage(multiAgentTxn))
-        .toUint8Array()
+      receiver.signBuffer(TransactionBuilder.getSigningMessage(multiAgentTxn)).toUint8Array(),
     );
 
-    const receiverAuthenticator =
-      new TxnBuilderTypes.AccountAuthenticatorEd25519(
-        new TxnBuilderTypes.Ed25519PublicKey(receiver.signingKey.publicKey),
-        receiverSignature
-      );
-
-    const multiAgentAuthenticator =
-      new TxnBuilderTypes.TransactionAuthenticatorMultiAgent(
-        senderAuthenticator,
-        [TxnBuilderTypes.AccountAddress.fromHex(receiver.address())], // Secondary signer addresses
-        [receiverAuthenticator] // Secondary signer authenticators
-      );
-
-    const bcsTxn = bcsToBytes(
-      new TxnBuilderTypes.SignedTransaction(rawTxn, multiAgentAuthenticator)
+    const receiverAuthenticator = new TxnBuilderTypes.AccountAuthenticatorEd25519(
+      new TxnBuilderTypes.Ed25519PublicKey(receiver.signingKey.publicKey),
+      receiverSignature,
     );
 
-    const transactionRes = await this.aptosClient.submitSignedBCSTransaction(
-      bcsTxn
+    const multiAgentAuthenticator = new TxnBuilderTypes.TransactionAuthenticatorMultiAgent(
+      senderAuthenticator,
+      [TxnBuilderTypes.AccountAddress.fromHex(receiver.address())], // Secondary signer addresses
+      [receiverAuthenticator], // Secondary signer authenticators
     );
+
+    const bcsTxn = bcsToBytes(new TxnBuilderTypes.SignedTransaction(rawTxn, multiAgentAuthenticator));
+
+    const transactionRes = await this.aptosClient.submitSignedBCSTransaction(bcsTxn);
 
     return transactionRes.hash;
   }
@@ -336,13 +316,11 @@ export class TokenClient {
    *  }
    * ```
    */
-  async getCollectionData(
-    creator: MaybeHexString,
-    collectionName: string
-  ): Promise<any> {
+  async getCollectionData(creator: MaybeHexString, collectionName: string): Promise<any> {
     const resources = await this.aptosClient.getAccountResources(creator);
-    const accountResource: { type: Gen.MoveStructTag; data: any } =
-      resources.find((r) => r.type === "0x3::token::Collections")!;
+    const accountResource: { type: Gen.MoveStructTag; data: any } = resources.find(
+      (r) => r.type === "0x3::token::Collections",
+    )!;
     const { handle }: { handle: string } = accountResource.data.collection_data;
     const getCollectionTableItemRequest: Gen.TableItemRequest = {
       key_type: "0x1::string::String",
@@ -350,10 +328,7 @@ export class TokenClient {
       key: collectionName,
     };
 
-    const collectionTable = await this.aptosClient.getTableItem(
-      handle,
-      getCollectionTableItemRequest
-    );
+    const collectionTable = await this.aptosClient.getTableItem(handle, getCollectionTableItemRequest);
     return collectionTable;
   }
 
@@ -385,14 +360,13 @@ export class TokenClient {
   async getTokenData(
     creator: MaybeHexString,
     collectionName: string,
-    tokenName: string
+    tokenName: string,
   ): Promise<TokenTypes.TokenData> {
     const creatorHex = creator instanceof HexString ? creator.hex() : creator;
-    const collection: { type: Gen.MoveStructTag; data: any } =
-      await this.aptosClient.getAccountResource(
-        creatorHex,
-        "0x3::token::Collections"
-      );
+    const collection: { type: Gen.MoveStructTag; data: any } = await this.aptosClient.getAccountResource(
+      creatorHex,
+      "0x3::token::Collections",
+    );
     const { handle } = collection.data.token_data;
     const tokenDataId = {
       creator: creatorHex,
@@ -418,7 +392,7 @@ export class TokenClient {
     creator: MaybeHexString,
     collectionName: string,
     tokenName: string,
-    property_version: string = "0"
+    property_version: string = "0",
   ): Promise<TokenTypes.Token> {
     const tokenDataId: TokenTypes.TokenDataId = {
       creator: creator instanceof HexString ? creator.hex() : creator,
@@ -453,15 +427,11 @@ export class TokenClient {
    * }
    * ```
    */
-  async getTokenForAccount(
-    account: MaybeHexString,
-    tokenId: TokenTypes.TokenId
-  ): Promise<TokenTypes.Token> {
-    const tokenStore: { type: Gen.MoveStructTag; data: any } =
-      await this.aptosClient.getAccountResource(
-        account instanceof HexString ? account.hex() : account,
-        "0x3::token::TokenStore"
-      );
+  async getTokenForAccount(account: MaybeHexString, tokenId: TokenTypes.TokenId): Promise<TokenTypes.Token> {
+    const tokenStore: { type: Gen.MoveStructTag; data: any } = await this.aptosClient.getAccountResource(
+      account instanceof HexString ? account.hex() : account,
+      "0x3::token::TokenStore",
+    );
     const { handle } = tokenStore.data.tokens;
 
     const getTokenTableItemRequest: Gen.TableItemRequest = {
@@ -471,12 +441,9 @@ export class TokenClient {
     };
 
     try {
-      return await this.aptosClient.getTableItem(
-        handle,
-        getTokenTableItemRequest
-      );
-    } catch (error) {
-      if (error.status === 404) {
+      return await this.aptosClient.getTableItem(handle, getTokenTableItemRequest);
+    } catch (error: any) {
+      if (error?.status === 404) {
         return {
           id: tokenId,
           amount: "0",
