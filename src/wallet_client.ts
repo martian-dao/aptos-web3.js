@@ -953,44 +953,48 @@ export class WalletClient {
     const tokens = [];
     await Promise.all(
       tokenIds.map(async (tokenId) => {
-        let resources: Gen.MoveResource[];
-        if (cache.has(`resources--${tokenId.data.token_data_id.creator}`)) {
-          resources = cache.get(
-            `resources--${tokenId.data.token_data_id.creator}`
+        try {
+          let resources: Gen.MoveResource[];
+          if (cache.has(`resources--${tokenId.data.token_data_id.creator}`)) {
+            resources = cache.get(
+              `resources--${tokenId.data.token_data_id.creator}`
+            );
+          } else {
+            resources = await this.aptosClient.getAccountResources(
+              tokenId.data.token_data_id.creator
+            );
+            cache.set(
+              `resources--${tokenId.data.token_data_id.creator}`,
+              resources
+            );
+          }
+
+          const accountResource: { type: string; data: any } = resources.find(
+            (r) => r.type === "0x3::token::Collections"
           );
-        } else {
-          resources = await this.aptosClient.getAccountResources(
-            tokenId.data.token_data_id.creator
-          );
-          cache.set(
-            `resources--${tokenId.data.token_data_id.creator}`,
-            resources
-          );
+          const tableItemRequest: Gen.TableItemRequest = {
+            key_type: "0x3::token::TokenDataId",
+            value_type: "0x3::token::TokenData",
+            key: tokenId.data.token_data_id,
+          };
+
+          const cacheKey = JSON.stringify(tableItemRequest);
+
+          let token: any;
+          if (cache.has(cacheKey)) {
+            token = cache.get(cacheKey);
+          } else {
+            token = await this.aptosClient.getTableItem(
+              accountResource.data.token_data.handle,
+              tableItemRequest
+            );
+            cache.set(cacheKey, token);
+          }
+          token.collection = tokenId.data.token_data_id.collection;
+          tokens.push({ token, sequence_number: tokenId.sequence_number });
+        } catch (e) {
+          // Errors happening because of token handle not found will lead here
         }
-
-        const accountResource: { type: string; data: any } = resources.find(
-          (r) => r.type === "0x3::token::Collections"
-        );
-        const tableItemRequest: Gen.TableItemRequest = {
-          key_type: "0x3::token::TokenDataId",
-          value_type: "0x3::token::TokenData",
-          key: tokenId.data.token_data_id,
-        };
-
-        const cacheKey = JSON.stringify(tableItemRequest);
-
-        let token: any;
-        if (cache.has(cacheKey)) {
-          token = cache.get(cacheKey);
-        } else {
-          token = await this.aptosClient.getTableItem(
-            accountResource.data.token_data.handle,
-            tableItemRequest
-          );
-          cache.set(cacheKey, token);
-        }
-        token.collection = tokenId.data.token_data_id.collection;
-        tokens.push({ token, sequence_number: tokenId.sequence_number });
       })
     );
 
