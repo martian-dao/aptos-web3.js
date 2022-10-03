@@ -16,6 +16,17 @@ import { MAX_U64_BIG_INT } from "./bcs/consts";
 import * as BCS from "./bcs";
 import * as Gen from "./generated/index";
 import { AnyNumber } from "./bcs";
+import {
+  Address,
+  AddressType,
+  DappAddress,
+  Dialect,
+  DialectSdk,
+  Thread,
+  ThreadMemberScope,
+} from '@dialectlabs/sdk';
+import { Aptos, AptosSdkFactory, NodeDialectAptosWalletAdapter } from './dialect/sdk/packages/blockchain-sdk-aptos/src';
+
 
 const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 5;
@@ -1393,5 +1404,147 @@ export class WalletClient {
       extraArgs
     );
     return txnHash;
+  }
+
+  async configNotifs(account: AptosAccount) {
+    const sdk: DialectSdk<Aptos> = Dialect.sdk(
+      {
+        environment: 'development',
+      },
+      AptosSdkFactory.create({
+        // Use a randomly-generated node wallet keypair
+        wallet: NodeDialectAptosWalletAdapter.create(account.signingKey.secretKey),
+      }),
+    );
+    return sdk;
+  }
+
+  private async getOrCreateAddress(sdk: DialectSdk<Aptos>): Promise<Address> {
+    // Register an address
+  
+    // See if we have one already
+    const addresses: Address[] = await sdk.wallet.addresses.findAll();
+    const address: Address | null =
+      addresses.find((it) => it.type === AddressType.Wallet) ?? null;
+  
+    // If not, let's register it
+    if (!address) {
+      console.log(`Address not found, creating...`);
+      return sdk.wallet.addresses.create({
+        value: sdk.wallet.address,
+        type: AddressType.Wallet,
+      });
+    }
+    return address;
+  }
+
+  private async getOrCreateSubscription(addressId: string, sdk: DialectSdk<Aptos>, serverAddress: string): Promise<DappAddress> {
+    // Subscribe for notifications from a dapp using an address (from function above)
+  
+    // Fetch all subscriptions this user's address already has
+    const subscriptions: DappAddress[] = await sdk.wallet.dappAddresses.findAll();
+  
+    // Check if any subscriptions match this address and are subscribed to the 
+    // "dapp" from above
+    // NOTE: DappAddress is effectively a Subscription, and will be renamed to this.
+    // For a given Dapp, and a given user's Address, a DappAddress is the entity that
+    // manages whether the user has subscribed to receive notifications from that
+    // Dapp to that Address.
+    const subscription: DappAddress | null =
+      subscriptions.find((it) => it.address.id === addressId) ?? null;
+  
+    
+    if (!subscription) {
+      console.log(`Dapp address not found, creating...`);
+      console.log(serverAddress);
+      return sdk.wallet.dappAddresses.create({
+        dappAccountAddress: serverAddress, // The address of the "dapp" sender
+        addressId, // The user/subscriber address they'd like to use to subscribe
+        enabled: true, // Subscriptions are enableable/disableable. We start by enabling
+      });
+    }
+    return subscription;
+  }
+
+  private async getOrCreateNotificationsThread(sdk: DialectSdk<Aptos>, serverAddress: string): Promise<Thread> {
+    // Create the notifications thread, through which the user will
+    // receive the notifications.
+  
+    // First find out if we have one. Like a messaging thread, it is
+    // indexed by its members, which in this case is the user and the dapp.
+    const notificationThread: Thread | null = await sdk.threads.find({
+      otherMembers: [serverAddress],
+    });
+  
+    // If no thread exists, let's create it.
+    if (!notificationThread) {
+      console.log(`Notification thread not found, creating...`);
+      let ret = null;
+      try {
+        console.log(serverAddress);
+        console.log(sdk.wallet.address);
+        ret =  await sdk.threads.create({
+          encrypted: false,
+          me: {
+            // Admin scopes let the user manage thread. Note that the user does not have WRITE
+            // privileges, since this is a one-way notifications thread.
+            scopes: [ThreadMemberScope.ADMIN],
+          },
+          otherMembers: [
+            {
+              address:serverAddress,
+              // We give the dapp WRITE privileges to send the user notifications in this thread.
+              scopes: [ThreadMemberScope.WRITE],
+            },
+          ],
+        });
+        console.log(ret);
+      } catch(e){
+        console.log(JSON.stringify(e));
+      }
+      return ret;
+    }
+    console.log("here");
+    return notificationThread;
+  }  
+
+  async subscribeNotifs(sdk: DialectSdk<Aptos>, serverAddress: string) {
+    console.log(sdk.wallet.address);
+    // Subscriber subscribes to receive notifications (direct-to-wallet for in-app feed) from dapp.
+    // This means first registering an "address" (which can be as simple as a public key, but also
+    // an email, phone number, etc.), and then using that address to subscribe for notifications
+    // from a project ("dapp").
+
+    // First, we register an address for the user if one hasn't yet been registered.
+    const address: Address = await this.getOrCreateAddress(sdk);
+    console.log(`Subscriber address: ${JSON.stringify(address)}`);
+
+    // Next, we use that address to subscribe for notifications from a dapp.
+    const dappAddress: DappAddress = await this.getOrCreateSubscription(address.id, sdk, serverAddress);
+    console.log(`Subscriber is subscribing to dapp address: ${JSON.stringify(dappAddress)}`);
+
+    // Lastly, we create the notifications thread, which is just a one-way
+    // messaging thread between the dapp and the subscribing user.
+    const notificationsThread: Thread = await this.getOrCreateNotificationsThread(sdk, serverAddress);
+    console.log(`Notifications thread created with id: ${notificationsThread.id}`);
+    return notificationsThread;
+  }
+
+  //server side function
+  async getOrRegisterDapp(sdk: DialectSdk<Aptos>) {
+    // Here, we register the senderSdk as a "dapp". This simply means the sending wallet
+    // is being registered in Dialect's infrastructure as a keypair that other wallets
+    // can subscribe to receive notifications from. If there is already a dapp registered
+    // for this wallet, we find that first and return it.
+    let dapp = await sdk.dapps.find();
+    if (!dapp) {
+      console.log(`Dapp not found, creating it...`);
+      dapp = await sdk.dapps.create({
+        name: 'Example dapp',
+        description: 'Example dapp description.',
+      });
+      console.log(`Dapp created. Name: ${dapp!.name}; description: ${dapp!.description}; messaging address: ${dapp!.address})`);
+    }
+    return dapp;
   }
 }
