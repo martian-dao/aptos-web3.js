@@ -244,7 +244,7 @@ export class AptosClient {
    * the `submitBCSSimulation` function.
    */
   static generateBCSSimulation(
-    accountFrom: AptosAccount,
+    accountPublicKey: HexString,
     rawTxn: TxnBuilderTypes.RawTransaction
   ): Uint8Array {
     const txnBuilder = new TransactionBuilderEd25519(
@@ -254,7 +254,7 @@ export class AptosClient {
         const invalidSigBytes = new Uint8Array(64);
         return new TxnBuilderTypes.Ed25519Signature(invalidSigBytes);
       },
-      accountFrom.pubKey().toUint8Array()
+      accountPublicKey.toUint8Array()
     );
 
     return txnBuilder.sign(rawTxn);
@@ -405,12 +405,12 @@ export class AptosClient {
    *
    */
   async simulateTransaction(
-    accountFrom: AptosAccount,
+    accountPublicKey: MaybeHexString,
     rawTransaction: TxnBuilderTypes.RawTransaction,
     query?: { estimateGasUnitPrice?: boolean; estimateMaxGasAmount?: boolean }
   ): Promise<Gen.UserTransaction[]> {
     const signedTxn = AptosClient.generateBCSSimulation(
-      accountFrom,
+      HexString.ensure(accountPublicKey),
       rawTransaction
     );
     return this.submitBCSSimulation(signedTxn, query);

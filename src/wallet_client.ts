@@ -667,27 +667,28 @@ export class WalletClient {
   }
 
   async estimateGasFees(
-    account: AptosAccount,
+    accountPublicKey: MaybeHexString,
     transaction: TxnBuilderTypes.RawTransaction
   ): Promise<string> {
     const simulateResponse: any = await this.aptosClient.simulateTransaction(
-      account,
+      HexString.ensure(accountPublicKey),
       transaction
     );
     return simulateResponse[0].gas_used;
   }
 
   async estimateCost(
-    account: AptosAccount,
+    accountAddress: MaybeHexString,
+    accountPublicKey: MaybeHexString,
     transaction: TxnBuilderTypes.RawTransaction
   ): Promise<string> {
     const simulateResponse: any = await this.aptosClient.simulateTransaction(
-      account,
+      HexString.ensure(accountPublicKey),
       transaction
     );
 
     const txnData = simulateResponse[0];
-    const currentBalance = await this.getBalance(account.address());
+    const currentBalance = await this.getBalance(accountAddress);
     const change = txnData.changes.filter((ch) => {
       if (ch.type !== "write_resource") {
         return false;
@@ -696,7 +697,7 @@ export class WalletClient {
       if (
         write.data.type ===
           "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>" &&
-        write.address === account.address().toString()
+        write.address === accountAddress.toString()
       ) {
         return true;
       }
@@ -730,7 +731,9 @@ export class WalletClient {
     account: AptosAccount,
     rawTxn: RawTransaction
   ): Promise<Uint8Array> {
-    return Promise.resolve(AptosClient.generateBCSSimulation(account, rawTxn));
+    return Promise.resolve(
+      AptosClient.generateBCSSimulation(account.pubKey(), rawTxn)
+    );
   }
 
   async submitSignedBCSTransaction(
