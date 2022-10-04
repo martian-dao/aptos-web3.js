@@ -7,7 +7,7 @@ import { HexString } from "./hex_string";
 import { NODE_URL, FAUCET_URL, TESTNET_NODE_URL, TESTNET_FAUCET_URL } from "./utils/test_helper.test";
 
 // const apis = new WalletClient("http://44.201.86.99:8080", "http://44.201.86.99:8000");
-const apis = new WalletClient(TESTNET_NODE_URL, TESTNET_FAUCET_URL);
+const apis = new WalletClient(NODE_URL, FAUCET_URL);
 
 // /**
 //  *
@@ -499,10 +499,6 @@ const apis = new WalletClient(TESTNET_NODE_URL, TESTNET_FAUCET_URL);
 //   expect(await apis.getBalance(alice.accounts[2].address)).toBe(100);
 // }, 300000);
 
-
-import { Dialect, DialectSdk } from '@dialectlabs/sdk';
-import { Aptos, AptosSdkFactory, NodeDialectAptosWalletAdapter } from './dialect/sdk/packages/blockchain-sdk-aptos/src';
-
 test("testing dialect", async () => {
 
   console.log("#Creating server account#");
@@ -535,6 +531,9 @@ test("testing dialect", async () => {
   console.log("#Configuring subscriber account#");
 
   const aliceSdk = await apis.configNotifs(aliceAccount);
+
+  const token = await aliceSdk.tokenProvider.get();
+  console.log(token.rawValue);
   console.log(aliceSdk.wallet.address);
 
   console.log("#Subscribing subscriber account#");

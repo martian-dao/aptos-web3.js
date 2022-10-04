@@ -25,7 +25,8 @@ import {
   Thread,
   ThreadMemberScope,
 } from '@dialectlabs/sdk';
-import { Aptos, AptosSdkFactory, NodeDialectAptosWalletAdapter } from './dialect/sdk/packages/blockchain-sdk-aptos/src';
+
+import {Aptos, AptosSdkFactory} from '@dialectlabs/blockchain-sdk-aptos';
 
 
 const COIN_TYPE = 637;
@@ -1406,15 +1407,26 @@ export class WalletClient {
     return txnHash;
   }
 
+  // Dialect functions
+
+
   async configNotifs(account: AptosAccount) {
     const sdk: DialectSdk<Aptos> = Dialect.sdk(
       {
         environment: 'development',
       },
-      AptosSdkFactory.create({
+      AptosSdkFactory.create(
         // Use a randomly-generated node wallet keypair
-        wallet: NodeDialectAptosWalletAdapter.create(account.signingKey.secretKey),
-      }),
+        {
+          wallet: {
+            publicKey: account.pubKey().toString(),
+            address: account.address().toString(),
+            signMessage(message): Promise<string> {
+              return WalletClient.signMessage(account, message);
+            },
+          }
+        }
+        )
     );
     return sdk;
   }
@@ -1508,6 +1520,18 @@ export class WalletClient {
     return notificationThread;
   }  
 
+  async updateSubscription(sdk: DialectSdk<Aptos>, serverAddress: string, addressId: string) {
+    const dappAddress = await sdk.wallet.dappAddresses.create({
+      dappAccountAddress: serverAddress.toString(), // The address of the "dapp" sender
+      addressId, // The user/subscriber address they'd like to use to subscribe
+      enabled: true, // Subscriptions are enableable/disableable. We start by enabling
+    });
+    const disabled = await sdk.wallet.dappAddresses.update({
+      dappAddressId: dappAddress.id,
+      enabled: false, // disables subscription
+    });
+  }
+
   async subscribeNotifs(sdk: DialectSdk<Aptos>, serverAddress: string) {
     console.log(sdk.wallet.address);
     // Subscriber subscribes to receive notifications (direct-to-wallet for in-app feed) from dapp.
@@ -1530,13 +1554,14 @@ export class WalletClient {
     return notificationsThread;
   }
 
-  //server side function
+  // //server side function
   async getOrRegisterDapp(sdk: DialectSdk<Aptos>) {
     // Here, we register the senderSdk as a "dapp". This simply means the sending wallet
     // is being registered in Dialect's infrastructure as a keypair that other wallets
     // can subscribe to receive notifications from. If there is already a dapp registered
     // for this wallet, we find that first and return it.
     let dapp = await sdk.dapps.find();
+    try {
     if (!dapp) {
       console.log(`Dapp not found, creating it...`);
       dapp = await sdk.dapps.create({
@@ -1544,6 +1569,9 @@ export class WalletClient {
         description: 'Example dapp description.',
       });
       console.log(`Dapp created. Name: ${dapp!.name}; description: ${dapp!.description}; messaging address: ${dapp!.address})`);
+    }
+    } catch(e) {
+      console.log(e);
     }
     return dapp;
   }
