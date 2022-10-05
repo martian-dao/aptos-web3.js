@@ -510,11 +510,9 @@ test("testing dialect", async () => {
 
   await apis.airdrop(serverAccount.address().toString(), 10000000);
 
-  const serverSdk = await apis.configNotifs(serverAccount);
+  const serverSdk = await apis.configNotifications(serverAccount);
 
   const dapp = await apis.getOrRegisterDapp(serverSdk);
-
-  console.log("#Dapp Created#");
 
   console.log("#Creating subscriber account#");
 
@@ -530,56 +528,38 @@ test("testing dialect", async () => {
 
   console.log("#Configuring subscriber account#");
 
-  const aliceSdk = await apis.configNotifs(aliceAccount);
-
-  const token = await aliceSdk.tokenProvider.get();
-  console.log(token.rawValue);
-  console.log(aliceSdk.wallet.address);
+  const aliceSdk = await apis.configNotifications(aliceAccount);
 
   console.log("#Subscribing subscriber account#");
 
-  const notificationsThread = await apis.subscribeNotifs(aliceSdk, serverAccount.address().toString());
+  await apis.subscribeNotifications(aliceSdk, serverAccount.address().toString());
 
-  console.log('Start typing messages to send to the client...');
-  process.stdin.on('readable', () => {
-    let message;
-    while ((message = process.stdin.read()) !== null) {
-      console.log(`Sending message ${message}...`);
-      dapp.messages
-        .send({
-          title: 'New notification',
-          message: message.toString(),
-        })
-        .catch((e) => console.error(e));
-    }
-  });
+  console.log("#Sending message to subscribers#")
+  dapp.messages
+    .send({
+      title: 'New notification',
+      message: "Hello Martians",
+    })
+    .catch((e) => console.error(e));
 
-  // Next, for the purposes of this simple demo, let's run a while loop to
-  // monitor for new messages coming from the notifications sender.
-  let lastMessageTimestamp = new Date().getTime();
-  while (true) {
-    // Get new messages based on last seen timestamp.
-    const newMessages = (await notificationsThread.messages()).filter(
-      ({ timestamp }) => timestamp.getTime() > lastMessageTimestamp,
-    );
-    // Log any new messages to the console
-    if (newMessages.length > 0) {
-      lastMessageTimestamp = new Date().getTime();
-      console.log(
-        `New messages: ${JSON.stringify(
-          newMessages.map((it) => ({
-            timstamp: it.timestamp,
-            message: it.text,
-          })),
-          null,
-          2,
-        )}`,
-        console.log(newMessages)
-      );
-    }
-    await sleep(2000);
-  }
+    dapp.messages
+    .send({
+      title: 'New notification',
+      message: "Hello Martians",
+    })
+    .catch((e) => console.error(e));
 
+    dapp.messages
+    .send({
+      title: 'New notification',
+      message: "Hello Martians",
+    })
+    .catch((e) => console.error(e));
+
+  await sleep(2000);
+
+  await apis.getNotifications(aliceSdk, 0, 10);
+  
   async function sleep(ms: number) {
     await new Promise((resolve) => setTimeout(resolve, ms));
   }
