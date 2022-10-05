@@ -559,6 +559,28 @@ test("testing dialect", async () => {
   await sleep(2000);
 
   await apis.getNotifications(aliceSdk, 0, 10);
+
+  console.log(serverAccount.address().toString());
+
+  await apis.updateSubscription(aliceSdk, aliceAccount.address().toString(), false);
+
+  dapp.messages
+  .send({
+    title: 'New notification',
+    message: "Hello Martians",
+  })
+  .catch((e) => console.error(e));
+
+  dapp.messages
+  .send({
+    title: 'New notification',
+    message: "Hello Martians",
+  })
+  .catch((e) => console.error(e));
+
+await sleep(2000);
+
+await apis.getNotifications(aliceSdk, 0, 10);
   
   async function sleep(ms: number) {
     await new Promise((resolve) => setTimeout(resolve, ms));

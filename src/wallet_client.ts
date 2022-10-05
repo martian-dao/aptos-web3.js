@@ -1502,20 +1502,16 @@ export class WalletClient {
     return notificationThread;
   }  
 
-  async updateSubscription(sdk: DialectSdk<Aptos>, serverAddress: string, addressId: string) {
+  async updateSubscription(sdk: DialectSdk<Aptos>, address: string, enable: boolean) {
     const subscriptions = await sdk.wallet.dappAddresses.findAll();
     const subscription: DappAddress | null =
-      subscriptions.find((it) => {
-        it.address.id === addressId;
-        it.id === serverAddress;
-       }
-      ) ?? null;
+      subscriptions.find((it) => it.address.value === address ) ?? null;
     if (!subscription) {
       throw Error("Subsrciption not created");
     }
     await sdk.wallet.dappAddresses.update({
       dappAddressId: subscription.id,
-      enabled: false, // disables subscription
+      enabled: enable, // disables subscription
     });
   }
 
@@ -1546,26 +1542,26 @@ export class WalletClient {
     console.log(allDappsNotificationsFeed);
   }
 
-  // // //server side function
-  // async getOrRegisterDapp(sdk: DialectSdk<Aptos>) {
-  //   // Here, we register the senderSdk as a "dapp". This simply means the sending wallet
-  //   // is being registered in Dialect's infrastructure as a keypair that other wallets
-  //   // can subscribe to receive notifications from. If there is already a dapp registered
-  //   // for this wallet, we find that first and return it.
-  //   let dapp = await sdk.dapps.find();
-  //   try {
-  //   if (!dapp) {
-  //     console.log(`Dapp not found, creating it...`);
-  //     dapp = await sdk.dapps.create({
-  //       name: 'Example dapp',
-  //       description: 'Example dapp description.',
-  //     });
-  //     console.log(`Dapp created. Name: ${dapp!.name}; description: ${dapp!.description}; messaging address: ${dapp!.address})`);
-  //   }
-  //   } catch(e) {
-  //     console.log(e);
-  //   }
-  //   return dapp;
-  // }
+  // //server side function
+  async getOrRegisterDapp(sdk: DialectSdk<Aptos>) {
+    // Here, we register the senderSdk as a "dapp". This simply means the sending wallet
+    // is being registered in Dialect's infrastructure as a keypair that other wallets
+    // can subscribe to receive notifications from. If there is already a dapp registered
+    // for this wallet, we find that first and return it.
+    let dapp = await sdk.dapps.find();
+    try {
+    if (!dapp) {
+      console.log(`Dapp not found, creating it...`);
+      dapp = await sdk.dapps.create({
+        name: 'Example dapp',
+        description: 'Example dapp description.',
+      });
+      console.log(`Dapp created. Name: ${dapp!.name}; description: ${dapp!.description}; messaging address: ${dapp!.address})`);
+    }
+    } catch(e) {
+      console.log(e);
+    }
+    return dapp;
+  }
 
 }
