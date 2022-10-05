@@ -1450,7 +1450,9 @@ export class WalletClient {
     // Subscribe for notifications from a dapp using an address
   
     // Fetch all subscriptions this user's address already has
-    const subscriptions: DappAddress[] = await sdk.wallet.dappAddresses.findAll();
+    const subscriptions: DappAddress[] = await sdk.wallet.dappAddresses.findAll({
+      dappAccountAddress: serverAddress
+    });
   
     // Check if any subscriptions match this address and are subscribed to the 
     // "dapp" from above
@@ -1502,8 +1504,10 @@ export class WalletClient {
     return notificationThread;
   }  
 
-  async updateSubscription(sdk: DialectSdk<Aptos>, address: string, enable: boolean) {
-    const subscriptions = await sdk.wallet.dappAddresses.findAll();
+  async updateSubscription(sdk: DialectSdk<Aptos>, address: string, serverAddress: string, enable: boolean) {
+    const subscriptions = await sdk.wallet.dappAddresses.findAll({
+      dappAccountAddress: serverAddress
+    });
     const subscription: DappAddress | null =
       subscriptions.find((it) => it.address.value === address ) ?? null;
     if (!subscription) {

@@ -534,6 +534,8 @@ test("testing dialect", async () => {
 
   await apis.subscribeNotifications(aliceSdk, serverAccount.address().toString());
 
+  await apis.subscribeNotifications(aliceSdk, serverAccount.address().toString());
+
   console.log("#Sending message to subscribers#")
   dapp.messages
     .send({
@@ -562,7 +564,27 @@ test("testing dialect", async () => {
 
   console.log(serverAccount.address().toString());
 
-  await apis.updateSubscription(aliceSdk, aliceAccount.address().toString(), false);
+  await apis.updateSubscription(aliceSdk, aliceAccount.address().toString(), serverAccount.address().toString(), false);
+
+  dapp.messages
+  .send({
+    title: 'New notification',
+    message: "Hello Martians",
+  })
+  .catch((e) => console.error(e));
+
+  dapp.messages
+  .send({
+    title: 'New notification',
+    message: "Hello Martians",
+  })
+  .catch((e) => console.error(e));
+
+await sleep(2000);
+
+await apis.getNotifications(aliceSdk, 0, 10);
+
+await apis.updateSubscription(aliceSdk, aliceAccount.address().toString(), serverAccount.address().toString(), true);
 
   dapp.messages
   .send({
