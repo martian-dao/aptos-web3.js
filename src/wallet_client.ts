@@ -55,9 +55,9 @@ export class WalletClient {
 
   tokenClient: TokenClient;
 
-  constructor(node_url, faucet_url) {
-    this.faucetClient = new FaucetClient(node_url, faucet_url);
-    this.aptosClient = new AptosClient(node_url);
+  constructor(node_url, faucet_url, apiConfig = {}) {
+    this.faucetClient = new FaucetClient(node_url, faucet_url, apiConfig);
+    this.aptosClient = new AptosClient(node_url, apiConfig);
     this.tokenClient = new TokenClient(this.aptosClient);
   }
 
@@ -849,20 +849,24 @@ export class WalletClient {
     const elementsFetched = new Set();
     const tokenIds = [];
 
-    const depositEvents = await this.getEventStream(
+    const depositEvents = await this.aptosClient.getEventsByEventHandle(
       address,
       "0x3::token::TokenStore",
       "deposit_events",
-      limit,
-      depositStart
+      {
+        start: depositStart,
+        limit: limit
+      }
     );
 
-    const withdrawEvents = await this.getEventStream(
+    const withdrawEvents = await this.aptosClient.getEventsByEventHandle(
       address,
       "0x3::token::TokenStore",
       "withdraw_events",
-      limit,
-      withdrawStart
+      {
+        start: withdrawStart,
+        limit: limit
+      }
     );
 
     let maxDepositSequenceNumber = -1;
