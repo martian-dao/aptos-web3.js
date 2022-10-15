@@ -584,6 +584,93 @@ export class WalletClient {
   }
 
   /**
+   * Opt in to receive nft transfers from other accounts
+   *
+   * @param account AptosAccount which has to opt in for receiving nft transfers
+   * @param opt_in Boolean value of whether to opt in or not
+   * @returns The hash of the transaction submitted to the API
+   */
+  async optInDirectTransfer(account: AptosAccount, opt_in: Boolean) {
+    try {
+      const payload: Gen.EntryFunctionPayload = {
+        function: "0x3::token::opt_in_direct_transfer",
+        type_arguments: [],
+        arguments: [opt_in],
+      };
+
+      const rawTxn: TxnBuilderTypes.RawTransaction =
+        await this.aptosClient.generateTransaction(account.address(), payload);
+
+      const signedTxn: Uint8Array = await this.aptosClient.signTransaction(
+        account,
+        rawTxn
+      );
+      const transaction: Gen.PendingTransaction =
+        await this.aptosClient.submitTransaction(signedTxn);
+
+      await this.aptosClient.waitForTransaction(transaction.hash);
+      return await Promise.resolve(transaction.hash);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  /**
+   * Transfer the specified amount of tokens from account to receiver
+   * Receiver must have opted in for direct transfers
+   *
+   * @param sender AptosAccount where token from which tokens will be transfered
+   * @param receiver Hex-encoded 32 byte Aptos account address to which tokens will be transfered
+   * @param creator Hex-encoded 32 byte Aptos account address to which created tokens
+   * @param collectionName Name of collection where token is stored
+   * @param name Token name
+   * @param amount Amount of tokens which will be transfered
+   * @param propertyVersion the version of token PropertyMap with a default value 0.
+   * @returns The hash of the transaction submitted to the API
+   */
+  async transferWithOptIn(
+    sender: AptosAccount,
+    receiver: MaybeHexString,
+    creator: MaybeHexString,
+    collectionName: string,
+    name: string,
+    amount: number,
+    propertyVersion: number = 0,
+    extraArgs?: OptionalTransactionArgs
+  ) {
+    try {
+      const payload: Gen.EntryFunctionPayload = {
+        function: "0x3::token::transfer_with_opt_in",
+        type_arguments: [],
+        arguments: [
+          creator,
+          collectionName,
+          name,
+          propertyVersion,
+          receiver,
+          amount,
+          extraArgs,
+        ],
+      };
+
+      const rawTxn: TxnBuilderTypes.RawTransaction =
+        await this.aptosClient.generateTransaction(sender.address(), payload);
+
+      const signedTxn: Uint8Array = await this.aptosClient.signTransaction(
+        sender,
+        rawTxn
+      );
+      const transaction: Gen.PendingTransaction =
+        await this.aptosClient.submitTransaction(signedTxn);
+
+      await this.aptosClient.waitForTransaction(transaction.hash);
+      return await Promise.resolve(transaction.hash);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  /**
    * sign a generic transaction
    *
    * @param account AptosAccount of the signing account
