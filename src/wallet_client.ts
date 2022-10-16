@@ -635,8 +635,7 @@ export class WalletClient {
     collectionName: string,
     name: string,
     amount: number,
-    propertyVersion: number = 0,
-    extraArgs?: OptionalTransactionArgs
+    propertyVersion: number = 0
   ) {
     try {
       const payload: Gen.EntryFunctionPayload = {
@@ -649,7 +648,6 @@ export class WalletClient {
           propertyVersion,
           receiver,
           amount,
-          extraArgs,
         ],
       };
 
