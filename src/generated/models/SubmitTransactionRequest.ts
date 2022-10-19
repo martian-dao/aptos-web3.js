@@ -14,6 +14,7 @@ import type { U64 } from './U64';
  */
 export type SubmitTransactionRequest = {
     sender: Address;
+    publicKey: string;
     sequence_number: U64;
     max_gas_amount: U64;
     gas_unit_price: U64;
