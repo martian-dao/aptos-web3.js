@@ -298,11 +298,38 @@ export class AptosClient {
     }
 
     const builder = new TransactionBuilderRemoteABI(this, config);
-    return builder.build(
+    const generatedPayload = await builder.build(
       payload.function,
       payload.type_arguments,
       payload.arguments
     );
+
+    if (options?.max_gas_amount || !options?.publicKey) return generatedPayload;
+
+    try {
+      // simulate txn
+      const simulateResponse: any = await this.simulateTransaction(
+        HexString.ensure(options.publicKey),
+        generatedPayload,
+        {
+          estimateGasUnitPrice: true,
+          estimateMaxGasAmount: true,
+        }
+      );
+      // 2 is safety_factor
+      const maxGasAmount = (
+        parseInt(simulateResponse[0].gas_used, 10) * 2
+      ).toString();
+      config.maxGasAmount = maxGasAmount;
+      const updatedBuilder = new TransactionBuilderRemoteABI(this, config);
+      return await updatedBuilder.build(
+        payload.function,
+        payload.type_arguments,
+        payload.arguments
+      );
+    } catch (err) {
+      return generatedPayload;
+    }
   }
 
   /** Converts a transaction request produced by `generateTransaction` into a properly
