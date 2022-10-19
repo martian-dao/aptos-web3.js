@@ -794,7 +794,7 @@ export class WalletClient {
       return (
         currentBalance -
         parseInt(change[0]["data"].data["coin"].value, 10) -
-        parseInt(txnData.gas_used, 10)
+        parseInt(txnData.gas_used, 10) * parseInt(txnData.gas_unit_price, 10)
       ).toString();
     }
 
