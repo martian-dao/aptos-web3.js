@@ -318,7 +318,7 @@ export class AptosClient {
       );
       // 2 is safety_factor
       const maxGasAmount = (
-        parseInt(simulateResponse[0].gas_used, 10) * 2
+        Math.min(parseInt(simulateResponse[0].gas_used, 10) * 2, parseInt(simulateResponse[0].max_gas_amount, 10))
       ).toString();
       config.maxGasAmount = maxGasAmount;
       const updatedBuilder = new TransactionBuilderRemoteABI(this, config);
