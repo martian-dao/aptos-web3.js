@@ -76,5 +76,5 @@
     "@noble/hashes": "1.1.2",
     "form-data": "4.0.0"
   },
-  "version": "1.2.13"
+  "version": "1.2.14"
 }
