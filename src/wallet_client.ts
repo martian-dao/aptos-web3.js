@@ -759,7 +759,10 @@ export class WalletClient {
       HexString.ensure(accountPublicKey),
       transaction
     );
-    return simulateResponse[0].gas_used;
+    return (
+      parseInt(simulateResponse[0].gas_used, 10) *
+      parseInt(simulateResponse[0].gas_unit_price, 10)
+    ).toString();
   }
 
   async estimateCost(
@@ -794,7 +797,7 @@ export class WalletClient {
       return (
         currentBalance -
         parseInt(change[0]["data"].data["coin"].value, 10) -
-        parseInt(txnData.gas_used, 10)
+        parseInt(txnData.gas_used, 10) * parseInt(txnData.gas_unit_price, 10)
       ).toString();
     }
 
