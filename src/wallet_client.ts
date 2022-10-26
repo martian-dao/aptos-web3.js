@@ -18,7 +18,7 @@ import * as Gen from "./generated/index";
 import { AnyNumber } from "./bcs";
 
 const COIN_TYPE = 637;
-const MAX_ACCOUNTS = 5;
+const MAX_ACCOUNTS = 20;
 const ADDRESS_GAP = 10;
 const coinTransferFunction = "0x1::aptos_account::transfer";
 
