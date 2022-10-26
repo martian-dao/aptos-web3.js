@@ -785,7 +785,8 @@ export class WalletClient {
       if (
         write.data.type ===
           "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>" &&
-        write.address === accountAddress.toString()
+        (write.address === accountAddress.toString() ||
+          write.address === HexString.ensure(accountAddress).toShortString())
       ) {
         return true;
       }
