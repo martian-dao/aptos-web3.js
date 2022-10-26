@@ -113,7 +113,7 @@ export class WalletClient {
         derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0'/${j}'`;
         const account = AptosAccount.fromDerivePath(derivationPath, code);
         if (j === 0) {
-          address = HexString.ensure(account.address()).toShortString();
+          address = HexString.ensure(account.address()).toString();
           publicKey = account.pubKey().toString();
 
           const response = await fetch(
@@ -181,7 +181,7 @@ export class WalletClient {
     }
     const derivationPath = `m/44'/${COIN_TYPE}'/${index}'/0'/0'`;
     const account = AptosAccount.fromDerivePath(derivationPath, code);
-    const address = HexString.ensure(account.address()).toShortString();
+    const address = HexString.ensure(account.address()).toString();
     return {
       derivationPath,
       address,
