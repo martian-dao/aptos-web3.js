@@ -35,10 +35,10 @@ test("verify create wallet", async () => {
     alice.code,
     alice.accounts[0]
   );
-  await apis.airdrop(aliceAccount.address().toShortString(), 0);
+  await apis.airdrop(aliceAccount.address().toString(), 0);
   const getAccount = await apis.aptosClient.getAccount(aliceAccount.address());
-  expect(HexString.ensure(getAccount.authentication_key).toShortString()).toBe(
-    aliceAccount.address().toShortString()
+  expect(HexString.ensure(getAccount.authentication_key).toString()).toBe(
+    aliceAccount.address().toString()
   );
 });
 
@@ -49,8 +49,8 @@ test("verify getAccountFromMnemonic", async () => {
     alice.accounts[0]
   );
   const aliceAccount2 = await WalletClient.getAccountFromMnemonic(alice.code);
-  expect(aliceAccount1.address().toShortString()).toEqual(
-    aliceAccount2.address().toShortString()
+  expect(aliceAccount1.address().toString()).toEqual(
+    aliceAccount2.address().toString()
   );
 });
 
@@ -67,10 +67,10 @@ test("verify import random wallet", async () => {
     alice.code,
     alice.accounts[0]
   );
-  await apis.airdrop(aliceAccount.address().toShortString(), 0);
+  await apis.airdrop(aliceAccount.address().toString(), 0);
   const getAccount = await apis.aptosClient.getAccount(aliceAccount.address());
-  expect(HexString.ensure(getAccount.authentication_key).toShortString()).toBe(
-    aliceAccount.address().toShortString()
+  expect(HexString.ensure(getAccount.authentication_key).toString()).toBe(
+    aliceAccount.address().toString()
   );
 });
 
@@ -426,7 +426,7 @@ test("verify get transaction serialized", async () => {
     alice.code,
     alice.accounts[0]
   );
-  await apis.airdrop(aliceAccount.address().toShortString(), 0);
+  await apis.airdrop(aliceAccount.address().toString(), 0);
   const sender = aliceAccount.address();
   const payload = {
     function: "0x1::aptos_account::transfer",
