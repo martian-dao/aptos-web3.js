@@ -765,6 +765,24 @@ export class WalletClient {
     ).toString();
   }
 
+  async getTransactionChanges(
+    accountPublicKey: MaybeHexString,
+    transaction: TxnBuilderTypes.RawTransaction
+  ): Promise<Object> {
+    const simulateResponse: any = await this.aptosClient.simulateTransaction(
+      HexString.ensure(accountPublicKey),
+      transaction
+    );
+
+    const txnData = simulateResponse[0];
+    return {
+      changes: txnData.changes,
+      events: txnData.events,
+      gas:
+        parseInt(txnData.gas_used, 10) * parseInt(txnData.gas_unit_price, 10),
+    };
+  }
+
   async estimateCost(
     accountAddress: MaybeHexString,
     accountPublicKey: MaybeHexString,
@@ -1434,7 +1452,7 @@ export class WalletClient {
       address,
       `0x1::coin::CoinStore<${coin_type_path}>`
     );
-    return Number(coinInfo.data.coin.value);
+    return Number(coinInfo ? coinInfo.data.coin.value : 0);
   }
 
   /**
