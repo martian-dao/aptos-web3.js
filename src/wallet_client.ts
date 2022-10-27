@@ -780,6 +780,7 @@ export class WalletClient {
       events: txnData.events,
       gas:
         parseInt(txnData.gas_used, 10) * parseInt(txnData.gas_unit_price, 10),
+      payload: txnData.payload,
     };
   }
 
