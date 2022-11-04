@@ -1,1 +1,0 @@
-{"version":3,"file":"$GasEstimation.js","sourceRoot":"","sources":["../../../src/generated/schemas/$GasEstimation.ts"],"names":[],"mappings":";;;AAAA,0BAA0B;AAC1B,oBAAoB;AACpB,oBAAoB;AACP,QAAA,cAAc,GAAG;IAC1B,WAAW,EAAE,oDAAoD;IACjE,UAAU,EAAE;QACR,YAAY,EAAE;YACV,IAAI,EAAE,QAAQ;YACd,WAAW,EAAE,6CAA6C;YAC1D,UAAU,EAAE,IAAI;YAChB,MAAM,EAAE,QAAQ;SACnB;KACJ;CACK,CAAC"}
