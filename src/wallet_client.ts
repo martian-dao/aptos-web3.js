@@ -591,24 +591,28 @@ export class WalletClient {
    * @returns The hash of the transaction submitted to the API
    */
   async optInDirectTransfer(account: AptosAccount, opt_in: Boolean) {
-    const payload: Gen.EntryFunctionPayload = {
-      function: "0x3::token::opt_in_direct_transfer",
-      type_arguments: [],
-      arguments: [opt_in],
-    };
+    try {
+      const payload: Gen.EntryFunctionPayload = {
+        function: "0x3::token::opt_in_direct_transfer",
+        type_arguments: [],
+        arguments: [opt_in],
+      };
 
-    const rawTxn: TxnBuilderTypes.RawTransaction =
-      await this.aptosClient.generateTransaction(account.address(), payload);
+      const rawTxn: TxnBuilderTypes.RawTransaction =
+        await this.aptosClient.generateTransaction(account.address(), payload);
 
-    const signedTxn: Uint8Array = await this.aptosClient.signTransaction(
-      account,
-      rawTxn
-    );
-    const transaction: Gen.PendingTransaction =
-      await this.aptosClient.submitTransaction(signedTxn);
+      const signedTxn: Uint8Array = await this.aptosClient.signTransaction(
+        account,
+        rawTxn
+      );
+      const transaction: Gen.PendingTransaction =
+        await this.aptosClient.submitTransaction(signedTxn);
 
-    await this.aptosClient.waitForTransaction(transaction.hash);
-    return Promise.resolve(transaction.hash);
+      await this.aptosClient.waitForTransaction(transaction.hash);
+      return Promise.resolve(transaction.hash);
+    } catch (err) {
+      return Promise.reject(err);
+    }
   }
 
   /**
