@@ -609,7 +609,7 @@ export class WalletClient {
         await this.aptosClient.submitTransaction(signedTxn);
 
       await this.aptosClient.waitForTransaction(transaction.hash);
-      return Promise.resolve(transaction.hash);
+      return await Promise.resolve(transaction.hash);
     } catch (err) {
       return Promise.reject(err);
     }

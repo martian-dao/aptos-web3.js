@@ -1,0 +1,1 @@
+{"version":3,"file":"TableItemRequest.d.ts","sourceRoot":"","sources":["../../../src/generated/models/TableItemRequest.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,QAAQ,EAAE,MAAM,YAAY,CAAC;AAE3C;;GAEG;AACH,oBAAY,gBAAgB,GAAG;IAC3B,QAAQ,EAAE,QAAQ,CAAC;IACnB,UAAU,EAAE,QAAQ,CAAC;IACrB;;OAEG;IACH,GAAG,EAAE,GAAG,CAAC;CACZ,CAAC"}
