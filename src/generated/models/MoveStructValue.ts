@@ -45,5 +45,6 @@
      *
      */
     export type MoveStructValue = {
+      direct_transfer?: any;
     };
 

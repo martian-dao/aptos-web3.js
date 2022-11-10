@@ -944,6 +944,27 @@ export class WalletClient {
   }
 
   /**
+   *
+   * @param address address of the desired account
+   * @returns {boolean} true if user registered for direct transfer else false
+   */
+  async getTokenDirectTransferStatus(address: string) {
+    try {
+      const accountResources = await this.aptosClient.getAccountResources(
+        address
+      );
+      const tokenStore = accountResources.filter(
+        (value) => value.type === "0x3::token::TokenStore"
+      );
+      if (!tokenStore || tokenStore.length === 0) return false;
+      return tokenStore[0].data.direct_transfer;
+    } catch (err) {
+      // incase of account which is not registered in the blockchain
+      return false;
+    }
+  }
+
+  /**
    * returns a list of token IDs of the tokens in a user's account
    * (including the tokens that were minted)
    *
