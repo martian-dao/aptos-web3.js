@@ -4,7 +4,11 @@ import * as english from "@scure/bip39/wordlists/english";
 import { WalletClient } from "./wallet_client";
 import { BCS } from ".";
 import { HexString } from "./hex_string";
-import { NODE_URL, FAUCET_URL } from "./utils/test_helper.test";
+import {
+  NODE_URL,
+  FAUCET_URL,
+  MAINNET_NODE_URL,
+} from "./utils/test_helper.test";
 
 const apis = new WalletClient(NODE_URL, FAUCET_URL);
 
@@ -497,3 +501,15 @@ test("should be able to create multiple accounts in a wallet", async () => {
 
   expect(await apis.getBalance(alice.accounts[2].address)).toBe(100);
 }, 300000);
+
+test("verify direct transfer status", async () => {
+  const mainnetClient = new WalletClient(MAINNET_NODE_URL, FAUCET_URL);
+
+  let address =
+    "0x7570a9606fbfe1dc82eb0a2688c2328a382f36756a5cffc3eee71247d401044c";
+  expect(await mainnetClient.getTokenDirectTransferStatus(address)).toBe(true);
+
+  address =
+    "0xda61174c40ee80d6a3b1fc649a2451db22b1b6d9cb11c963cd43c116909bb2c1";
+  expect(await mainnetClient.getTokenDirectTransferStatus(address)).toBe(false);
+});

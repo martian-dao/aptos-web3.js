@@ -3,6 +3,7 @@ export const FAUCET_URL = process.env.APTOS_FAUCET_URL || "https://faucet.devnet
 
 export const TESTNET_NODE_URL = "https://fullnode.testnet.aptoslabs.com";
 export const TESTNET_FAUCET_URL = "https://faucet.testnet.aptoslabs.com";
+export const MAINNET_NODE_URL = "https://fullnode.mainnet.aptoslabs.com";
 
 test("noop", () => {
   // All TS files are compiled by default into the npm package
