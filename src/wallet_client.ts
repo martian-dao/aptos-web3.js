@@ -965,6 +965,20 @@ export class WalletClient {
   }
 
   /**
+   * returns the account resources of type "0x3::token::TokenStore"
+   *
+   * @param address address of the desired account
+   * @returns tokenStore Resources
+   */
+  async getTokenStoreResources(address: string) {
+    const tokenStoreResources = await this.aptosClient.getAccountResource(
+      address,
+      "0x3::token::TokenStore"
+    );
+    return tokenStoreResources;
+  }
+
+  /**
    * returns a list of token IDs of the tokens in a user's account
    * (including the tokens that were minted)
    *
@@ -1166,7 +1180,29 @@ export class WalletClient {
       tableItemRequest
     );
     token.collection = tokenId.token_data_id.collection;
+
     return token;
+  }
+
+  async getTokenProperties(tokenId: TokenId, address: string) {
+    const resources: Gen.MoveResource[] =
+      await this.aptosClient.getAccountResources(address);
+    const accountResource: any = resources.find(
+      (r) => r.type === "0x3::token::TokenStore"
+    );
+
+    const tableItemRequestForPropertiesData: Gen.TableItemRequest = {
+      key_type: "0x3::token::TokenId",
+      value_type: "0x3::token::Token",
+      key: tokenId,
+    };
+
+    const tokenPropertiesData = await this.aptosClient.getTableItem(
+      accountResource.data.tokens.handle,
+      tableItemRequestForPropertiesData
+    );
+
+    return tokenPropertiesData;
   }
 
   /**
