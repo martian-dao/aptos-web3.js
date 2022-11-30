@@ -1566,15 +1566,4 @@ export class WalletClient {
     );
     return txnHash;
   }
-
-  /**
-   * Wait for a transaction to be successful on chain after submitting
-   * @param txnHash transaction hash
-   * @return transaction data after success
-   */
-  async waitForTransaction(txnHash: string) {
-    await this.aptosClient.waitForTransaction(txnHash);
-    const resp = await this.aptosClient.getTransactionByHash(txnHash);
-    return resp;
-  }
 }
