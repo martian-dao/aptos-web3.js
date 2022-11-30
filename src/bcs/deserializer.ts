@@ -4,6 +4,7 @@
 /* eslint-disable no-bitwise */
 import { MAX_U32_NUMBER } from "./consts";
 import { Bytes, Uint128, Uint16, Uint32, Uint64, Uint8 } from "./types";
+import {TextDecoder} from '@polkadot/x-textdecoder';
 
 export class Deserializer {
   private buffer: ArrayBuffer;

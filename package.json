@@ -39,6 +39,8 @@
     "@types/tiny-secp256k1": "^2.0.1",
     "@typescript-eslint/eslint-plugin": "^5.25.0",
     "@typescript-eslint/parser": "^5.25.0",
+    "assert": "^2.0.0",
+    "dotenv": "16.0.2",
     "eslint": "^8.20.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
@@ -48,19 +50,20 @@
     "jest": "^27.5.1",
     "lint-staged": "^13.0.3",
     "node-fetch": "^2.6.7",
+    "openapi-typescript-codegen": "https://github.com/aptos-labs/openapi-typescript-codegen/releases/download/v0.23.0-p4/openapi-typescript-codegen-v0.23.0-p4.tgz",
     "prettier": "^2.7.1",
     "ts-jest": "^27.1.5",
     "ts-loader": "^9.3.0",
     "ts-node": "^10.8.0",
+    "tsup": "6.2.3",
     "typedoc": "^0.23.9",
     "typedoc-plugin-markdown": "^3.13.4",
-    "typescript": "^4.6.4",
-    "dotenv": "16.0.2",
-    "openapi-typescript-codegen": "https://github.com/aptos-labs/openapi-typescript-codegen/releases/download/v0.23.0-p4/openapi-typescript-codegen-v0.23.0-p4.tgz",
-    "tsup": "6.2.3"
+    "typescript": "^4.6.4"
   },
   "dependencies": {
     "@microsoft/eslint-formatter-sarif": "^2.1.7",
+    "@noble/hashes": "1.1.2",
+    "@polkadot/x-textdecoder": "^10.1.13",
     "@scure/bip32": "^1.0.1",
     "@scure/bip39": "^1.0.0",
     "axios": "^0.26.1",
@@ -68,13 +71,12 @@
     "buffer": "^6.0.3",
     "cross-fetch": "^3.1.5",
     "ed25519-hd-key": "^1.3.0",
+    "form-data": "4.0.0",
     "js-sha3": "^0.8.0",
     "node-cache": "^5.1.2",
     "pre-commit": "^1.2.2",
     "tweetnacl": "^1.0.3",
-    "typescript-memoize": "^1.1.0",
-    "@noble/hashes": "1.1.2",
-    "form-data": "4.0.0"
+    "typescript-memoize": "^1.1.0"
   },
   "version": "1.2.21"
 }

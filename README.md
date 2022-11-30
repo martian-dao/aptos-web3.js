@@ -6,11 +6,17 @@ web3.js library for Aptos
 
 @martiandao/aptos-web3-bip44.js is an npm module which allows developers to communicate with the Aptos core code. This module is built on top of [Typescript SDK of Aptos](https://github.com/aptos-labs/aptos-core/tree/main/ecosystem/typescript/sdk).
 
+⚠️ Note: This library is still under development
 # Import
 
 ```
-npm i @martiandao/aptos-web3-bip44.js.js
+npm i @martiandao/aptos-web3-bip44.js
 ```
+or
+```
+yarn add @martiandao/aptos-web3-bip44.js
+```
+
 Checkout the [documents page](https://github.com/martian-dao/aptos-web3.js/blob/main/docs/classes/WalletClient.md) for the function definitions.
 
 # Usage Example Wallet
