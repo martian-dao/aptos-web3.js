@@ -1,7 +1,7 @@
 import { Buffer } from "buffer/";
 import * as bip39 from "@scure/bip39";
 import * as english from "@scure/bip39/wordlists/english";
-import fetch from "cross-fetch";
+import fetch from "isomorphic-fetch";
 import assert from "assert";
 import { TxnBuilderTypes } from "./transaction_builder";
 import { AptosAccount } from "./aptos_account";
