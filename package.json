@@ -60,8 +60,8 @@
   },
   "dependencies": {
     "@microsoft/eslint-formatter-sarif": "^2.1.7",
-    "@scure/bip32": "^1.0.1",
-    "@scure/bip39": "^1.0.0",
+    "@scure/bip32": "1.0.1",
+    "@scure/bip39": "1.0.0",
     "axios": "^0.26.1",
     "brfs": "^2.0.2",
     "buffer": "^6.0.3",
@@ -76,5 +76,5 @@
     "form-data": "4.0.0",
     "isomorphic-fetch": "^3.0.0"
   },
-  "version": "1.2.22"
+  "version": "1.2.23"
 }
