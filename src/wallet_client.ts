@@ -105,45 +105,30 @@ export class WalletClient {
 
     const accountMetaData: AccountMetaData[] = [];
     for (let i = 0; i < MAX_ACCOUNTS; i += 1) {
-      address = "";
-      publicKey = "";
-      derivationPath = "";
-      authKey = "";
-      for (let j = 0; j < ADDRESS_GAP; j += 1) {
-        /* eslint-disable no-await-in-loop */
-        derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0'/${j}'`;
-        const account = AptosAccount.fromDerivePath(derivationPath, code);
-        if (j === 0) {
-          address = HexString.ensure(account.address()).toString();
-          publicKey = account.pubKey().toString();
+      // create derivation path
+      derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0'/0'`;
+      
+      // get account from derivation path
+      const account = AptosAccount.fromDerivePath(derivationPath, code);
+      
+      // assign address and publicKey
+      address = HexString.ensure(account.address()).toString();
+      publicKey = account.pubKey().toString();
 
-          const response = await fetch(
-            `${this.aptosClient.nodeUrl}/accounts/${address}`,
-            {
-              method: "GET",
-            }
-          );
-          if (response.status === 404) {
-            // if the very first account is not present in the aptos, it will add this to metadata
-            if (i === 0) {
-              // create new account if it is not present
-              await this.createNewAccount(code);
-            }
-            break;
-          } else {
-            accountsInBc.push(i);
-          }
-          const respBody = await response.json();
-          authKey = respBody.authentication_key;
+      // check if account is present in configured network or not
+      const response = await fetch(
+        `${this.aptosClient.nodeUrl}/accounts/${address}`,
+        {
+          method: "GET",
         }
-        if (
-          account.authKey().toShortString() === authKey ||
-          account.authKey().toString() === authKey
-        ) {
-          break;
-        }
-        /* eslint-enable no-await-in-loop */
+      );
+
+      // if not present add account id in list
+      if (response.status !== 404) {
+        accountsInBc.push(i);
       }
+
+      // push all account in account metadata object
       accountMetaData.push({
         derivationPath,
         address,
@@ -151,9 +136,14 @@ export class WalletClient {
       });
     }
 
-    if (accountsInBc.length === 0) return { code, accounts: accountMetaData };
+    // if no account is present in blockchain, return 1st account
+    if (accountsInBc.length === 0 && accountMetaData.length > 0)
+      return { code, accounts: [accountMetaData[0]] };
+
+    // find max of ids
     const maxAccountIdInBc = Math.max(...accountsInBc);
 
+    // return accounts till max id
     return { code, accounts: accountMetaData.slice(0, maxAccountIdInBc + 1) };
   }
 
