@@ -19,7 +19,6 @@ import { AnyNumber } from "./bcs";
 
 const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 20;
-const ADDRESS_GAP = 10;
 const coinTransferFunction = "0x1::aptos_account::transfer";
 const nftTransferFunction =
   "0x424abce72523e9c02898d3c8eaf9a632f22b7c92ccce2568c4ea47a5c43dfce7::token::transfer_with_opt_in";
@@ -100,7 +99,6 @@ export class WalletClient {
     let address = "";
     let publicKey = "";
     let derivationPath = "";
-    let authKey = "";
     const accountsInBc = [];
 
     const accountMetaData: AccountMetaData[] = [];
