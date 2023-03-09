@@ -97,15 +97,14 @@ export class WalletClient {
    * @returns Wallet object containing all accounts of a user
    */
   async importWallet(code: string): Promise<Wallet> {
-    let flag = false;
     let address = "";
     let publicKey = "";
     let derivationPath = "";
     let authKey = "";
+    const accountsInBc = [];
 
     const accountMetaData: AccountMetaData[] = [];
     for (let i = 0; i < MAX_ACCOUNTS; i += 1) {
-      flag = false;
       address = "";
       publicKey = "";
       derivationPath = "";
@@ -127,11 +126,12 @@ export class WalletClient {
           if (response.status === 404) {
             // if the very first account is not present in the aptos, it will add this to metadata
             if (i === 0) {
-              flag = true;
               // create new account if it is not present
               await this.createNewAccount(code);
             }
             break;
+          } else {
+            accountsInBc.push(i);
           }
           const respBody = await response.json();
           authKey = respBody.authentication_key;
@@ -140,13 +140,9 @@ export class WalletClient {
           account.authKey().toShortString() === authKey ||
           account.authKey().toString() === authKey
         ) {
-          flag = true;
           break;
         }
         /* eslint-enable no-await-in-loop */
-      }
-      if (!flag) {
-        break;
       }
       accountMetaData.push({
         derivationPath,
@@ -154,7 +150,11 @@ export class WalletClient {
         publicKey,
       });
     }
-    return { code, accounts: accountMetaData };
+
+    if (accountsInBc.length === 0) return { code, accounts: accountMetaData };
+    const maxAccountIdInBc = Math.max(...accountsInBc);
+
+    return { code, accounts: accountMetaData.slice(0, maxAccountIdInBc + 1) };
   }
 
   /**
