@@ -105,15 +105,16 @@ export class WalletClient {
     for (let i = 0; i < MAX_ACCOUNTS; i += 1) {
       // create derivation path
       derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0'/0'`;
-      
+
       // get account from derivation path
       const account = AptosAccount.fromDerivePath(derivationPath, code);
-      
+
       // assign address and publicKey
       address = HexString.ensure(account.address()).toString();
       publicKey = account.pubKey().toString();
 
       // check if account is present in configured network or not
+      /* eslint-disable no-await-in-loop */
       const response = await fetch(
         `${this.aptosClient.nodeUrl}/accounts/${address}`,
         {
