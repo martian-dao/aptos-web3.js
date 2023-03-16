@@ -76,5 +76,5 @@
     "form-data": "4.0.0",
     "isomorphic-fetch": "^3.0.0"
   },
-  "version": "1.2.24"
+  "version": "1.2.25"
 }
