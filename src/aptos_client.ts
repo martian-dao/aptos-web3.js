@@ -321,6 +321,7 @@ export class AptosClient {
         Math.min(parseInt(simulateResponse[0].gas_used, 10) * 2, parseInt(simulateResponse[0].max_gas_amount, 10))
       ).toString();
       config.maxGasAmount = maxGasAmount;
+      config.gasUnitPrice = simulateResponse[0].gas_unit_price;
       const updatedBuilder = new TransactionBuilderRemoteABI(this, config);
       return await updatedBuilder.build(
         payload.function,
