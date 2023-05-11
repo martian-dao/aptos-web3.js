@@ -1,0 +1,1 @@
+{"version":3,"file":"TransactionPayload_MultisigPayload.d.ts","sourceRoot":"","sources":["../../../src/generated/models/TransactionPayload_MultisigPayload.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,mBAAmB,CAAC;AAEzD,MAAM,MAAM,kCAAkC,GAAG,CAAC;IAC9C,IAAI,EAAE,MAAM,CAAC;CAChB,GAAG,eAAe,CAAC,CAAC"}

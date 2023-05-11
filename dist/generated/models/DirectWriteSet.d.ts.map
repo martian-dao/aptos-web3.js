@@ -1,0 +1,1 @@
+{"version":3,"file":"DirectWriteSet.d.ts","sourceRoot":"","sources":["../../../src/generated/models/DirectWriteSet.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,KAAK,EAAE,MAAM,SAAS,CAAC;AACrC,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,kBAAkB,CAAC;AAEvD,MAAM,MAAM,cAAc,GAAG;IACzB,OAAO,EAAE,KAAK,CAAC,cAAc,CAAC,CAAC;IAC/B,MAAM,EAAE,KAAK,CAAC,KAAK,CAAC,CAAC;CACxB,CAAC"}

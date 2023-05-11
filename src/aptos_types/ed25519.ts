@@ -1,4 +1,4 @@
-// Copyright (c) Aptos
+// Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 import { Bytes, Deserializer, Serializer } from "../bcs";
@@ -13,6 +13,10 @@ export class Ed25519PublicKey {
       throw new Error(`Ed25519PublicKey length should be ${Ed25519PublicKey.LENGTH}`);
     }
     this.value = value;
+  }
+
+  toBytes(): Bytes {
+    return this.value;
   }
 
   serialize(serializer: Serializer): void {

@@ -4,7 +4,7 @@
 import axios from 'axios';
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import FormData from 'form-data';
-const fetchAdapter = require("./fetch-adapter")
+
 import { ApiError } from './ApiError';
 import type { ApiRequestOptions } from './ApiRequestOptions';
 import type { ApiResult } from './ApiResult';
@@ -309,7 +309,6 @@ const sendRequest = async <T>(
         method: options.method,
         withCredentials: config.WITH_CREDENTIALS,
         cancelToken: source.token,
-        adapter: fetchAdapter
     };
 
     const isBCS = Object.keys(config.HEADERS || {})
@@ -356,6 +355,7 @@ const catchErrorCodes = (options: ApiRequestOptions, result: ApiResult): void =>
         401: 'Unauthorized',
         403: 'Forbidden',
         404: 'Not Found',
+        429: 'Too Many Requests',
         500: 'Internal Server Error',
         502: 'Bad Gateway',
         503: 'Service Unavailable',
@@ -402,7 +402,14 @@ export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions): C
 
                 catchErrorCodes(options, result);
 
-                resolve(result.body);
+                // Attach the response headers to the output. This is a hack to fix
+                // https://github.com/ferdikoomen/openapi-typescript-codegen/issues/1295
+                const out = result.body;
+                try {
+                    out["__headers"] = response.headers;
+                } catch (_) {}
+
+                resolve(out);
             }
         } catch (error) {
             reject(error);

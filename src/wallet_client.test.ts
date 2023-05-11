@@ -3,7 +3,7 @@ import * as bip39 from "@scure/bip39";
 import * as english from "@scure/bip39/wordlists/english";
 import { WalletClient } from "./wallet_client";
 import { BCS } from ".";
-import { HexString } from "./hex_string";
+import { HexString } from "./utils";
 import {
   NODE_URL,
   FAUCET_URL,

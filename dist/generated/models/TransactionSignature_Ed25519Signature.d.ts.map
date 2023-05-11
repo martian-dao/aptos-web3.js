@@ -1,0 +1,1 @@
+{"version":3,"file":"TransactionSignature_Ed25519Signature.d.ts","sourceRoot":"","sources":["../../../src/generated/models/TransactionSignature_Ed25519Signature.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,gBAAgB,EAAE,MAAM,oBAAoB,CAAC;AAE3D,MAAM,MAAM,qCAAqC,GAAG,CAAC;IACjD,IAAI,EAAE,MAAM,CAAC;CAChB,GAAG,gBAAgB,CAAC,CAAC"}

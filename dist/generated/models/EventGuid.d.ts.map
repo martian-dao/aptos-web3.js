@@ -1,0 +1,1 @@
+{"version":3,"file":"EventGuid.d.ts","sourceRoot":"","sources":["../../../src/generated/models/EventGuid.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,OAAO,EAAE,MAAM,WAAW,CAAC;AACzC,OAAO,KAAK,EAAE,GAAG,EAAE,MAAM,OAAO,CAAC;AAEjC,MAAM,MAAM,SAAS,GAAG;IACpB,eAAe,EAAE,GAAG,CAAC;IACrB,eAAe,EAAE,OAAO,CAAC;CAC5B,CAAC"}
