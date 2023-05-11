@@ -18,7 +18,6 @@ import { AnyNumber } from "./bcs";
 
 const COIN_TYPE = 637;
 const MAX_ACCOUNTS = 20;
-const ADDRESS_GAP = 10;
 const coinTransferFunction = "0x1::aptos_account::transfer";
 const nftTransferFunction =
   "0x424abce72523e9c02898d3c8eaf9a632f22b7c92ccce2568c4ea47a5c43dfce7::token::transfer_with_opt_in";
@@ -96,64 +95,54 @@ export class WalletClient {
    * @returns Wallet object containing all accounts of a user
    */
   async importWallet(code: string): Promise<Wallet> {
-    let flag = false;
     let address = "";
     let publicKey = "";
     let derivationPath = "";
-    let authKey = "";
+    const accountsInBc = [];
 
     const accountMetaData: AccountMetaData[] = [];
     for (let i = 0; i < MAX_ACCOUNTS; i += 1) {
-      flag = false;
-      address = "";
-      publicKey = "";
-      derivationPath = "";
-      authKey = "";
-      for (let j = 0; j < ADDRESS_GAP; j += 1) {
-        /* eslint-disable no-await-in-loop */
-        derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0'/${j}'`;
-        const account = AptosAccount.fromDerivePath(derivationPath, code);
-        if (j === 0) {
-          address = HexString.ensure(account.address()).toString();
-          publicKey = account.pubKey().toString();
+      // create derivation path
+      derivationPath = `m/44'/${COIN_TYPE}'/${i}'/0'/0'`;
 
-          const response = await fetch(
-            `${this.aptosClient.nodeUrl}/accounts/${address}`,
-            {
-              method: "GET",
-            }
-          );
-          if (response.status === 404) {
-            // if the very first account is not present in the aptos, it will add this to metadata
-            if (i === 0) {
-              flag = true;
-              // create new account if it is not present
-              await this.createNewAccount(code);
-            }
-            break;
-          }
-          const respBody = await response.json();
-          authKey = respBody.authentication_key;
+      // get account from derivation path
+      const account = AptosAccount.fromDerivePath(derivationPath, code);
+
+      // assign address and publicKey
+      address = HexString.ensure(account.address()).toString();
+      publicKey = account.pubKey().toString();
+
+      // check if account is present in configured network or not
+      /* eslint-disable no-await-in-loop */
+      const response = await fetch(
+        `${this.aptosClient.nodeUrl}/accounts/${address}`,
+        {
+          method: "GET",
         }
-        if (
-          account.authKey().toShortString() === authKey ||
-          account.authKey().toString() === authKey
-        ) {
-          flag = true;
-          break;
-        }
-        /* eslint-enable no-await-in-loop */
+      );
+
+      // if not present add account id in list
+      if (response.status !== 404) {
+        accountsInBc.push(i);
       }
-      if (!flag) {
-        break;
-      }
+
+      // push all account in account metadata object
       accountMetaData.push({
         derivationPath,
         address,
         publicKey,
       });
     }
-    return { code, accounts: accountMetaData };
+
+    // if no account is present in blockchain, return 1st account
+    if (accountsInBc.length === 0 && accountMetaData.length > 0)
+      return { code, accounts: [accountMetaData[0]] };
+
+    // find max of ids
+    const maxAccountIdInBc = Math.max(...accountsInBc);
+
+    // return accounts till max id
+    return { code, accounts: accountMetaData.slice(0, maxAccountIdInBc + 1) };
   }
 
   /**
