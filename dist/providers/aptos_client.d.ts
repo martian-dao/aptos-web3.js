@@ -196,7 +196,7 @@ export declare class AptosClient {
      * @returns The BCS encoded signed transaction, which you should then provide
      *
      */
-    simulateTransaction(accountOrPubkey: AptosAccount | Ed25519PublicKey | MultiEd25519PublicKey, rawTransaction: TxnBuilderTypes.RawTransaction, query?: {
+    simulateTransaction(accountOrPubkey: AptosAccount | Ed25519PublicKey | MultiEd25519PublicKey | MaybeHexString, rawTransaction: TxnBuilderTypes.RawTransaction, query?: {
         estimateGasUnitPrice?: boolean;
         estimateMaxGasAmount?: boolean;
         estimatePrioritizedGasUnitPrice: boolean;

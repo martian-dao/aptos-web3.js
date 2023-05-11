@@ -23,8 +23,8 @@ function fixNodeUrl(nodeUrl) {
 exports.fixNodeUrl = fixNodeUrl;
 exports.DEFAULT_MAX_GAS_AMOUNT = 200000;
 // Transaction expire timestamp
-exports.DEFAULT_TXN_EXP_SEC_FROM_NOW = 20;
+exports.DEFAULT_TXN_EXP_SEC_FROM_NOW = 60;
 // How long does SDK wait for txhn to finish
-exports.DEFAULT_TXN_TIMEOUT_SEC = 20;
+exports.DEFAULT_TXN_TIMEOUT_SEC = 60;
 exports.APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 //# sourceMappingURL=misc.js.map

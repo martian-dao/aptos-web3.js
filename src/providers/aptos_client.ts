@@ -423,7 +423,11 @@ export class AptosClient {
    *
    */
   async simulateTransaction(
-    accountOrPubkey: AptosAccount | Ed25519PublicKey | MultiEd25519PublicKey,
+    accountOrPubkey:
+      | AptosAccount
+      | Ed25519PublicKey
+      | MultiEd25519PublicKey
+      | MaybeHexString,
     rawTransaction: TxnBuilderTypes.RawTransaction,
     query?: {
       estimateGasUnitPrice?: boolean;
@@ -454,12 +458,18 @@ export class AptosClient {
       }, accountOrPubkey);
 
       signedTxn = txnBuilder.sign(rawTransaction);
-    } else {
+    } else if (accountOrPubkey instanceof Ed25519PublicKey) {
       const txnBuilder = new TransactionBuilderEd25519(() => {
         const invalidSigBytes = new Uint8Array(64);
         return new TxnBuilderTypes.Ed25519Signature(invalidSigBytes);
       }, accountOrPubkey.toBytes());
 
+      signedTxn = txnBuilder.sign(rawTransaction);
+    } else {
+      const txnBuilder = new TransactionBuilderEd25519(() => {
+        const invalidSigBytes = new Uint8Array(64);
+        return new TxnBuilderTypes.Ed25519Signature(invalidSigBytes);
+      }, HexString.ensure(accountOrPubkey).toUint8Array());
       signedTxn = txnBuilder.sign(rawTransaction);
     }
     return this.submitBCSSimulation(signedTxn, query);

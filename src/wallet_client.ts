@@ -742,7 +742,7 @@ export class WalletClient {
     transaction: TxnBuilderTypes.RawTransaction
   ): Promise<string> {
     const simulateResponse: any = await this.aptosClient.simulateTransaction(
-      HexString.ensure(accountPublicKey) as any,
+      accountPublicKey,
       transaction
     );
     return (
@@ -756,7 +756,7 @@ export class WalletClient {
     transaction: TxnBuilderTypes.RawTransaction
   ): Promise<Object> {
     const simulateResponse: any = await this.aptosClient.simulateTransaction(
-      HexString.ensure(accountPublicKey) as any,
+      accountPublicKey,
       transaction
     );
 
@@ -778,7 +778,7 @@ export class WalletClient {
     transaction: TxnBuilderTypes.RawTransaction
   ): Promise<string> {
     const simulateResponse: any = await this.aptosClient.simulateTransaction(
-      HexString.ensure(accountPublicKey) as any,
+      accountPublicKey,
       transaction
     );
 

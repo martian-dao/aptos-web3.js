@@ -319,11 +319,18 @@ class AptosClient {
             }, accountOrPubkey);
             signedTxn = txnBuilder.sign(rawTransaction);
         }
-        else {
+        else if (accountOrPubkey instanceof aptos_types_1.Ed25519PublicKey) {
             const txnBuilder = new transaction_builder_1.TransactionBuilderEd25519(() => {
                 const invalidSigBytes = new Uint8Array(64);
                 return new transaction_builder_1.TxnBuilderTypes.Ed25519Signature(invalidSigBytes);
             }, accountOrPubkey.toBytes());
+            signedTxn = txnBuilder.sign(rawTransaction);
+        }
+        else {
+            const txnBuilder = new transaction_builder_1.TransactionBuilderEd25519(() => {
+                const invalidSigBytes = new Uint8Array(64);
+                return new transaction_builder_1.TxnBuilderTypes.Ed25519Signature(invalidSigBytes);
+            }, utils_1.HexString.ensure(accountOrPubkey).toUint8Array());
             signedTxn = txnBuilder.sign(rawTransaction);
         }
         return this.submitBCSSimulation(signedTxn, query);
