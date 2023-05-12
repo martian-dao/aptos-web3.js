@@ -1,1 +1,0 @@
-{"version":3,"file":"$RawTableItemRequest.js","sourceRoot":"","sources":["../../../src/generated/schemas/$RawTableItemRequest.ts"],"names":[],"mappings":";;;AAAA,0BAA0B;AAC1B,oBAAoB;AACpB,oBAAoB;AACP,QAAA,oBAAoB,GAAG;IAChC,WAAW,EAAE,gDAAgD;IAC7D,UAAU,EAAE;QACR,GAAG,EAAE;YACD,IAAI,EAAE,iBAAiB;YACvB,UAAU,EAAE,IAAI;SACnB;KACJ;CACK,CAAC"}

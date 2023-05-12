@@ -1,1 +1,0 @@
-{"version":3,"file":"ModuleBundlePayload.d.ts","sourceRoot":"","sources":["../../../src/generated/models/ModuleBundlePayload.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,sBAAsB,CAAC;AAE/D,MAAM,MAAM,mBAAmB,GAAG;IAC9B,OAAO,EAAE,KAAK,CAAC,kBAAkB,CAAC,CAAC;CACtC,CAAC"}

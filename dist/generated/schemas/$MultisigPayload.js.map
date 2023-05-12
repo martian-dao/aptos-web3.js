@@ -1,1 +1,0 @@
-{"version":3,"file":"$MultisigPayload.js","sourceRoot":"","sources":["../../../src/generated/schemas/$MultisigPayload.ts"],"names":[],"mappings":";;;AAAA,0BAA0B;AAC1B,oBAAoB;AACpB,oBAAoB;AACP,QAAA,gBAAgB,GAAG;IAC5B,WAAW,EAAE;yCACwB;IACrC,UAAU,EAAE;QACR,gBAAgB,EAAE;YACd,IAAI,EAAE,SAAS;YACf,UAAU,EAAE,IAAI;SACnB;QACD,mBAAmB,EAAE;YACjB,IAAI,EAAE,4BAA4B;SACrC;KACJ;CACK,CAAC"}
