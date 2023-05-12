@@ -295,6 +295,12 @@ export class AptosClient {
     options?: Partial<Gen.SubmitTransactionRequest>
   ): Promise<TxnBuilderTypes.RawTransaction> {
     const config: RemoteABIBuilderConfig = { sender };
+
+    // for multisig transaction
+    if (options?.sender) {
+      config.sender = options.sender;
+    }
+
     if (options?.sequence_number) {
       config.sequenceNumber = options.sequence_number;
     }
@@ -313,11 +319,41 @@ export class AptosClient {
     }
 
     const builder = new TransactionBuilderRemoteABI(this, config);
-    return builder.build(
+    const generatedPayload = await builder.build(
       payload.function,
       payload.type_arguments,
       payload.arguments
     );
+
+    if (options?.max_gas_amount || !options?.publicKey) return generatedPayload;
+
+    try {
+      // simulate txn
+      const simulateResponse: any = await this.simulateTransaction(
+        HexString.ensure(options.publicKey),
+        generatedPayload,
+        {
+          estimateGasUnitPrice: true,
+          estimateMaxGasAmount: true,
+          estimatePrioritizedGasUnitPrice: false,
+        }
+      );
+      // 2 is safety_factor
+      const maxGasAmount = Math.min(
+        parseInt(simulateResponse[0].gas_used, 10) * 2,
+        parseInt(simulateResponse[0].max_gas_amount, 10)
+      ).toString();
+      config.maxGasAmount = maxGasAmount;
+      config.gasUnitPrice = simulateResponse[0].gas_unit_price;
+      const updatedBuilder = new TransactionBuilderRemoteABI(this, config);
+      return await updatedBuilder.build(
+        payload.function,
+        payload.type_arguments,
+        payload.arguments
+      );
+    } catch (err) {
+      return generatedPayload;
+    }
   }
 
   /** Converts a transaction request produced by `generateTransaction` into a properly
