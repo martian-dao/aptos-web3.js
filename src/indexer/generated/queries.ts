@@ -1,8 +1,47 @@
-import { GraphQLClient } from "graphql-request";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import * as Dom from "graphql-request/src/types.dom";
 import * as Types from "./operations";
 
+import { GraphQLClient } from "graphql-request";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import * as Dom from "graphql-request/dist/types.dom";
+export const CurrentTokenOwnershipFieldsFragmentDoc = `
+    fragment CurrentTokenOwnershipFields on current_token_ownerships_v2 {
+  token_standard
+  is_fungible_v2
+  is_soulbound_v2
+  property_version_v1
+  table_type_v1
+  token_properties_mutated_v1
+  amount
+  last_transaction_timestamp
+  last_transaction_version
+  storage_id
+  owner_address
+  current_token_data {
+    token_name
+    token_data_id
+    token_uri
+    token_properties
+    supply
+    maximum
+    last_transaction_version
+    last_transaction_timestamp
+    largest_property_version_v1
+    current_collection {
+      collection_name
+      creator_address
+      description
+      uri
+      collection_id
+      last_transaction_version
+      current_supply
+      mutable_description
+      total_minted_v2
+      table_handle_v1
+      mutable_uri
+    }
+  }
+}
+    `;
 export const TokenDataFieldsFragmentDoc = `
     fragment TokenDataFields on current_token_datas {
   creator_address
@@ -99,6 +138,43 @@ export const GetAccountTransactionsData = `
   }
 }
     `;
+export const GetCollectionData = `
+    query getCollectionData($where_condition: current_collections_v2_bool_exp!, $offset: Int, $limit: Int) {
+  current_collections_v2(where: $where_condition, offset: $offset, limit: $limit) {
+    collection_id
+    token_standard
+    collection_name
+    creator_address
+    current_supply
+    description
+    uri
+  }
+}
+    `;
+export const GetCollectionsWithOwnedTokens = `
+    query getCollectionsWithOwnedTokens($where_condition: current_collection_ownership_v2_view_bool_exp!, $offset: Int, $limit: Int) {
+  current_collection_ownership_v2_view(
+    where: $where_condition
+    order_by: {last_transaction_version: desc}
+    offset: $offset
+    limit: $limit
+  ) {
+    current_collection {
+      creator_address
+      collection_name
+      token_standard
+      collection_id
+      description
+      table_handle_v1
+      uri
+      total_minted_v2
+      max_supply
+    }
+    distinct_tokens
+    last_transaction_version
+  }
+}
+    `;
 export const GetDelegatedStakingActivities = `
     query getDelegatedStakingActivities($delegatorAddress: String, $poolAddress: String) {
   delegated_staking_activities(
@@ -130,6 +206,17 @@ export const GetNumberOfDelegators = `
   }
 }
     `;
+export const GetOwnedTokens = `
+    query getOwnedTokens($where_condition: current_token_ownerships_v2_bool_exp!, $offset: Int, $limit: Int) {
+  current_token_ownerships_v2(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+  ) {
+    ...CurrentTokenOwnershipFields
+  }
+}
+    ${CurrentTokenOwnershipFieldsFragmentDoc}`;
 export const GetTokenActivities = `
     query getTokenActivities($idHash: String!, $offset: Int, $limit: Int) {
   token_activities(
@@ -181,6 +268,17 @@ export const GetTokenData = `
   }
 }
     `;
+export const GetTokenOwnedFromCollection = `
+    query getTokenOwnedFromCollection($where_condition: current_token_ownerships_v2_bool_exp!, $offset: Int, $limit: Int) {
+  current_token_ownerships_v2(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+  ) {
+    ...CurrentTokenOwnershipFields
+  }
+}
+    ${CurrentTokenOwnershipFieldsFragmentDoc}`;
 export const GetTokenOwnersData = `
     query getTokenOwnersData($token_id: String, $property_version: numeric) {
   current_token_ownerships(
@@ -218,9 +316,7 @@ export type SdkFunctionWrapper = <T>(
 
 const defaultWrapper: SdkFunctionWrapper = (
   action,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _operationName,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _operationType
 ) => action();
 
@@ -304,6 +400,36 @@ export function getSdk(
         "query"
       );
     },
+    getCollectionData(
+      variables: Types.GetCollectionDataQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"]
+    ): Promise<Types.GetCollectionDataQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetCollectionDataQuery>(
+            GetCollectionData,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders }
+          ),
+        "getCollectionData",
+        "query"
+      );
+    },
+    getCollectionsWithOwnedTokens(
+      variables: Types.GetCollectionsWithOwnedTokensQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"]
+    ): Promise<Types.GetCollectionsWithOwnedTokensQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetCollectionsWithOwnedTokensQuery>(
+            GetCollectionsWithOwnedTokens,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders }
+          ),
+        "getCollectionsWithOwnedTokens",
+        "query"
+      );
+    },
     getDelegatedStakingActivities(
       variables?: Types.GetDelegatedStakingActivitiesQueryVariables,
       requestHeaders?: Dom.RequestInit["headers"]
@@ -349,6 +475,20 @@ export function getSdk(
         "query"
       );
     },
+    getOwnedTokens(
+      variables: Types.GetOwnedTokensQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"]
+    ): Promise<Types.GetOwnedTokensQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetOwnedTokensQuery>(GetOwnedTokens, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getOwnedTokens",
+        "query"
+      );
+    },
     getTokenActivities(
       variables: Types.GetTokenActivitiesQueryVariables,
       requestHeaders?: Dom.RequestInit["headers"]
@@ -390,6 +530,21 @@ export function getSdk(
             ...wrappedRequestHeaders,
           }),
         "getTokenData",
+        "query"
+      );
+    },
+    getTokenOwnedFromCollection(
+      variables: Types.GetTokenOwnedFromCollectionQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"]
+    ): Promise<Types.GetTokenOwnedFromCollectionQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetTokenOwnedFromCollectionQuery>(
+            GetTokenOwnedFromCollection,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders }
+          ),
+        "getTokenOwnedFromCollection",
         "query"
       );
     },

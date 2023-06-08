@@ -13,6 +13,7 @@ import {
   Memoize,
   sleep,
   APTOS_COIN,
+  CUSTOM_REQUEST_HEADER,
 } from "../utils";
 import { AptosAccount } from "../account/aptos_account";
 import * as Gen from "../generated/index";
@@ -34,7 +35,11 @@ import {
   Uint64,
   AnyNumber,
 } from "../bcs";
-import { Ed25519PublicKey, MultiEd25519PublicKey } from "../aptos_types";
+import {
+  Ed25519PublicKey,
+  MultiEd25519PublicKey,
+  RawTransaction,
+} from "../aptos_types";
 
 export interface OptionalTransactionArgs {
   maxGasAmount?: Uint64;
@@ -89,6 +94,7 @@ export class AptosClient {
     } else {
       conf.WITH_CREDENTIALS = true;
     }
+    conf.HEADERS = { ...conf.HEADERS, ...CUSTOM_REQUEST_HEADER };
     this.client = new Gen.AptosGeneratedClient(conf);
   }
 
@@ -315,6 +321,7 @@ export class AptosClient {
 
     if (options?.expiration_timestamp_secs) {
       const timestamp = BigInt(parseInt(options.expiration_timestamp_secs, 10));
+      // @ts-ignore
       config.expTimestampSec = timestamp;
       config.expSecFromNow = 0;
     }
@@ -859,6 +866,22 @@ export class AptosClient {
     const pendingTransaction = await this.submitSignedBCSTransaction(bcsTxn);
     return pendingTransaction.hash;
     // <:!:generateSignSubmitTransactionInner
+  }
+
+  /**
+   * Helper for signing and submitting a transaction.
+   *
+   * @param sender AptosAccount of transaction sender.
+   * @param transaction A generated Raw transaction payload.
+   * @returns The transaction response from the API.
+   */
+  async signAndSubmitTransaction(
+    sender: AptosAccount,
+    transaction: RawTransaction
+  ): Promise<string> {
+    const bcsTxn = AptosClient.generateBCSTransaction(sender, transaction);
+    const pendingTransaction = await this.submitSignedBCSTransaction(bcsTxn);
+    return pendingTransaction.hash;
   }
 
   /**
