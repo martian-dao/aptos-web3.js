@@ -314,8 +314,9 @@ export class AptosClient {
     }
 
     if (options?.expiration_timestamp_secs) {
-      const timestamp = Number.parseInt(options.expiration_timestamp_secs, 10);
-      config.expSecFromNow = timestamp - Math.floor(Date.now() / 1000);
+      const timestamp = BigInt(parseInt(options.expiration_timestamp_secs, 10));
+      config.expTimestampSec = timestamp;
+      config.expSecFromNow = 0;
     }
 
     const builder = new TransactionBuilderRemoteABI(this, config);
