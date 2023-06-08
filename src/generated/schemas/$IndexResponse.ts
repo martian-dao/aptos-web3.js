@@ -3,7 +3,7 @@
 /* eslint-disable */
 export const $IndexResponse = {
     description: `The struct holding all data returned to the client by the
-    index endpoint (i.e., GET "/").`,
+    index endpoint (i.e., GET "/").  Only for responding in JSON`,
     properties: {
         chain_id: {
             type: 'number',
@@ -38,6 +38,11 @@ export const $IndexResponse = {
         block_height: {
             type: 'U64',
             isRequired: true,
+        },
+        git_hash: {
+            type: 'string',
+            description: `Git hash of the build of the API endpoint.  Can be used to determine the exact
+            software version used by the API endpoint.`,
         },
     },
 } as const;

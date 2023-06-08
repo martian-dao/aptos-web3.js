@@ -4,11 +4,10 @@ import * as english from "@scure/bip39/wordlists/english";
 import fetch from "isomorphic-fetch";
 import assert from "assert";
 import { TxnBuilderTypes } from "./transaction_builder";
-import { AptosAccount } from "./aptos_account";
-import { TokenClient } from "./token_client";
-import { AptosClient, OptionalTransactionArgs } from "./aptos_client";
-import { FaucetClient } from "./faucet_client";
-import { HexString, MaybeHexString } from "./hex_string";
+import { AptosAccount } from "./account";
+import { TokenClient, FaucetClient } from "./plugins";
+import { AptosClient, OptionalTransactionArgs } from "./providers";
+import { HexString, MaybeHexString } from "./utils";
 import { RawTransaction } from "./aptos_types";
 import cache from "./utils/cache";
 import { WriteResource } from "./generated/index";
@@ -257,11 +256,7 @@ export class WalletClient {
    * @returns
    */
   static getAccountFromMetaData(code: string, metaData: AccountMetaData) {
-    return AptosAccount.fromDerivePath(
-      metaData.derivationPath,
-      code,
-      metaData.address
-    );
+    return AptosAccount.fromDerivePath(metaData.derivationPath, code);
   }
 
   /**
@@ -747,7 +742,7 @@ export class WalletClient {
     transaction: TxnBuilderTypes.RawTransaction
   ): Promise<string> {
     const simulateResponse: any = await this.aptosClient.simulateTransaction(
-      HexString.ensure(accountPublicKey),
+      accountPublicKey,
       transaction
     );
     return (
@@ -761,7 +756,7 @@ export class WalletClient {
     transaction: TxnBuilderTypes.RawTransaction
   ): Promise<Object> {
     const simulateResponse: any = await this.aptosClient.simulateTransaction(
-      HexString.ensure(accountPublicKey),
+      accountPublicKey,
       transaction
     );
 
@@ -783,7 +778,7 @@ export class WalletClient {
     transaction: TxnBuilderTypes.RawTransaction
   ): Promise<string> {
     const simulateResponse: any = await this.aptosClient.simulateTransaction(
-      HexString.ensure(accountPublicKey),
+      accountPublicKey,
       transaction
     );
 
@@ -832,9 +827,7 @@ export class WalletClient {
     account: AptosAccount,
     rawTxn: RawTransaction
   ): Promise<Uint8Array> {
-    return Promise.resolve(
-      AptosClient.generateBCSSimulation(account.pubKey(), rawTxn)
-    );
+    return Promise.resolve(AptosClient.generateBCSSimulation(account, rawTxn));
   }
 
   async submitSignedBCSTransaction(
@@ -946,7 +939,8 @@ export class WalletClient {
         (value) => value.type === "0x3::token::TokenStore"
       );
       if (!tokenStore || tokenStore.length === 0) return false;
-      return tokenStore[0].data.direct_transfer;
+      const { data }: any = tokenStore[0];
+      return data.direct_transfer;
     } catch (err) {
       // incase of account which is not registered in the blockchain
       return false;
