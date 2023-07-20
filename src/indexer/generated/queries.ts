@@ -250,6 +250,13 @@ export const GetTokenActivitiesCount = `
   }
 }
     `;
+export const GetTokenCurrentOwnerData = `
+    query getTokenCurrentOwnerData($where_condition: current_token_ownerships_v2_bool_exp!) {
+  current_token_ownerships_v2(where: $where_condition) {
+    owner_address
+  }
+}
+    `;
 export const GetTokenData = `
     query getTokenData($where_condition: current_token_datas_v2_bool_exp) {
   current_token_datas_v2(where: $where_condition) {
@@ -286,10 +293,8 @@ export const GetTokenOwnedFromCollection = `
 }
     ${CurrentTokenOwnershipFieldsFragmentDoc}`;
 export const GetTokenOwnersData = `
-    query getTokenOwnersData($token_id: String, $property_version: numeric) {
-  current_token_ownerships(
-    where: {token_data_id_hash: {_eq: $token_id}, property_version: {_eq: $property_version}}
-  ) {
+    query getTokenOwnersData($where_condition: current_token_ownerships_v2_bool_exp!) {
+  current_token_ownerships_v2(where: $where_condition) {
     owner_address
   }
 }
@@ -525,6 +530,21 @@ export function getSdk(
         "query"
       );
     },
+    getTokenCurrentOwnerData(
+      variables: Types.GetTokenCurrentOwnerDataQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"]
+    ): Promise<Types.GetTokenCurrentOwnerDataQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetTokenCurrentOwnerDataQuery>(
+            GetTokenCurrentOwnerData,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders }
+          ),
+        "getTokenCurrentOwnerData",
+        "query"
+      );
+    },
     getTokenData(
       variables?: Types.GetTokenDataQueryVariables,
       requestHeaders?: Dom.RequestInit["headers"]
@@ -555,7 +575,7 @@ export function getSdk(
       );
     },
     getTokenOwnersData(
-      variables?: Types.GetTokenOwnersDataQueryVariables,
+      variables: Types.GetTokenOwnersDataQueryVariables,
       requestHeaders?: Dom.RequestInit["headers"]
     ): Promise<Types.GetTokenOwnersDataQuery> {
       return withWrapper(
