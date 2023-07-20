@@ -13,7 +13,6 @@ import {
   Memoize,
   sleep,
   APTOS_COIN,
-  CUSTOM_REQUEST_HEADER,
 } from "../utils";
 import { AptosAccount } from "../account/aptos_account";
 import * as Gen from "../generated/index";
@@ -40,6 +39,7 @@ import {
   MultiEd25519PublicKey,
   RawTransaction,
 } from "../aptos_types";
+import { get, post, ClientConfig, AptosApiError } from "../client";
 
 export interface OptionalTransactionArgs {
   maxGasAmount?: Uint64;
@@ -57,9 +57,9 @@ interface PaginationArgs {
  * For more detailed API specification see {@link https://fullnode.devnet.aptoslabs.com/v1/spec}
  */
 export class AptosClient {
-  client: Gen.AptosGeneratedClient;
-
   readonly nodeUrl: string;
+
+  readonly config: ClientConfig | undefined;
 
   /**
    * Build a client configured to connect to an Aptos node at the given URL.
@@ -73,29 +73,18 @@ export class AptosClient {
    */
   constructor(
     nodeUrl: string,
-    config?: Partial<Gen.OpenAPIConfig>,
+    config?: ClientConfig,
     doNotFixNodeUrl: boolean = false
   ) {
     if (!nodeUrl) {
       throw new Error("Node URL cannot be empty.");
     }
-    const conf = config === undefined || config === null ? {} : { ...config };
-
     if (doNotFixNodeUrl) {
       this.nodeUrl = nodeUrl;
     } else {
       this.nodeUrl = fixNodeUrl(nodeUrl);
     }
-    conf.BASE = this.nodeUrl;
-
-    // Do not carry cookies when `WITH_CREDENTIALS` is explicitly set to `false`. By default, cookies will be sent
-    if (config?.WITH_CREDENTIALS === false) {
-      conf.WITH_CREDENTIALS = false;
-    } else {
-      conf.WITH_CREDENTIALS = true;
-    }
-    conf.HEADERS = { ...conf.HEADERS, ...CUSTOM_REQUEST_HEADER };
-    this.client = new Gen.AptosGeneratedClient(conf);
+    this.config = config === undefined || config === null ? {} : { ...config };
   }
 
   /**
@@ -112,9 +101,13 @@ export class AptosClient {
    */
   @parseApiError
   async getAccount(accountAddress: MaybeHexString): Promise<Gen.AccountData> {
-    return this.client.accounts.getAccount(
-      HexString.ensure(accountAddress).hex()
-    );
+    const { data } = await get<{}, Gen.AccountData>({
+      url: this.nodeUrl,
+      endpoint: `accounts/${HexString.ensure(accountAddress).hex()}`,
+      originMethod: "getAccount",
+      overrides: { ...this.config },
+    });
+    return data;
   }
 
   /**
@@ -130,11 +123,16 @@ export class AptosClient {
     accountAddress: MaybeHexString,
     query?: PaginationArgs
   ): Promise<Gen.Transaction[]> {
-    return this.client.transactions.getAccountTransactions(
-      HexString.ensure(accountAddress).hex(),
-      query?.start?.toString(),
-      query?.limit
-    );
+    const { data } = await get<{}, Gen.Transaction[]>({
+      url: this.nodeUrl,
+      endpoint: `accounts/${HexString.ensure(
+        accountAddress
+      ).hex()}/transactions`,
+      originMethod: "getAccountTransactions",
+      params: { start: query?.start, limit: query?.limit },
+      overrides: { ...this.config },
+    });
+    return data;
   }
 
   /**
@@ -158,11 +156,13 @@ export class AptosClient {
     // be ambiguous how this is being used. Is it being passed to getAccountModules
     // to limit the number of items per response, or does it limit the total output
     // of this function? We avoid this confusion by not exposing the parameter at all.
-    const f = this.client.accounts.getAccountModules.bind({
-      httpRequest: this.client.request,
+    const out = await paginateWithCursor<{}, Gen.MoveModuleBytecode[]>({
+      url: this.nodeUrl,
+      endpoint: `accounts/${accountAddress}/modules`,
+      params: { ledger_version: query?.ledgerVersion, limit: 1000 },
+      originMethod: "getAccountModules",
+      overrides: { ...this.config },
     });
-    const out = await paginateWithCursor(f, accountAddress, 1000, query);
-    // @ts-ignore
     return out;
   }
 
@@ -185,11 +185,16 @@ export class AptosClient {
     moduleName: string,
     query?: { ledgerVersion?: AnyNumber }
   ): Promise<Gen.MoveModuleBytecode> {
-    return this.client.accounts.getAccountModule(
-      HexString.ensure(accountAddress).hex(),
-      moduleName,
-      query?.ledgerVersion?.toString()
-    );
+    const { data } = await get<{}, Gen.MoveModuleBytecode>({
+      url: this.nodeUrl,
+      endpoint: `accounts/${HexString.ensure(
+        accountAddress
+      ).hex()}/module/${moduleName}`,
+      originMethod: "getAccountModule",
+      params: { ledger_version: query?.ledgerVersion },
+      overrides: { ...this.config },
+    });
+    return data;
   }
 
   /**
@@ -203,11 +208,13 @@ export class AptosClient {
     accountAddress: MaybeHexString,
     query?: { ledgerVersion?: AnyNumber }
   ): Promise<Gen.MoveResource[]> {
-    const f = this.client.accounts.getAccountResources.bind({
-      httpRequest: this.client.request,
+    const out = await paginateWithCursor<{}, Gen.MoveResource[]>({
+      url: this.nodeUrl,
+      endpoint: `accounts/${accountAddress}/resources`,
+      params: { ledger_version: query?.ledgerVersion, limit: 9999 },
+      originMethod: "getAccountResources",
+      overrides: { ...this.config },
     });
-    const out = await paginateWithCursor(f, accountAddress, 9999, query);
-    // @ts-ignore
     return out;
   }
 
@@ -231,11 +238,16 @@ export class AptosClient {
     resourceType: Gen.MoveStructTag,
     query?: { ledgerVersion?: AnyNumber }
   ): Promise<Gen.MoveResource> {
-    return this.client.accounts.getAccountResource(
-      HexString.ensure(accountAddress).hex(),
-      resourceType,
-      query?.ledgerVersion?.toString()
-    );
+    const { data } = await get<{}, Gen.MoveResource>({
+      url: this.nodeUrl,
+      endpoint: `accounts/${HexString.ensure(
+        accountAddress
+      ).hex()}/resource/${resourceType}`,
+      originMethod: "getAccountResource",
+      params: { ledger_version: query?.ledgerVersion },
+      overrides: { ...this.config },
+    });
+    return data;
   }
 
   /** Generates a signed transaction that can be submitted to the chain for execution. */
@@ -397,12 +409,16 @@ export class AptosClient {
     creationNumber: AnyNumber | string,
     query?: PaginationArgs
   ): Promise<Gen.Event[]> {
-    return this.client.events.getEventsByCreationNumber(
-      HexString.ensure(address).hex(),
-      creationNumber.toString(),
-      query?.start?.toString(),
-      query?.limit
-    );
+    const { data } = await get<{}, Gen.Event[]>({
+      url: this.nodeUrl,
+      endpoint: `accounts/${HexString.ensure(
+        address
+      ).hex()}/events/${creationNumber}`,
+      originMethod: "getEventsByCreationNumber",
+      params: { start: query?.start, limit: query?.limit },
+      overrides: { ...this.config },
+    });
+    return data;
   }
 
   /**
@@ -428,13 +444,16 @@ export class AptosClient {
     fieldName: string,
     query?: PaginationArgs
   ): Promise<Gen.Event[]> {
-    return this.client.events.getEventsByEventHandle(
-      HexString.ensure(address).hex(),
-      eventHandleStruct,
-      fieldName,
-      query?.start?.toString(),
-      query?.limit
-    );
+    const { data } = await get<{}, Gen.Event[]>({
+      url: this.nodeUrl,
+      endpoint: `accounts/${HexString.ensure(
+        address
+      ).hex()}/events/${eventHandleStruct}/${fieldName}`,
+      originMethod: "getEventsByEventHandle",
+      params: { start: query?.start, limit: query?.limit },
+      overrides: { ...this.config },
+    });
+    return data;
   }
 
   /**
@@ -530,12 +549,15 @@ export class AptosClient {
     signedTxn: Uint8Array
   ): Promise<Gen.PendingTransaction> {
     // Need to construct a customized post request for transactions in BCS payload
-    return this.client.request.request<Gen.PendingTransaction>({
-      url: "/transactions",
-      method: "POST",
+    const { data } = await post<Uint8Array, Gen.PendingTransaction>({
+      url: this.nodeUrl,
       body: signedTxn,
-      mediaType: "application/x.aptos.signed_transaction+bcs",
+      endpoint: "transactions",
+      originMethod: "submitSignedBCSTransaction",
+      contentType: "application/x.aptos.signed_transaction+bcs",
+      overrides: { ...this.config },
     });
+    return data;
   }
 
   /**
@@ -566,13 +588,16 @@ export class AptosClient {
       estimate_prioritized_gas_unit_price:
         query?.estimatePrioritizedGasUnitPrice ?? false,
     };
-    return this.client.request.request<Gen.UserTransaction[]>({
-      url: "/transactions/simulate",
-      query: queryParams,
-      method: "POST",
+    const { data } = await post<Uint8Array, Gen.UserTransaction[]>({
+      url: this.nodeUrl,
       body: bcsBody,
-      mediaType: "application/x.aptos.signed_transaction+bcs",
+      endpoint: "transactions/simulate",
+      params: queryParams,
+      originMethod: "submitBCSSimulation",
+      contentType: "application/x.aptos.signed_transaction+bcs",
+      overrides: { ...this.config },
     });
+    return data;
   }
 
   /**
@@ -586,10 +611,14 @@ export class AptosClient {
    */
   @parseApiError
   async getTransactions(query?: PaginationArgs): Promise<Gen.Transaction[]> {
-    return this.client.transactions.getTransactions(
-      query?.start?.toString(),
-      query?.limit
-    );
+    const { data } = await get<{}, Gen.Transaction[]>({
+      url: this.nodeUrl,
+      endpoint: "transactions",
+      originMethod: "getTransactions",
+      params: { start: query?.start?.toString(), limit: query?.limit },
+      overrides: { ...this.config },
+    });
+    return data;
   }
 
   /**
@@ -598,7 +627,14 @@ export class AptosClient {
    */
   @parseApiError
   async getTransactionByHash(txnHash: string): Promise<Gen.Transaction> {
-    return this.client.transactions.getTransactionByHash(txnHash);
+    const { data } = await get<{}, Gen.Transaction>({
+      url: this.nodeUrl,
+      endpoint: `transactions/by_hash/${txnHash}`,
+      originMethod: "getTransactionByHash",
+      overrides: { ...this.config },
+    });
+
+    return data;
   }
 
   /**
@@ -610,9 +646,13 @@ export class AptosClient {
   async getTransactionByVersion(
     txnVersion: AnyNumber
   ): Promise<Gen.Transaction> {
-    return this.client.transactions.getTransactionByVersion(
-      txnVersion.toString()
-    );
+    const { data } = await get<{}, Gen.Transaction>({
+      url: this.nodeUrl,
+      endpoint: `transactions/by_version/${txnVersion}`,
+      originMethod: "getTransactionByVersion",
+      overrides: { ...this.config },
+    });
+    return data;
   }
 
   /**
@@ -629,9 +669,7 @@ export class AptosClient {
    */
   async transactionPending(txnHash: string): Promise<boolean> {
     try {
-      const response = await this.client.transactions.getTransactionByHash(
-        txnHash
-      );
+      const response = await this.getTransactionByHash(txnHash);
       return response.type === "pending_transaction";
     } catch (e: any) {
       if (e?.status === 404) {
@@ -688,20 +726,22 @@ export class AptosClient {
     let isPending = true;
     let count = 0;
     let lastTxn: Gen.Transaction | undefined;
+
     while (isPending) {
       if (count >= timeoutSecs) {
         break;
       }
       try {
         // eslint-disable-next-line no-await-in-loop
-        lastTxn = await this.client.transactions.getTransactionByHash(txnHash);
+        lastTxn = await this.getTransactionByHash(txnHash);
+
         isPending = lastTxn.type === "pending_transaction";
         if (!isPending) {
           break;
         }
       } catch (e) {
         // In short, this means we will retry if it was an ApiError and the code was 404 or 5xx.
-        const isApiError = e instanceof Gen.ApiError;
+        const isApiError = e instanceof ApiError;
         const isRequestError =
           isApiError && e.status !== 404 && e.status >= 400 && e.status < 500;
         if (!isApiError || isRequestError) {
@@ -763,7 +803,12 @@ export class AptosClient {
    */
   @parseApiError
   async getLedgerInfo(): Promise<Gen.IndexResponse> {
-    return this.client.general.getLedgerInfo();
+    const { data } = await get<{}, Gen.IndexResponse>({
+      url: this.nodeUrl,
+      originMethod: "getLedgerInfo",
+      overrides: { ...this.config },
+    });
+    return data;
   }
 
   /**
@@ -791,12 +836,15 @@ export class AptosClient {
     data: Gen.TableItemRequest,
     query?: { ledgerVersion?: AnyNumber }
   ): Promise<any> {
-    const tableItem = await this.client.tables.getTableItem(
-      handle,
-      data,
-      query?.ledgerVersion?.toString()
-    );
-    return tableItem;
+    const response = await post<Gen.TableItemRequest, any>({
+      url: this.nodeUrl,
+      body: data,
+      endpoint: `tables/${handle}/item`,
+      originMethod: "getTableItem",
+      params: { ledger_version: query?.ledgerVersion?.toString() },
+      overrides: { ...this.config },
+    });
+    return response.data;
   }
 
   /**
@@ -915,6 +963,44 @@ export class AptosClient {
   }
 
   /**
+   * Publishes a move packages by creating a resource account.
+   * The package cannot be upgraded since it is deployed by resource account
+   * `packageMetadata` and `modules` can be generated with command
+   * `aptos move compile --save-metadata [ --included-artifacts=<...> ]`.
+   * @param sender
+   * @param seed seeds for creation of resource address
+   * @param packageMetadata package metadata bytes
+   * @param modules bytecodes of modules
+   * @param extraArgs
+   * @returns Transaction hash
+   */
+  async createResourceAccountAndPublishPackage(
+    sender: AptosAccount,
+    seed: Bytes,
+    packageMetadata: Bytes,
+    modules: Seq<TxnBuilderTypes.Module>,
+    extraArgs?: OptionalTransactionArgs
+  ): Promise<string> {
+    const codeSerializer = new Serializer();
+    serializeVector(modules, codeSerializer);
+
+    const payload = new TxnBuilderTypes.TransactionPayloadEntryFunction(
+      TxnBuilderTypes.EntryFunction.natural(
+        "0x1::resource_account",
+        "create_resource_account_and_publish_package",
+        [],
+        [
+          bcsSerializeBytes(seed),
+          bcsSerializeBytes(packageMetadata),
+          codeSerializer.getBytes(),
+        ]
+      )
+    );
+
+    return this.generateSignSubmitTransaction(sender, payload, extraArgs);
+  }
+
+  /**
    * Helper for generating, submitting, and waiting for a transaction, and then
    * checking whether it was committed successfully. Under the hood this is just
    * `generateSignSubmitTransaction` and then `waitForTransactionWithResult`, see
@@ -942,7 +1028,13 @@ export class AptosClient {
     tags: ["gas_estimates"],
   })
   async estimateGasPrice(): Promise<Gen.GasEstimation> {
-    return this.client.transactions.estimateGasPrice();
+    const { data } = await get<{}, Gen.GasEstimation>({
+      url: this.nodeUrl,
+      endpoint: "estimate_gas_price",
+      originMethod: "estimateGasPrice",
+      overrides: { ...this.config },
+    });
+    return data;
   }
 
   @parseApiError
@@ -1064,7 +1156,14 @@ export class AptosClient {
     blockHeight: number,
     withTransactions?: boolean
   ): Promise<Gen.Block> {
-    return this.client.blocks.getBlockByHeight(blockHeight, withTransactions);
+    const { data } = await get<{}, Gen.Block>({
+      url: this.nodeUrl,
+      endpoint: `blocks/by_height/${blockHeight}`,
+      originMethod: "getBlockByHeight",
+      params: { with_transactions: withTransactions },
+      overrides: { ...this.config },
+    });
+    return data;
   }
 
   /**
@@ -1080,7 +1179,14 @@ export class AptosClient {
     version: number,
     withTransactions?: boolean
   ): Promise<Gen.Block> {
-    return this.client.blocks.getBlockByVersion(version, withTransactions);
+    const { data } = await get<{}, Gen.Block>({
+      url: this.nodeUrl,
+      endpoint: `blocks/by_version/${version}`,
+      originMethod: "getBlockByVersion",
+      params: { with_transactions: withTransactions },
+      overrides: { ...this.config },
+    });
+    return data;
   }
 
   /**
@@ -1096,7 +1202,15 @@ export class AptosClient {
     payload: Gen.ViewRequest,
     ledger_version?: string
   ): Promise<Gen.MoveValue[]> {
-    return this.client.view.view(payload, ledger_version);
+    const { data } = await post<Gen.ViewRequest, Gen.MoveValue[]>({
+      url: this.nodeUrl,
+      body: payload,
+      endpoint: "view",
+      originMethod: "getTableItem",
+      params: { ledger_version },
+      overrides: { ...this.config },
+    });
+    return data;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -1104,18 +1218,6 @@ export class AptosClient {
     clear(tags);
   }
 }
-
-export class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly message: string,
-    public readonly errorCode?: string,
-    public readonly vmErrorCode?: string
-  ) {
-    super(message);
-  }
-}
-
 /**
  * This error is used by `waitForTransactionWithResult` when waiting for a
  * transaction times out.
@@ -1145,9 +1247,17 @@ export class FailedTransactionError extends Error {
   }
 }
 
-/**
- * Creates a decorator to parse Gen.ApiError and return a wrapped error that is more developer friendly
- */
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly message: string,
+    public readonly errorCode?: string,
+    public readonly vmErrorCode?: string
+  ) {
+    super(message);
+  }
+}
+
 function parseApiError(
   target: unknown,
   propertyKey: string,
@@ -1163,12 +1273,12 @@ function parseApiError(
       const res = await childFunction.apply(this, [...args]);
       return res;
     } catch (e) {
-      if (e instanceof Gen.ApiError) {
+      if (e instanceof AptosApiError) {
         throw new ApiError(
           e.status,
-          JSON.stringify({ message: e.message, ...e.body }),
-          e.body?.error_code,
-          e.body?.vm_error_code
+          JSON.stringify({ message: e.message, ...e.data }),
+          e.data?.error_code,
+          e.data?.vm_error_code
         );
       }
       throw e;
