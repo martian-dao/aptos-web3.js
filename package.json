@@ -42,6 +42,7 @@
     "@types/node": "18.6.2",
     "@types/node-fetch": "^2.6.1",
     "@types/tiny-secp256k1": "^2.0.1",
+    "@types/ws": "^8.5.4",
     "@typescript-eslint/eslint-plugin": "5.36.2",
     "@typescript-eslint/parser": "5.36.2",
     "dotenv": "16.0.2",
