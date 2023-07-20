@@ -1,4 +1,5 @@
 import axios, { AxiosResponse, AxiosRequestConfig, AxiosError } from "axios";
+const fetchAdapter = require("./fetch-adapter");
 import { AnyNumber } from "../bcs/types";
 import { VERSION } from "../version";
 import { AptosApiError, AptosRequest, AptosResponse, ClientConfig } from "./types";
@@ -47,6 +48,7 @@ async function axiosRequest<Request, Response>(
     params,
     data: body,
     withCredentials: overrides?.WITH_CREDENTIALS ?? true,
+    adapter: fetchAdapter,
   };
 
   try {
