@@ -3,7 +3,7 @@ import * as bip39 from "@scure/bip39";
 import * as english from "@scure/bip39/wordlists/english";
 import fetch from "isomorphic-fetch";
 import assert from "assert";
-import { TxnBuilderTypes } from "./transaction_builder";
+import { TxnBuilderTypes, TransactionBuilder } from "./transaction_builder";
 import { AptosAccount } from "./account";
 import { TokenClient, FaucetClient } from "./plugins";
 import { AptosClient, OptionalTransactionArgs } from "./providers";
@@ -682,6 +682,10 @@ export class WalletClient {
     const status = { success: resp.success, vm_status: resp.vm_status };
 
     return { txnHash, ...status };
+  }
+
+  static async getSigningMessage(txnRequest: TxnBuilderTypes.RawTransaction) {
+    return TransactionBuilder.getSigningMessage(txnRequest);
   }
 
   async signAndSubmitTransaction(

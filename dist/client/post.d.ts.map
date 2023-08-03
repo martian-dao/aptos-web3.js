@@ -1,0 +1,1 @@
+{"version":3,"file":"post.d.ts","sourceRoot":"","sources":["../../src/client/post.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,YAAY,EAAE,aAAa,EAAE,MAAM,SAAS,CAAC;AAEtD,oBAAY,kBAAkB,GAAG,IAAI,CAAC,YAAY,EAAE,QAAQ,CAAC,CAAC;AAE9D;;;;;GAKG;AACH,wBAAsB,IAAI,CAAC,GAAG,EAAE,GAAG,EAAE,OAAO,EAAE,kBAAkB,GAAG,OAAO,CAAC,aAAa,CAAC,GAAG,EAAE,GAAG,CAAC,CAAC,CAGlG"}
