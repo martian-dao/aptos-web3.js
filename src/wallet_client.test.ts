@@ -1,8 +1,9 @@
 import * as Nacl from "tweetnacl";
 import * as bip39 from "@scure/bip39";
 import * as english from "@scure/bip39/wordlists/english";
+import { Ed25519, Ed25519KeygenResult } from "@sodot/sodot-node-sdk";
 import { WalletClient } from "./wallet_client";
-import { BCS } from ".";
+import { AptosAccount, BCS, TxnBuilderTypes } from ".";
 import { HexString } from "./utils";
 import {
   NODE_URL,
@@ -10,7 +11,20 @@ import {
   MAINNET_NODE_URL,
 } from "./utils/test_helper.test";
 
+const { Ed25519PublicKey, AuthenticationKey } = TxnBuilderTypes;
+
 const apis = new WalletClient(NODE_URL, FAUCET_URL);
+
+function hexToUint8Array(hexString: string) {
+  const strippedHexString = hexString.replace(/^0x/, "");
+  const byteLength = strippedHexString.length / 2;
+
+  return new Uint8Array(
+      Array.from({ length: byteLength }, (_, i) =>
+      parseInt(strippedHexString.substr(i * 2, 2), 16)
+      )
+  );
+}
 
 /**
  *
@@ -32,6 +46,7 @@ function verifySignature(message, signature, publicKey) {
     publicKeyBuffer
   );
 }
+
 
 test("verify create wallet", async () => {
   const alice = await apis.createWallet();
@@ -513,3 +528,68 @@ test("verify direct transfer status", async () => {
     "0xda61174c40ee80d6a3b1fc649a2451db22b1b6d9cb11c963cd43c116909bb2c1";
   expect(await mainnetClient.getTokenDirectTransferStatus(address)).toBe(false);
 });
+
+
+/**
+ * Test to sign and submit for mpc account
+ */
+
+test("verify sign and submit using mpc account", async () => {
+
+  // first do keygen
+  const keygenRoom = await Ed25519.createKeygenRoom(2)
+  const keygenInitResult1 = await Ed25519.initKeygen();
+  const keygenInitResult2 = await Ed25519.initKeygen();
+  const [keygenResult1, keygenResult2] = await Promise.all([
+    Ed25519.keygen(keygenRoom, 2, 2, keygenInitResult1, [keygenInitResult2.keygenId]),
+    Ed25519.keygen(keygenRoom, 2, 2, keygenInitResult2, [keygenInitResult1.keygenId]),
+  ])
+  
+  // keygenResult1 is the user's keyshare to be used in the sdk
+  const secretKeyArr = hexToUint8Array(keygenResult1.secretShare)
+  const pubKey = new Ed25519PublicKey(keygenResult1.pubkey);
+  const authKey = AuthenticationKey.fromEd25519PublicKey(pubKey);
+  const address = authKey.derivedAddress();
+
+  const account = new AptosAccount(secretKeyArr, address.hex(), true, keygenResult1.pubkey, "abc@gmail.com")
+  const bob = await apis.createWallet();
+
+  const bobAccount = await WalletClient.getAccountFromMetaData(
+    bob.code,
+    bob.accounts[0]
+  );
+  // airdrop to both accounts so as to initialize the tokens
+  await apis.airdrop(address.toString(), 10000000);
+  await apis.airdrop(bobAccount.address().toString(), 1)
+
+  // generate the RawTransaction
+  const txnRequest = await apis.aptosClient.generateTransaction(
+    address.toString(),
+    {
+      function: "0x1::coin::transfer",
+      type_arguments: ["0x1::aptos_coin::AptosCoin"],
+      arguments: [bobAccount.address().toString(), 500],
+    }
+  )
+
+  // get signingmessage
+  const signingMessageImmediate = await WalletClient.getSigningMessage(txnRequest);
+  const keygenResult = new Ed25519KeygenResult(account.signingKey.publicKey, 
+    HexString.fromUint8Array(account.signingKey.secretKey).toString().substring(2))
+
+  // signing and formatting
+  const signingRoom = await Ed25519.createSigningRoom(2);
+  const [signature, ] = await Promise.all([Ed25519.sign(signingRoom, keygenResult, signingMessageImmediate), 
+    Ed25519.sign(signingRoom, keygenResult2, signingMessageImmediate)])
+  const authenticator = new TxnBuilderTypes.TransactionAuthenticatorEd25519(
+    new TxnBuilderTypes.Ed25519PublicKey(keygenResult.pubkey),
+    new TxnBuilderTypes.Ed25519Signature(signature),
+  );
+  const signedTxn = new TxnBuilderTypes.SignedTransaction(txnRequest, authenticator);
+  const bcsTxn = BCS.bcsToBytes(signedTxn);
+  // submitting the signed transaction
+  const transactionRes = await apis.submitSignedBCSTransaction(bcsTxn);
+  await apis.aptosClient.waitForTransactionWithResult(transactionRes.hash);
+  const balanceAfterTransfer = await apis.getBalance(bobAccount.address().toString())
+  expect(balanceAfterTransfer).toBe(501)
+})
