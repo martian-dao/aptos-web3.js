@@ -12,7 +12,6 @@ import {
 } from "./utils/test_helper.test";
 
 const { Ed25519PublicKey, AuthenticationKey } = TxnBuilderTypes;
-
 const apis = new WalletClient(NODE_URL, FAUCET_URL);
 
 function hexToUint8Array(hexString: string) {
@@ -20,9 +19,9 @@ function hexToUint8Array(hexString: string) {
   const byteLength = strippedHexString.length / 2;
 
   return new Uint8Array(
-      Array.from({ length: byteLength }, (_, i) =>
-      parseInt(strippedHexString.substr(i * 2, 2), 16)
-      )
+    Array.from({ length: byteLength }, (_, i) =>
+      parseInt(strippedHexString.substr(i * 2, 2), 16),
+    ),
   );
 }
 
@@ -43,21 +42,20 @@ function verifySignature(message, signature, publicKey) {
   return Nacl.sign.detached.verify(
     new TextEncoder().encode(message),
     signatureBuffer,
-    publicKeyBuffer
+    publicKeyBuffer,
   );
 }
-
 
 test("verify create wallet", async () => {
   const alice = await apis.createWallet();
   const aliceAccount = await WalletClient.getAccountFromMetaData(
     alice.code,
-    alice.accounts[0]
+    alice.accounts[0],
   );
   await apis.airdrop(aliceAccount.address().toString(), 0);
   const getAccount = await apis.aptosClient.getAccount(aliceAccount.address());
   expect(HexString.ensure(getAccount.authentication_key).toString()).toBe(
-    aliceAccount.address().toString()
+    aliceAccount.address().toString(),
   );
 });
 
@@ -65,11 +63,11 @@ test("verify getAccountFromMnemonic", async () => {
   const alice = await apis.createWallet();
   const aliceAccount1 = await WalletClient.getAccountFromMetaData(
     alice.code,
-    alice.accounts[0]
+    alice.accounts[0],
   );
   const aliceAccount2 = await WalletClient.getAccountFromMnemonic(alice.code);
   expect(aliceAccount1.address().toString()).toEqual(
-    aliceAccount2.address().toString()
+    aliceAccount2.address().toString(),
   );
 });
 
@@ -84,12 +82,12 @@ test("verify import random wallet", async () => {
   const alice = await apis.importWallet(code);
   const aliceAccount = await WalletClient.getAccountFromMetaData(
     alice.code,
-    alice.accounts[0]
+    alice.accounts[0],
   );
   await apis.airdrop(aliceAccount.address().toString(), 0);
   const getAccount = await apis.aptosClient.getAccount(aliceAccount.address());
   expect(HexString.ensure(getAccount.authentication_key).toString()).toBe(
-    aliceAccount.address().toString()
+    aliceAccount.address().toString(),
   );
 });
 
@@ -97,7 +95,7 @@ test("verify airdrop", async () => {
   const alice = await apis.createWallet();
   const aliceAccount = await WalletClient.getAccountFromMetaData(
     alice.code,
-    alice.accounts[0]
+    alice.accounts[0],
   );
   await apis.airdrop(aliceAccount.address().toString(), 1234);
   expect(await apis.getBalance(aliceAccount.address())).toBe(1234);
@@ -109,7 +107,7 @@ test(
     const alice = await apis.createWallet();
     const aliceAccount = await WalletClient.getAccountFromMetaData(
       alice.code,
-      alice.accounts[0]
+      alice.accounts[0],
     );
 
     await apis.airdrop(aliceAccount.address().toString(), 10000000);
@@ -117,24 +115,24 @@ test(
 
     const bobAccount = await WalletClient.getAccountFromMetaData(
       bob.code,
-      bob.accounts[0]
+      bob.accounts[0],
     );
     await apis.transfer(aliceAccount, bobAccount.address(), 100000);
     expect(await apis.getBalance(bobAccount.address())).toBe(100000);
   },
-  60 * 1000
+  60 * 1000,
 );
 
 test("verify signMessage", async () => {
   const alice = await apis.createWallet();
   const aliceAccount = await WalletClient.getAccountFromMetaData(
     alice.code,
-    alice.accounts[0]
+    alice.accounts[0],
   );
   const message = "This is a test message";
   const signature = await WalletClient.signMessage(aliceAccount, message);
   expect(
-    verifySignature(message, signature, aliceAccount.pubKey().toString())
+    verifySignature(message, signature, aliceAccount.pubKey().toString()),
   ).toBe(true);
 });
 
@@ -144,7 +142,7 @@ test(
     const alice = await apis.createWallet();
     const aliceAccount = await WalletClient.getAccountFromMetaData(
       alice.code,
-      alice.accounts[0]
+      alice.accounts[0],
     );
 
     await apis.airdrop(aliceAccount.address().toString(), 10000000);
@@ -157,7 +155,7 @@ test(
       aliceAccount,
       collectionName,
       "Alice's simple collection",
-      "https://aptos.dev"
+      "https://aptos.dev",
     );
 
     await apis.createToken(
@@ -166,7 +164,7 @@ test(
       tokenName,
       "Alice's simple token",
       1,
-      "https://aptos.dev/img/nyan.jpeg"
+      "https://aptos.dev/img/nyan.jpeg",
     );
 
     const tokens = (await apis.getTokenIds(aliceAccount.address().toString()))
@@ -177,7 +175,7 @@ test(
     const tokenData = await apis.getToken(token, resourceHandle);
     expect(tokenData.name).toBe(tokenName);
   },
-  60 * 1000
+  60 * 1000,
 );
 
 test(
@@ -186,7 +184,7 @@ test(
     const alice = await apis.createWallet();
     const aliceAccount = await WalletClient.getAccountFromMetaData(
       alice.code,
-      alice.accounts[0]
+      alice.accounts[0],
     );
 
     await apis.airdrop(aliceAccount.address().toString(), 10000000);
@@ -198,7 +196,7 @@ test(
       aliceAccount,
       collectionName,
       "Alice's simple collection",
-      "https://aptos.dev"
+      "https://aptos.dev",
     );
 
     await apis.createToken(
@@ -207,13 +205,13 @@ test(
       tokenName,
       "Alice's simple token",
       1,
-      "https://aptos.dev/img/nyan.jpeg"
+      "https://aptos.dev/img/nyan.jpeg",
     );
 
     const tokens = await apis.getTokens(aliceAccount.address().toString());
     expect(tokens[0].token.name).toBe(tokenName);
   },
-  60 * 1000
+  60 * 1000,
 );
 
 test(
@@ -222,13 +220,13 @@ test(
     const alice = await apis.createWallet();
     const aliceAccount = await WalletClient.getAccountFromMetaData(
       alice.code,
-      alice.accounts[0]
+      alice.accounts[0],
     );
 
     const bob = await apis.createWallet();
     const bobAccount = await WalletClient.getAccountFromMetaData(
       bob.code,
-      bob.accounts[0]
+      bob.accounts[0],
     );
 
     await apis.airdrop(aliceAccount.address().toString(), 10000000);
@@ -242,7 +240,7 @@ test(
       aliceAccount,
       collectionName,
       "Alice's simple collection",
-      "https://aptos.dev"
+      "https://aptos.dev",
     );
 
     await apis.createToken(
@@ -251,7 +249,7 @@ test(
       tokenName,
       "Alice's simple token",
       1,
-      "https://aptos.dev/img/nyan.jpeg"
+      "https://aptos.dev/img/nyan.jpeg",
     );
 
     await apis.offerToken(
@@ -261,7 +259,7 @@ test(
       collectionName,
       tokenName,
       1,
-      0
+      0,
     );
     await apis.claimToken(
       bobAccount,
@@ -269,7 +267,7 @@ test(
       aliceAccount.address().toString(),
       collectionName,
       tokenName,
-      0
+      0,
     );
 
     const aliceTokens = (
@@ -284,7 +282,7 @@ test(
     expect(bobTokens.length).toBe(1);
     expect(bobTokens[0].difference).toBe(1);
   },
-  60 * 1000
+  60 * 1000,
 );
 
 test(
@@ -293,7 +291,7 @@ test(
     const alice = await apis.createWallet();
     const aliceAccount = await WalletClient.getAccountFromMetaData(
       alice.code,
-      alice.accounts[0]
+      alice.accounts[0],
     );
     await apis.airdrop(aliceAccount.address().toString(), 10000000);
 
@@ -343,7 +341,7 @@ test(
     const tokens = await apis.getTokens(aliceAccount.address().toString());
     expect(tokens[0].token.name).toBe(tokenName);
   },
-  60 * 1000
+  60 * 1000,
 );
 
 // test(
@@ -443,7 +441,7 @@ test("verify get transaction serialized", async () => {
   const alice = await apis.createWallet();
   const aliceAccount = await WalletClient.getAccountFromMetaData(
     alice.code,
-    alice.accounts[0]
+    alice.accounts[0],
   );
   await apis.airdrop(aliceAccount.address().toString(), 0);
   const sender = aliceAccount.address();
@@ -455,12 +453,12 @@ test("verify get transaction serialized", async () => {
 
   const originalTxn = await apis.aptosClient.generateTransaction(
     sender,
-    payload
+    payload,
   );
   const serializer = new BCS.Serializer();
   originalTxn.serialize(serializer);
   const deserialized = WalletClient.getTransactionDeserialized(
-    serializer.getBytes()
+    serializer.getBytes(),
   );
   expect(deserialized).toStrictEqual(originalTxn);
 });
@@ -491,7 +489,7 @@ test("should be able to create multiple accounts in a wallet", async () => {
   let alice = await apis.createWallet();
   let aliceAccount = await WalletClient.getAccountFromMetaData(
     alice.code,
-    alice.accounts[0]
+    alice.accounts[0],
   );
 
   const a1 = await apis.createNewAccount(alice.code, 0);
@@ -508,7 +506,7 @@ test("should be able to create multiple accounts in a wallet", async () => {
 
   aliceAccount = await WalletClient.getAccountFromMetaData(
     alice.code,
-    alice.accounts[1]
+    alice.accounts[1],
   );
   await apis.airdrop(aliceAccount.address().toString(), 10000000);
 
@@ -529,38 +527,46 @@ test("verify direct transfer status", async () => {
   expect(await mainnetClient.getTokenDirectTransferStatus(address)).toBe(false);
 });
 
-
 /**
  * Test to sign and submit for mpc account
  */
 
 test("verify sign and submit using mpc account", async () => {
-
   // first do keygen
-  const keygenRoom = await Ed25519.createKeygenRoom(2)
+  const keygenRoom = await Ed25519.createKeygenRoom(2);
   const keygenInitResult1 = await Ed25519.initKeygen();
   const keygenInitResult2 = await Ed25519.initKeygen();
   const [keygenResult1, keygenResult2] = await Promise.all([
-    Ed25519.keygen(keygenRoom, 2, 2, keygenInitResult1, [keygenInitResult2.keygenId]),
-    Ed25519.keygen(keygenRoom, 2, 2, keygenInitResult2, [keygenInitResult1.keygenId]),
-  ])
-  
+    Ed25519.keygen(keygenRoom, 2, 2, keygenInitResult1, [
+      keygenInitResult2.keygenId,
+    ]),
+    Ed25519.keygen(keygenRoom, 2, 2, keygenInitResult2, [
+      keygenInitResult1.keygenId,
+    ]),
+  ]);
+
   // keygenResult1 is the user's keyshare to be used in the sdk
-  const secretKeyArr = hexToUint8Array(keygenResult1.secretShare)
+  const secretKeyArr = hexToUint8Array(keygenResult1.secretShare);
   const pubKey = new Ed25519PublicKey(keygenResult1.pubkey);
   const authKey = AuthenticationKey.fromEd25519PublicKey(pubKey);
   const address = authKey.derivedAddress();
 
-  const account = new AptosAccount(secretKeyArr, address.hex(), true, keygenResult1.pubkey, "abc@gmail.com")
+  const account = new AptosAccount(
+    secretKeyArr,
+    address.hex(),
+    true,
+    keygenResult1.pubkey,
+    "abc@gmail.com",
+  );
   const bob = await apis.createWallet();
 
   const bobAccount = await WalletClient.getAccountFromMetaData(
     bob.code,
-    bob.accounts[0]
+    bob.accounts[0],
   );
   // airdrop to both accounts so as to initialize the tokens
   await apis.airdrop(address.toString(), 10000000);
-  await apis.airdrop(bobAccount.address().toString(), 1)
+  await apis.airdrop(bobAccount.address().toString(), 1);
 
   // generate the RawTransaction
   const txnRequest = await apis.aptosClient.generateTransaction(
@@ -569,27 +575,39 @@ test("verify sign and submit using mpc account", async () => {
       function: "0x1::coin::transfer",
       type_arguments: ["0x1::aptos_coin::AptosCoin"],
       arguments: [bobAccount.address().toString(), 500],
-    }
-  )
+    },
+  );
 
   // get signingmessage
-  const signingMessageImmediate = await WalletClient.getSigningMessage(txnRequest);
-  const keygenResult = new Ed25519KeygenResult(account.signingKey.publicKey, 
-    HexString.fromUint8Array(account.signingKey.secretKey).toString().substring(2))
+  const signingMessageImmediate =
+    await WalletClient.getSigningMessage(txnRequest);
+  const keygenResult = new Ed25519KeygenResult(
+    account.signingKey.publicKey,
+    HexString.fromUint8Array(account.signingKey.secretKey)
+      .toString()
+      .substring(2),
+  );
 
   // signing and formatting
   const signingRoom = await Ed25519.createSigningRoom(2);
-  const [signature, ] = await Promise.all([Ed25519.sign(signingRoom, keygenResult, signingMessageImmediate), 
-    Ed25519.sign(signingRoom, keygenResult2, signingMessageImmediate)])
+  const [signature] = await Promise.all([
+    Ed25519.sign(signingRoom, keygenResult, signingMessageImmediate),
+    Ed25519.sign(signingRoom, keygenResult2, signingMessageImmediate),
+  ]);
   const authenticator = new TxnBuilderTypes.TransactionAuthenticatorEd25519(
     new TxnBuilderTypes.Ed25519PublicKey(keygenResult.pubkey),
     new TxnBuilderTypes.Ed25519Signature(signature),
   );
-  const signedTxn = new TxnBuilderTypes.SignedTransaction(txnRequest, authenticator);
+  const signedTxn = new TxnBuilderTypes.SignedTransaction(
+    txnRequest,
+    authenticator,
+  );
   const bcsTxn = BCS.bcsToBytes(signedTxn);
   // submitting the signed transaction
   const transactionRes = await apis.submitSignedBCSTransaction(bcsTxn);
   await apis.aptosClient.waitForTransactionWithResult(transactionRes.hash);
-  const balanceAfterTransfer = await apis.getBalance(bobAccount.address().toString())
-  expect(balanceAfterTransfer).toBe(501)
-})
+  const balanceAfterTransfer = await apis.getBalance(
+    bobAccount.address().toString(),
+  );
+  expect(balanceAfterTransfer).toBe(501);
+});
