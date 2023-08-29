@@ -76,15 +76,15 @@ export class AptosAccount {
    * @param address Account address (e.g. 0xe8012714cd17606cee7188a2a365eef3fe760be598750678c8c5954eb548a591).
    * If not specified, a new one will be generated from public key
    */
-  constructor(privateKeyBytes?: Uint8Array | undefined, address?: MaybeHexString, mpc?: boolean, pubKey?: Uint8Array, email?: string|undefined) {
-    if(mpc) {
+  constructor(privateKeyBytes?: Uint8Array | undefined, address?: MaybeHexString, mpc?: boolean, pubKey?: Uint8Array, email?: string | undefined) {
+    if (mpc) {
       this.mpc = mpc;
       this.signingKey = {
         publicKey: pubKey,
         secretKey: privateKeyBytes//will be the mpc user keyshare
       } as nacl.SignKeyPair;
       this.email = email;
-    }else {
+    } else {
       if (privateKeyBytes) {
         this.mpc = false;
         this.signingKey = nacl.sign.keyPair.fromSeed(privateKeyBytes.slice(0, 32));
