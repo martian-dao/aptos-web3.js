@@ -1,0 +1,1 @@
+{"version":3,"file":"MultisigPayload.d.ts","sourceRoot":"","sources":["../../../src/generated/models/MultisigPayload.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,OAAO,EAAE,MAAM,WAAW,CAAC;AACzC,OAAO,KAAK,EAAE,0BAA0B,EAAE,MAAM,8BAA8B,CAAC;AAE/E;;;GAGG;AACH,oBAAY,eAAe,GAAG;IAC1B,gBAAgB,EAAE,OAAO,CAAC;IAC1B,mBAAmB,CAAC,EAAE,0BAA0B,CAAC;CACpD,CAAC"}

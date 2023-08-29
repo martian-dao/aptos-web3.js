@@ -1,0 +1,1 @@
+{"version":3,"file":"get.js","sourceRoot":"","sources":["../../src/client/get.ts"],"names":[],"mappings":";;;AAAA,iCAAsC;AAKtC;;;;;GAKG;AACI,KAAK,UAAU,GAAG,CAAW,OAA0B;IAC5D,MAAM,QAAQ,GAA4B,MAAM,IAAA,mBAAY,EAAW,EAAE,GAAG,OAAO,EAAE,MAAM,EAAE,KAAK,EAAE,CAAC,CAAC;IACtG,OAAO,QAAQ,CAAC;AAClB,CAAC;AAHD,kBAGC"}

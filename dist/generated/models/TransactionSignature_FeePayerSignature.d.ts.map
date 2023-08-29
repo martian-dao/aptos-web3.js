@@ -1,0 +1,1 @@
+{"version":3,"file":"TransactionSignature_FeePayerSignature.d.ts","sourceRoot":"","sources":["../../../src/generated/models/TransactionSignature_FeePayerSignature.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,iBAAiB,EAAE,MAAM,qBAAqB,CAAC;AAE7D,oBAAY,sCAAsC,GAAG,CAAC;IAClD,IAAI,EAAE,MAAM,CAAC;CAChB,GAAG,iBAAiB,CAAC,CAAC"}

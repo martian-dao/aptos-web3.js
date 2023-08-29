@@ -1,0 +1,1 @@
+{"version":3,"file":"WriteResource.d.ts","sourceRoot":"","sources":["../../../src/generated/models/WriteResource.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,OAAO,EAAE,MAAM,WAAW,CAAC;AACzC,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,gBAAgB,CAAC;AAEnD;;GAEG;AACH,oBAAY,aAAa,GAAG;IACxB,OAAO,EAAE,OAAO,CAAC;IACjB;;OAEG;IACH,cAAc,EAAE,MAAM,CAAC;IACvB,IAAI,EAAE,YAAY,CAAC;CACtB,CAAC"}
